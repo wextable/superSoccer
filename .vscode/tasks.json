@@ -1,0 +1,26 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build",
+      "type": "shell",
+      "command": "xcodebuild -project SuperSoccer.xcodeproj -scheme SuperSoccer -configuration Debug build",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Run SwiftLint",
+      "type": "shell",
+      "command": "swiftlint",
+      "problemMatcher": []
+    },
+    {
+      "label": "Open in Xcode",
+      "type": "shell",
+      "command": "open SuperSoccer.xcodeproj",
+      "problemMatcher": []
+    }
+  ]
+}

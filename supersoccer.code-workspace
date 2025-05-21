@@ -1,0 +1,13 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "swiftlang.swift-vscode",
+    "swift.path.swift_driver_path": "/usr/bin/swift",
+    "swift.path.sourcekit_lsp_path": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp"
+  }
+}

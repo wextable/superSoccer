@@ -11,14 +11,13 @@ import SwiftData
 @main
 struct SuperSoccerApp: App {
     private let coordinator = RootCoordinator()
-    private let dataManager: DataManager
+    private let container: DependencyContaining
     private let viewFactory: ViewFactory
     @StateObject private var router = NavigationRouter()
     
     init() {
-        let factory = SwiftDataManagerFactory()
-        dataManager = factory.makeDataManager()
-        viewFactory = AppViewFactory(dataManager: dataManager)
+        container = DependencyContainer.shared
+        viewFactory = AppViewFactory(interactorFactory: container.interactorFactory)
     }
     
     var body: some Scene {
@@ -29,7 +28,7 @@ struct SuperSoccerApp: App {
                     .transition(.opacity)
             case .main:
                 NavigationStack(path: $router.path) {
-                    viewFactory.makeTeamSelectView(router: router)
+                    viewFactory.makeTeamSelectView()
                         .modifier(NavigationConfigurator(viewFactory: viewFactory, router: router))
                 }
                 .transition(.opacity)

@@ -1,0 +1,14 @@
+included:
+  - SuperSoccer
+excluded:
+  - SuperSoccerTests
+  - SuperSoccerUITests
+  - Pods
+disabled_rules:
+  - trailing_whitespace
+opt_in_rules:
+  - empty_count
+  - force_unwrapping
+  - private_outlet
+line_length: 120
+

@@ -25,9 +25,3 @@ struct SplashViewModel {
     let imageAssetName: String
     let duration: TimeInterval
 }
-
-//#Preview {
-//    SplashView() {
-//        print("done")
-//    }
-//}

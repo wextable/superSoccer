@@ -3,17 +3,15 @@ import SwiftUI
 @MainActor
 protocol ViewFactory {
     func makeSplashView(coordinator: RootCoordinator) -> SplashView<SplashViewInteractor>
-    func makeTeamSelectView(router: NavigationRouter) -> TeamSelectView<TeamSelectInteractor>
-    func makeTeamDetailView(teamId: String, router: NavigationRouter) -> TeamDetailView<TeamDetailInteractor>
-//    func makePlayerListView(teamId: String) -> some View
+    func makeTeamSelectView() -> TeamSelectView<TeamSelectInteractor>
+    func makeTeamDetailView(teamId: String) -> TeamDetailView<TeamDetailInteractor>
 }
 
-
 final class AppViewFactory: ViewFactory {
-    private let dataManager: DataManager
+    private let interactorFactory: InteractorFactory
     
-    init(dataManager: DataManager) {
-        self.dataManager = dataManager
+    init(interactorFactory: InteractorFactory) {
+        self.interactorFactory = interactorFactory
     }
     
     func makeSplashView(coordinator: RootCoordinator) -> SplashView<SplashViewInteractor> {
@@ -21,18 +19,13 @@ final class AppViewFactory: ViewFactory {
         return SplashView(interactor: interactor)
     }
     
-    func makeTeamSelectView(router: NavigationRouter) -> TeamSelectView<TeamSelectInteractor> {
-        let interactor = TeamSelectInteractor(router: router, dataManager: dataManager)
-        return TeamSelectView(interactor: interactor)
+    func makeTeamSelectView() -> TeamSelectView<TeamSelectInteractor> {
+        let interactor = interactorFactory.makeTeamSelectInteractor()
+        return TeamSelectView(interactor: interactor as! TeamSelectInteractor)
     }
     
-    func makeTeamDetailView(teamId: String, router: NavigationRouter) -> TeamDetailView<TeamDetailInteractor> {
-        let interactor = TeamDetailInteractor(router: router, teamId: teamId, dataManager: dataManager)
-//        interactor.router = router
-        return TeamDetailView(interactor: interactor)
+    func makeTeamDetailView(teamId: String) -> TeamDetailView<TeamDetailInteractor> {
+        let interactor = interactorFactory.makeTeamDetailInteractor(teamId: teamId)
+        return TeamDetailView(interactor: interactor as! TeamDetailInteractor)
     }
-//    
-//    func makePlayerListView(teamId: String) -> some View {
-//        Text("Player List \(teamId)") // Placeholder until PlayerListView is implemented
-//    }
 }

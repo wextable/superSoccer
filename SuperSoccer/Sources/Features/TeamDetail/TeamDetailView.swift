@@ -23,9 +23,3 @@ struct TeamDetailView<Interactor: TeamDetailInteractorProtocol>: View {
         .navigationTitle(interactor.viewModel.title + "???")
     }
 }
-
-//#Preview {
-//    let clientModels = [TeamInfoClientModel.make()]
-//    let interactor = TeamSelectInteractor(clientModels: clientModels)
-//    TeamDetailView(interactor: interactor)
-//}

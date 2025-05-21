@@ -5,7 +5,6 @@
 //  Created by Wesley on 5/20/25.
 //
 
-
 extension TeamInfoClientModel {
     init(sdTeamInfo: SDTeamInfo) {
         self.teamName = sdTeamInfo.teamName

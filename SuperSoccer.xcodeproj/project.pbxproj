@@ -29,9 +29,22 @@
 		2B6C323F2DA07A7B00DAAC86 /* SuperSoccerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SuperSoccerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		2BBBB37B2DDBDFB4003A01B3 /* Exceptions for "SuperSoccer" folder in "SuperSoccer" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 2B6C32222DA07A7B00DAAC86 /* SuperSoccer */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		2B6C32252DA07A7B00DAAC86 /* SuperSoccer */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				2BBBB37B2DDBDFB4003A01B3 /* Exceptions for "SuperSoccer" folder in "SuperSoccer" target */,
+			);
 			path = SuperSoccer;
 			sourceTree = "<group>";
 		};
@@ -195,6 +208,8 @@
 			);
 			mainGroup = 2B6C321A2DA07A7B00DAAC86;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 2B6C32242DA07A7B00DAAC86 /* Products */;
 			projectDirPath = "";
@@ -395,10 +410,11 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"SuperSoccer/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"SuperSoccer/Resources/Preview Content\"";
 				DEVELOPMENT_TEAM = 4A73GN8N2F;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SuperSoccer/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -412,6 +428,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.mandudebro.SuperSoccer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -424,10 +441,11 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"SuperSoccer/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"SuperSoccer/Resources/Preview Content\"";
 				DEVELOPMENT_TEAM = 4A73GN8N2F;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SuperSoccer/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -441,6 +459,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.mandudebro.SuperSoccer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

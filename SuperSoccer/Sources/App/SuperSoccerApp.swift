@@ -11,13 +11,14 @@ import SwiftData
 @main
 struct SuperSoccerApp: App {
     private let coordinator = RootCoordinator()
-    private let container: DependencyContaining
+    private let container: DependencyContainerProtocol
     private let viewFactory: ViewFactory
-    @StateObject private var router = NavigationRouter()
+    @ObservedObject private var router: NavigationRouter
     
     init() {
         container = DependencyContainer.shared
-        viewFactory = AppViewFactory(interactorFactory: container.interactorFactory)
+        router = container.router
+        viewFactory = ViewFactory(interactorFactory: container.interactorFactory)
     }
     
     var body: some Scene {

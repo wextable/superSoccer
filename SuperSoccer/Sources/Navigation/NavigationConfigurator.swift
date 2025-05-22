@@ -9,9 +9,9 @@ import SwiftUI
 
 struct NavigationConfigurator: ViewModifier {
     @ObservedObject var router: NavigationRouter
-    private let viewFactory: ViewFactory
+    private let viewFactory: ViewFactoryProtocol
     
-    init(viewFactory: ViewFactory, router: NavigationRouter) {
+    init(viewFactory: ViewFactoryProtocol, router: NavigationRouter) {
         self.viewFactory = viewFactory
         self.router = router
     }
@@ -36,9 +36,6 @@ struct NavigationConfigurator: ViewModifier {
             viewFactory.makeTeamSelectView()
         case .teamDetail(let teamId):
             viewFactory.makeTeamDetailView(teamId: teamId)
-        case .playerList(let teamId):
-//            viewFactory.makePlayerListView(teamId: teamId)
-            viewFactory.makeTeamSelectView()
         }
     }
 }

@@ -21,17 +21,17 @@ protocol TeamSelectInteractorProtocol: AnyObject {
     
 @Observable
 final class TeamSelectInteractor: TeamSelectInteractorProtocol {
-    private let router: NavigationRouter
-    private let dataManager: DataManager
+    private let navigationCoordinator: NavigationCoordinatorProtocol
+    private let dataManager: DataManagerProtocol
     let eventBus = TeamSelectEventBus()
     
-    var viewModel: TeamSelectViewModel = .init(clientModels: []) // ?
+    var viewModel: TeamSelectViewModel = .init(clientModels: [])
     
     private var clientModels: [TeamInfoClientModel] = []
     private var cancellables = Set<AnyCancellable>()
     
-    init(router: NavigationRouter, dataManager: DataManager) {
-        self.router = router
+    init(navigationCoordinator: NavigationCoordinatorProtocol, dataManager: DataManagerProtocol) {
+        self.navigationCoordinator = navigationCoordinator
         self.dataManager = dataManager
         
         setupSubscriptions()
@@ -65,7 +65,7 @@ final class TeamSelectInteractor: TeamSelectInteractorProtocol {
     private func handleTeamSelected(teamInfoId: String) {
         // Handle the team selection event here
         print("Team selected with ID: \(teamInfoId)")
-        router.navigate(to: .teamDetail(teamId: teamInfoId))
+        navigationCoordinator.navigateToScreen(.teamDetail(teamId: teamInfoId))
     }
 }
 
@@ -86,3 +86,17 @@ extension TeamThumbnailViewModel {
         )
     }
 }
+
+#if DEBUG
+class MockTeamSelectInteractor: TeamSelectInteractorProtocol {
+    var mockTeamModels: [TeamThumbnailViewModel] = [
+        TeamThumbnailViewModel(teamInfoId: "1", text: "Team A"),
+        TeamThumbnailViewModel(teamInfoId: "2", text: "Team B"),
+        TeamThumbnailViewModel(teamInfoId: "3", text: "Team C")
+    ]
+    var viewModel: TeamSelectViewModel {
+        TeamSelectViewModel(title: "Select a team", teamModels: mockTeamModels)
+    }
+    var eventBus: TeamSelectEventBus = TeamSelectEventBus()
+}
+#endif

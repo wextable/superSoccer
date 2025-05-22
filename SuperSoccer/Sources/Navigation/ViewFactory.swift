@@ -1,16 +1,16 @@
 import SwiftUI
 
 @MainActor
-protocol ViewFactory {
+protocol ViewFactoryProtocol {
     func makeSplashView(coordinator: RootCoordinator) -> SplashView<SplashViewInteractor>
     func makeTeamSelectView() -> TeamSelectView<TeamSelectInteractor>
     func makeTeamDetailView(teamId: String) -> TeamDetailView<TeamDetailInteractor>
 }
 
-final class AppViewFactory: ViewFactory {
-    private let interactorFactory: InteractorFactory
+final class ViewFactory: ViewFactoryProtocol {
+    private let interactorFactory: InteractorFactoryProtocol
     
-    init(interactorFactory: InteractorFactory) {
+    init(interactorFactory: InteractorFactoryProtocol) {
         self.interactorFactory = interactorFactory
     }
     

@@ -8,7 +8,7 @@
 import Combine
 import Foundation
 
-final class SwiftDataManager: DataManager {
+final class SwiftDataManager: DataManagerProtocol {
     private let storage: SwiftDataStorageProtocol
         
     @Published private var teamsSubject: [TeamClientModel] = []

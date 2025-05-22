@@ -25,3 +25,17 @@ struct TeamSelectView<Interactor: TeamSelectInteractorProtocol>: View {
         .navigationTitle(interactor.viewModel.title)
     }
 }
+
+#if DEBUG
+extension TeamSelectViewModel {
+    static func make(
+        title: String = "Auburn Tigers",
+        teamModels: [TeamThumbnailViewModel] = [.make(), .make(teamInfoId: "2", text: "Alabama Crimson Tide Losers")]
+    ) -> Self {
+        self.init(
+            title: title,
+            teamModels: teamModels
+        )
+    }
+}
+#endif

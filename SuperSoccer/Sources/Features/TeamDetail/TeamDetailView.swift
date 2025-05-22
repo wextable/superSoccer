@@ -19,7 +19,20 @@ struct TeamDetailView<Interactor: TeamDetailInteractorProtocol>: View {
         Text(interactor.viewModel.teamName)
             .font(.largeTitle)
             .padding()
-            .navigationBarTitle(interactor.viewModel.title, displayMode: .inline)
-        .navigationTitle(interactor.viewModel.title + "???")
+            .navigationTitle(interactor.viewModel.title)
     }
 }
+
+#if DEBUG
+extension TeamDetailViewModel {
+    static func make(
+        title: String = "Your Team",
+        teamName: String = "Auburn Tigers"
+    ) -> Self {
+        self.init(
+            title: title,
+            teamName: teamName
+        )
+    }
+}
+#endif

@@ -1,21 +1,18 @@
 import SwiftUI
 import Combine
 
-@Observable
 final class NavigationRouter: ObservableObject {
-    var path = NavigationPath()
-    var presentedSheet: Screen?
+    @Published var path = NavigationPath()
+    @Published var presentedSheet: Screen?
     
     enum Screen: Hashable, Identifiable {
         case teamSelect
         case teamDetail(teamId: String)
-        case playerList(teamId: String)
         
         var id: String {
             switch self {
             case .teamSelect: return "teamSelect"
             case .teamDetail(let id): return "teamDetail-\(id)"
-            case .playerList(let id): return "playerList-\(id)"
             }
         }
     }

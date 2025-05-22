@@ -22,5 +22,20 @@ struct TeamThumbnailView: View {
 }
 
 #Preview {
-    TeamThumbnailView(viewModel: .init(teamInfoId: "1", text: "San Fransisco 49ers"))
+    TeamThumbnailView(viewModel: .make())
 }
+
+
+#if DEBUG
+extension TeamThumbnailViewModel {
+    static func make(
+        teamInfoId: String = "1",
+        text: String = "Auburn Tigers"
+    ) -> Self {
+        self.init(
+            teamInfoId: teamInfoId,
+            text: text
+        )
+    }
+}
+#endif

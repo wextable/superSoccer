@@ -2,6 +2,11 @@ import Combine
 import SwiftData
 import SwiftUI
 
+struct SplashViewModel {
+    let imageAssetName: String
+    let duration: TimeInterval
+}
+
 struct SplashView<Interactor: SplashViewInteractorProtocol>: View {
     let interactor: Interactor
     @State private var isActive = false
@@ -21,7 +26,16 @@ struct SplashView<Interactor: SplashViewInteractorProtocol>: View {
     }
 }
 
-struct SplashViewModel {
-    let imageAssetName: String
-    let duration: TimeInterval
+#if DEBUG
+extension SplashViewModel {
+    static func make(
+        imageAssetName: String = "SuperSoccerLaunch",
+        duration: TimeInterval = 1.0
+    ) -> Self {
+        self.init(
+            imageAssetName: imageAssetName,
+            duration: duration
+        )
+    }
 }
+#endif

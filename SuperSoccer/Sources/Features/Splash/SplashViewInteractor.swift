@@ -49,3 +49,10 @@ final class SplashViewInteractor: SplashViewInteractorProtocol {
             .store(in: &cancellables)
     }
 }
+
+#if DEBUG
+class MockSplashViewInteractor: SplashViewInteractorProtocol {
+    var viewModel: SplashViewModel = SplashViewModel.make()
+    var eventBus: SplashEventBus = SplashEventBus()
+}
+#endif

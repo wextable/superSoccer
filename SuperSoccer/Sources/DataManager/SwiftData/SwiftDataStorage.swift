@@ -32,3 +32,21 @@ class SwiftDataStorage: SwiftDataStorageProtocol {
         modelContext.delete(team)
     }
 }
+
+#if DEBUG
+class MockSwiftDataStorage: SwiftDataStorageProtocol {
+    var mockTeams: [SDTeam] = []
+
+    func fetchTeams() -> [SDTeam] {
+        return mockTeams
+    }
+
+    func addTeam(_ team: SDTeam) {
+        mockTeams.append(team)
+    }
+    
+    func deleteTeam(_ team: SDTeam) {
+        mockTeams.removeAll(where: { $0.id == team.id })
+    }
+}
+#endif

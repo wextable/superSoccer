@@ -21,18 +21,18 @@ protocol TeamDetailInteractorProtocol: AnyObject {
     
 @Observable
 final class TeamDetailInteractor: TeamDetailInteractorProtocol {
-    private let router: NavigationRouter
+    private let navigationCoordinator: NavigationCoordinatorProtocol
     private let teamId: String
-    private let dataManager: DataManager
+    private let dataManager: DataManagerProtocol
     let eventBus = TeamDetailEventBus()
     
-    var viewModel: TeamDetailViewModel = .init(title: "Your fucking team", teamName: "Your team name!")
+    var viewModel: TeamDetailViewModel = .init(title: "Team Details", teamName: "Loading...")
     
     private var clientModels: [TeamInfoClientModel] = []
     private var cancellables = Set<AnyCancellable>()
     
-    init(router: NavigationRouter, teamId: String, dataManager: DataManager) {
-        self.router = router
+    init(navigationCoordinator: NavigationCoordinatorProtocol, teamId: String, dataManager: DataManagerProtocol) {
+        self.navigationCoordinator = navigationCoordinator
         self.teamId = teamId
         self.dataManager = dataManager
         
@@ -75,8 +75,15 @@ final class TeamDetailInteractor: TeamDetailInteractorProtocol {
 extension TeamDetailViewModel {
     init(clientModel: TeamClientModel) {
         self.init(
-            title: "Your fucking team:",
+            title: "Team Details",
             teamName: clientModel.info.city + " " + clientModel.info.teamName
         )
     }
 }
+
+#if DEBUG
+class MockTeamDetailInteractor: TeamDetailInteractorProtocol {
+    var viewModel: TeamDetailViewModel = TeamDetailViewModel.make()
+    var eventBus: TeamDetailEventBus = TeamDetailEventBus()
+}
+#endif

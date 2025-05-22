@@ -5,32 +5,42 @@
 //  Created by Wesley on 5/21/25.
 //
 
-protocol InteractorFactory {
+protocol InteractorFactoryProtocol {
     func makeTeamSelectInteractor() -> TeamSelectInteractorProtocol
     func makeTeamDetailInteractor(teamId: String) -> TeamDetailInteractorProtocol
 }
 
-final class DefaultInteractorFactory: InteractorFactory {
-    private let dependencies: DependencyContaining
-    private let router: NavigationRouter
+final class InteractorFactory: InteractorFactoryProtocol {
+    private let dependencies: DependencyContainerProtocol
     
-    init(dependencies: DependencyContaining, router: NavigationRouter) {
+    init(dependencies: DependencyContainerProtocol) {
         self.dependencies = dependencies
-        self.router = router
     }
     
     func makeTeamSelectInteractor() -> TeamSelectInteractorProtocol {
         return TeamSelectInteractor(
-            router: router,
+            navigationCoordinator: dependencies.navigationCoordinator,
             dataManager: dependencies.dataManager
         )
     }
     
     func makeTeamDetailInteractor(teamId: String) -> TeamDetailInteractorProtocol {
         return TeamDetailInteractor(
-            router: router,
+            navigationCoordinator: dependencies.navigationCoordinator,
             teamId: teamId,
             dataManager: dependencies.dataManager
         )
     }
 }
+
+#if DEBUG
+class MockInteractorFactory: InteractorFactoryProtocol {
+    func makeTeamSelectInteractor() -> TeamSelectInteractorProtocol {
+        return MockTeamSelectInteractor()
+    }
+    
+    func makeTeamDetailInteractor(teamId: String) -> TeamDetailInteractorProtocol {
+        return MockTeamDetailInteractor()
+    }
+}
+#endif

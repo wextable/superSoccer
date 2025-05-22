@@ -9,7 +9,7 @@ import SwiftUI
 import SwiftData
 
 @MainActor
-final class SwiftDataManagerFactory: DataManagerFactory {
+final class SwiftDataManagerFactory: DataManagerFactoryProtocol {
     static let shared = SwiftDataManagerFactory()
     
     let sharedModelContainer: ModelContainer = {
@@ -31,7 +31,7 @@ final class SwiftDataManagerFactory: DataManagerFactory {
         
     }
     
-    func makeDataManager() -> DataManager {
+    func makeDataManager() -> DataManagerProtocol {
         let storage = SwiftDataStorage(modelContext: sharedModelContainer.mainContext)
         let dataManager = SwiftDataManager(storage: storage)
         

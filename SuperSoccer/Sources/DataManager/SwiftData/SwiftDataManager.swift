@@ -11,12 +11,12 @@ import Foundation
 final class SwiftDataManager: DataManagerProtocol {
     private let storage: SwiftDataStorageProtocol
         
-    @Published private var teamsSubject: [TeamClientModel] = []
-    lazy var teamPublisher: AnyPublisher<[TeamClientModel], Never> = $teamsSubject.eraseToAnyPublisher()
+    @Published private var teamsSubject: [Team] = []
+    lazy var teamPublisher: AnyPublisher<[Team], Never> = $teamsSubject.eraseToAnyPublisher()
     private var swiftDataTeams: [SDTeam] = [] {
         didSet {
             teamsSubject = swiftDataTeams.map {
-                TeamClientModel(sdTeam: $0)
+                Team(sdTeam: $0)
             }
         }
     }
@@ -25,18 +25,13 @@ final class SwiftDataManager: DataManagerProtocol {
         self.storage = storage
         swiftDataTeams = storage.fetchTeams()
         teamsSubject = swiftDataTeams.map {
-            TeamClientModel(sdTeam: $0)
+            Team(sdTeam: $0)
         }
     }
     
-    func addNewTeam() {
-        let team = SDTeam()
-        storage.addTeam(team)
-        swiftDataTeams = storage.fetchTeams()
-    }
-    
-    func addNewTeam(_ team: SDTeam) {
-        storage.addTeam(team)
+    func addNewTeam(_ team: Team) {
+        let sdTeam = SDTeam(clientModel: team)
+        storage.addTeam(sdTeam)
         swiftDataTeams = storage.fetchTeams()
     }
     
@@ -47,3 +42,5 @@ final class SwiftDataManager: DataManagerProtocol {
         swiftDataTeams = storage.fetchTeams()
     }
 }
+
+

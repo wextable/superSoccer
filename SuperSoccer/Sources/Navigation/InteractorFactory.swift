@@ -6,6 +6,7 @@
 //
 
 protocol InteractorFactoryProtocol {
+    func makeMainMenuInteractor() -> MainMenuInteractorProtocol
     func makeTeamSelectInteractor() -> TeamSelectInteractorProtocol
     func makeTeamDetailInteractor(teamId: String) -> TeamDetailInteractorProtocol
 }
@@ -17,6 +18,13 @@ final class InteractorFactory: InteractorFactoryProtocol {
         self.dependencies = dependencies
     }
     
+    func makeMainMenuInteractor() -> MainMenuInteractorProtocol {
+        return MainMenuInteractor(
+            navigationCoordinator: dependencies.navigationCoordinator,
+            dataManager: dependencies.dataManager
+        )
+    }
+
     func makeTeamSelectInteractor() -> TeamSelectInteractorProtocol {
         return TeamSelectInteractor(
             navigationCoordinator: dependencies.navigationCoordinator,
@@ -35,6 +43,10 @@ final class InteractorFactory: InteractorFactoryProtocol {
 
 #if DEBUG
 class MockInteractorFactory: InteractorFactoryProtocol {
+    func makeMainMenuInteractor() -> any MainMenuInteractorProtocol {
+        return MockMainMenuInteractor()
+    }
+    
     func makeTeamSelectInteractor() -> TeamSelectInteractorProtocol {
         return MockTeamSelectInteractor()
     }

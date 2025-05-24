@@ -10,5 +10,22 @@ import SwiftData
 @testable import SuperSoccer
 
 struct SwiftDataManagerFactoryTests {
-    // Test functions will be added here
+    
+    @Test func testMakeSwiftDataManager() async throws {
+        // Arrange
+        let factory = await SwiftDataManagerFactory.shared
+        
+        // Act
+        let manager = await factory.makeDataManager()
+        
+        // Assert
+        var receivedTeams: [Team] = []
+        let cancellable = manager.teamPublisher.sink { teams in
+            receivedTeams = teams
+        }
+        
+        #expect(receivedTeams.count == 2)
+        
+        cancellable.cancel()
+    }
 }

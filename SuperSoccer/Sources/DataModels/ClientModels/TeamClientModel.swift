@@ -1,5 +1,5 @@
 //
-//  TeamClientModel.swift
+//  Team.swift
 //  SuperSoccer
 //
 //  Created by Wesley on 5/15/25.
@@ -7,37 +7,41 @@
 
 import Foundation
 
-struct TeamInfoClientModel: Identifiable {
-    let id = UUID().uuidString
+struct TeamInfo: Identifiable {
+    let id: String
     let city: String
     let teamName: String
 }
 
-struct TeamClientModel: Identifiable {
-    let id = UUID().uuidString
-    let info: TeamInfoClientModel
-    let players: [PlayerClientModel]
+struct Team: Identifiable {
+    let id: String
+    let info: TeamInfo
+    let players: [Player]
 }
 
 #if DEBUG
-extension TeamInfoClientModel {
+extension TeamInfo {
     static func make(
+        id: String = "1",
         city: String = "San Francisco",
         teamName: String = "49ers"
-    ) -> TeamInfoClientModel {
-        return TeamInfoClientModel(
+    ) -> TeamInfo {
+        return TeamInfo(
+            id: id,
             city: city,
             teamName: teamName
         )
     }
 }
 
-extension TeamClientModel {
+extension Team {
     static func make(
-        info: TeamInfoClientModel = .make(),
-        players: [PlayerClientModel] = [.make()]
-    ) -> TeamClientModel {
-        return TeamClientModel(
+        id: String = "1",
+        info: TeamInfo = .make(),
+        players: [Player] = [.make()]
+    ) -> Team {
+        return Team(
+            id: id,
             info: info,
             players: players
         )

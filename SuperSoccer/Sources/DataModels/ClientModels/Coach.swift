@@ -1,26 +1,24 @@
 //
-//  Player.swift
+//  Coach.swift
 //  SuperSoccer
 //
-//  Created by Wesley on 5/16/25.
+//  Created by Wesley on 5/23/25.
 //
 
-import Foundation
-
-struct Player: Identifiable {
+struct Coach: Identifiable {
     let id: String
     let firstName: String
     let lastName: String
 }
 
 #if DEBUG
-extension Player {
+extension Coach {
     static func make(
         id: String = "1",
         firstName: String = "Bo",
         lastName: String = "Nix"
-    ) -> Player {
-        return Player(
+    ) -> Coach {
+        return Coach(
             id: id,
             firstName: firstName,
             lastName: lastName

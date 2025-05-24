@@ -27,7 +27,7 @@ final class TeamSelectInteractor: TeamSelectInteractorProtocol {
     
     var viewModel: TeamSelectViewModel = .init(clientModels: [])
     
-    private var clientModels: [TeamInfoClientModel] = []
+    private var clientModels: [TeamInfo] = []
     private var cancellables = Set<AnyCancellable>()
     
     init(navigationCoordinator: NavigationCoordinatorProtocol, dataManager: DataManagerProtocol) {
@@ -69,25 +69,18 @@ final class TeamSelectInteractor: TeamSelectInteractorProtocol {
     }
 }
 
-extension TeamSelectViewModel {
-    init(clientModels: [TeamInfoClientModel]) {
-        self.init(
-            title: "Select a team",
-            teamModels: clientModels.map { TeamThumbnailViewModel(clientModel: $0) }
-        )
-    }
-}
-
-extension TeamThumbnailViewModel {
-    init(clientModel: TeamInfoClientModel) {
-        self.init(
-            teamInfoId: clientModel.id,
-            text: clientModel.city + " " + clientModel.teamName
-        )
-    }
-}
-
 #if DEBUG
+extension TeamSelectInteractor {
+    var testHooks: TestHooks { TestHooks(target: self) }
+    
+    struct TestHooks {
+        let target: TeamSelectInteractor
+        
+        var navigationCoordinator: NavigationCoordinatorProtocol { target.navigationCoordinator }
+        var dataManager: DataManagerProtocol { target.dataManager }
+    }
+}
+
 class MockTeamSelectInteractor: TeamSelectInteractorProtocol {
     var mockTeamModels: [TeamThumbnailViewModel] = [
         TeamThumbnailViewModel(teamInfoId: "1", text: "Team A"),

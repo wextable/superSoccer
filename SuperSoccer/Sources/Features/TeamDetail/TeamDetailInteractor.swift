@@ -28,7 +28,7 @@ final class TeamDetailInteractor: TeamDetailInteractorProtocol {
     
     var viewModel: TeamDetailViewModel = .init(title: "Team Details", teamName: "Loading...")
     
-    private var clientModels: [TeamInfoClientModel] = []
+    private var clientModels: [TeamInfo] = []
     private var cancellables = Set<AnyCancellable>()
     
     init(navigationCoordinator: NavigationCoordinatorProtocol, teamId: String, dataManager: DataManagerProtocol) {
@@ -47,7 +47,7 @@ final class TeamDetailInteractor: TeamDetailInteractorProtocol {
     private func subscribeToDataSource() {
         dataManager.teamPublisher
             .compactMap { [weak self] teams in
-                teams.first(where: { $0.info.id == self?.teamId })
+                teams.first(where: { $0.id == self?.teamId })
             }
             .sink { [weak self] team in
                 guard let self else { return }
@@ -72,16 +72,19 @@ final class TeamDetailInteractor: TeamDetailInteractorProtocol {
     }
 }
 
-extension TeamDetailViewModel {
-    init(clientModel: TeamClientModel) {
-        self.init(
-            title: "Team Details",
-            teamName: clientModel.info.city + " " + clientModel.info.teamName
-        )
+#if DEBUG
+extension TeamDetailInteractor {
+    var testHooks: TestHooks { TestHooks(target: self) }
+    
+    struct TestHooks {
+        let target: TeamDetailInteractor
+        
+        var navigationCoordinator: NavigationCoordinatorProtocol { target.navigationCoordinator }
+        var dataManager: DataManagerProtocol { target.dataManager }
+        var teamId: String { target.teamId }
     }
 }
 
-#if DEBUG
 class MockTeamDetailInteractor: TeamDetailInteractorProtocol {
     var viewModel: TeamDetailViewModel = TeamDetailViewModel.make()
     var eventBus: TeamDetailEventBus = TeamDetailEventBus()

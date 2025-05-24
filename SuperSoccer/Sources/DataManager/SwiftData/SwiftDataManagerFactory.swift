@@ -12,12 +12,14 @@ import SwiftData
 final class SwiftDataManagerFactory: DataManagerFactoryProtocol {
     static let shared = SwiftDataManagerFactory()
     
-    let sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            SDTeamInfo.self,
-            SDTeam.self,
-            SDPlayer.self
-        ])
+    static let schema = Schema([
+        SDTeamInfo.self,
+        SDTeam.self,
+        SDPlayer.self
+    ])
+    
+    private let sharedModelContainer: ModelContainer = {
+        let schema = SwiftDataManagerFactory.schema
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
         do {
@@ -35,18 +37,20 @@ final class SwiftDataManagerFactory: DataManagerFactoryProtocol {
         let storage = SwiftDataStorage(modelContext: sharedModelContainer.mainContext)
         let dataManager = SwiftDataManager(storage: storage)
         
-        // Add our initial teams if none exist
-        if storage.fetchTeams().isEmpty {
-            let auburnInfo = SDTeamInfo(city: "Auburn", teamName: "Tigers")
-            let auburnTeam = SDTeam(info: auburnInfo, players: [])
-            
-            let alabamaInfo = SDTeamInfo(city: "Alabama", teamName: "Crimson Tide Losers")
-            let alabamaTeam = SDTeam(info: alabamaInfo, players: [])
-            
-            dataManager.addNewTeam(auburnTeam)
-            dataManager.addNewTeam(alabamaTeam)
-        }
-        
         return dataManager
     }
 }
+
+#if DEBUG
+extension SwiftDataManagerFactory {
+    static var mockModelContainer: ModelContainer {
+        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+
+        do {
+            return try ModelContainer(for: schema, configurations: [modelConfiguration])
+        } catch {
+            fatalError("Could not create ModelContainer: \(error)")
+        }
+    }
+}
+#endif

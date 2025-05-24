@@ -9,20 +9,18 @@ import Combine
 import Foundation
 
 protocol DataManagerProtocol {
-    var teamPublisher: AnyPublisher<[TeamClientModel], Never> { get }
-    func addNewTeam(_ team: SDTeam)
+    var teamPublisher: AnyPublisher<[Team], Never> { get }
+    func addNewTeam(_ team: Team)
     func deleteTeams(at offsets: IndexSet)
 }
 
 #if DEBUG
 class MockDataManager: DataManagerProtocol {
-    var mockTeams: [TeamClientModel] = []
-    var teamPublisher: AnyPublisher<[TeamClientModel], Never> {
-        Just(mockTeams).eraseToAnyPublisher()
-    }
+    @Published var mockTeams: [Team] = []
+    lazy var teamPublisher: AnyPublisher<[Team], Never> = $mockTeams.eraseToAnyPublisher()
     
-    var mockAddedTeam: TeamClientModel = .make()
-    func addNewTeam(_ team: SDTeam) {
+    var mockAddedTeam: Team = .make()
+    func addNewTeam(_ team: Team) {
         mockTeams.append(mockAddedTeam)
     }
     

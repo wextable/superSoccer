@@ -29,7 +29,7 @@ struct SuperSoccerApp: App {
                     .transition(.opacity)
             case .main:
                 NavigationStack(path: $router.path) {
-                    viewFactory.makeTeamSelectView()
+                    viewFactory.makeMainMenuView()
                         .modifier(NavigationConfigurator(viewFactory: viewFactory, router: router))
                 }
                 .transition(.opacity)

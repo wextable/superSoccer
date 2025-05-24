@@ -4,6 +4,8 @@
 //
 //  Created by Wesley on 4/4/25.
 //
+
+import Foundation
 import SwiftData
 
 protocol SwiftDataStorageProtocol {
@@ -17,11 +19,29 @@ class SwiftDataStorage: SwiftDataStorageProtocol {
     
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
+        
+        populateStaticData()
+    }
+    
+    private func populateStaticData() {
+        // Add our initial teams if none exist
+        if fetchTeams().isEmpty {
+            let auburnInfo = SDTeamInfo(city: "Auburn", teamName: "Tigers")
+            let auburnTeam = SDTeam(info: auburnInfo, players: [])
+            
+            let alabamaInfo = SDTeamInfo(city: "Alabama", teamName: "Crimson Tide Losers")
+            let alabamaTeam = SDTeam(info: alabamaInfo, players: [])
+            
+            addTeam(auburnTeam)
+            addTeam(alabamaTeam)
+        }
     }
     
     func fetchTeams() -> [SDTeam] {
-        // Using try? for simplicity here
-        return (try? modelContext.fetch(FetchDescriptor<SDTeam>())) ?? []
+        let descriptor = FetchDescriptor<SDTeam>(
+            sortBy: [SortDescriptor(\.info.city)]
+        )
+        return (try? modelContext.fetch(descriptor)) ?? []
     }
     
     func addTeam(_ team: SDTeam) {

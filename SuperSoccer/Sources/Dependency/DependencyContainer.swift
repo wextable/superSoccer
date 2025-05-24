@@ -17,7 +17,7 @@ final class DependencyContainer: DependencyContainerProtocol {
     static let shared = DependencyContainer()
     
     // Dependencies
-//    @MainActor
+    @MainActor
     private(set) lazy var dataManager: DataManagerProtocol = {
         SwiftDataManagerFactory.shared.makeDataManager()
     }()

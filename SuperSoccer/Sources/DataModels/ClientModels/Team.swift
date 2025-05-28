@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct TeamInfo: Identifiable {
+struct TeamInfo: Identifiable, Hashable, Equatable {
     let id: String
     let city: String
     let teamName: String
@@ -15,6 +15,7 @@ struct TeamInfo: Identifiable {
 
 struct Team: Identifiable {
     let id: String
+    let coach: Coach
     let info: TeamInfo
     let players: [Player]
 }
@@ -37,11 +38,13 @@ extension TeamInfo {
 extension Team {
     static func make(
         id: String = "1",
+        coach: Coach = .make(),
         info: TeamInfo = .make(),
         players: [Player] = [.make()]
     ) -> Team {
         return Team(
             id: id,
+            coach: coach,
             info: info,
             players: players
         )

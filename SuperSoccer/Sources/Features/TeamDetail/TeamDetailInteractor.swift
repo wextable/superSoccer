@@ -22,7 +22,7 @@ protocol TeamDetailInteractorProtocol: AnyObject {
 @Observable
 final class TeamDetailInteractor: TeamDetailInteractorProtocol {
     private let navigationCoordinator: NavigationCoordinatorProtocol
-    private let teamId: String
+    private let teamInfo: TeamInfo
     private let dataManager: DataManagerProtocol
     let eventBus = TeamDetailEventBus()
     
@@ -31,9 +31,13 @@ final class TeamDetailInteractor: TeamDetailInteractorProtocol {
     private var clientModels: [TeamInfo] = []
     private var cancellables = Set<AnyCancellable>()
     
-    init(navigationCoordinator: NavigationCoordinatorProtocol, teamId: String, dataManager: DataManagerProtocol) {
+    init(
+        navigationCoordinator: NavigationCoordinatorProtocol,
+        teamInfo: TeamInfo,
+        dataManager: DataManagerProtocol
+    ) {
         self.navigationCoordinator = navigationCoordinator
-        self.teamId = teamId
+        self.teamInfo = teamInfo
         self.dataManager = dataManager
         
         setupSubscriptions()
@@ -47,7 +51,7 @@ final class TeamDetailInteractor: TeamDetailInteractorProtocol {
     private func subscribeToDataSource() {
         dataManager.teamPublisher
             .compactMap { [weak self] teams in
-                teams.first(where: { $0.id == self?.teamId })
+                teams.first(where: { $0.id == self?.teamInfo.id })
             }
             .sink { [weak self] team in
                 guard let self else { return }
@@ -81,7 +85,7 @@ extension TeamDetailInteractor {
         
         var navigationCoordinator: NavigationCoordinatorProtocol { target.navigationCoordinator }
         var dataManager: DataManagerProtocol { target.dataManager }
-        var teamId: String { target.teamId }
+        var teamInfo: TeamInfo { target.teamInfo }
     }
 }
 

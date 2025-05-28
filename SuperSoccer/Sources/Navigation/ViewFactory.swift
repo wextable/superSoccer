@@ -4,8 +4,9 @@ import SwiftUI
 protocol ViewFactoryProtocol {
     func makeSplashView(coordinator: RootCoordinator) -> SplashView<SplashViewInteractor>
     func makeMainMenuView() -> MainMenuView<MainMenuInteractor>
+    func makeNewGameView() -> NewGameView<NewGameInteractor>
     func makeTeamSelectView() -> TeamSelectView<TeamSelectInteractor>
-    func makeTeamDetailView(teamId: String) -> TeamDetailView<TeamDetailInteractor>
+    func makeTeamDetailView(teamInfo: TeamInfo) -> TeamDetailView<TeamDetailInteractor>
 }
 
 final class ViewFactory: ViewFactoryProtocol {
@@ -24,14 +25,19 @@ final class ViewFactory: ViewFactoryProtocol {
         let interactor = interactorFactory.makeMainMenuInteractor()
         return MainMenuView(interactor: interactor as! MainMenuInteractor)
     }
+    
+    func makeNewGameView() -> NewGameView<NewGameInteractor> {
+        let interactor = interactorFactory.makeNewGameInteractor()
+        return NewGameView(interactor: interactor as! NewGameInteractor)
+    }
 
     func makeTeamSelectView() -> TeamSelectView<TeamSelectInteractor> {
         let interactor = interactorFactory.makeTeamSelectInteractor()
         return TeamSelectView(interactor: interactor as! TeamSelectInteractor)
     }
     
-    func makeTeamDetailView(teamId: String) -> TeamDetailView<TeamDetailInteractor> {
-        let interactor = interactorFactory.makeTeamDetailInteractor(teamId: teamId)
+    func makeTeamDetailView(teamInfo: TeamInfo) -> TeamDetailView<TeamDetailInteractor> {
+        let interactor = interactorFactory.makeTeamDetailInteractor(teamInfo: teamInfo)
         return TeamDetailView(interactor: interactor as! TeamDetailInteractor)
     }
 }

@@ -13,11 +13,11 @@ extension TeamInfo {
     }
 }
 
-extension Team {
-    init(sdTeam: SDTeam) {
-        self.id = sdTeam.id
-        self.info = TeamInfo(sdTeamInfo: sdTeam.info)
-        self.players = sdTeam.players.map { Player(sdPlayer: $0) }
+extension Coach {
+    init(sdCoach: SDCoach) {
+        self.id = sdCoach.id
+        self.firstName = sdCoach.firstName
+        self.lastName = sdCoach.lastName
     }
 }
 
@@ -26,5 +26,14 @@ extension Player {
         self.id = sdPlayer.id
         self.firstName = sdPlayer.firstName
         self.lastName = sdPlayer.lastName
+    }
+}
+
+extension Team {
+    init(sdTeam: SDTeam) {
+        self.id = sdTeam.id
+        self.coach = Coach(sdCoach: sdTeam.coach)
+        self.info = TeamInfo(sdTeamInfo: sdTeam.info)
+        self.players = sdTeam.players.map { Player(sdPlayer: $0) }
     }
 }

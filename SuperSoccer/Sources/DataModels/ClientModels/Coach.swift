@@ -5,7 +5,7 @@
 //  Created by Wesley on 5/23/25.
 //
 
-struct Coach: Identifiable {
+struct Coach: Identifiable, Hashable, Equatable {
     let id: String
     let firstName: String
     let lastName: String
@@ -15,8 +15,8 @@ struct Coach: Identifiable {
 extension Coach {
     static func make(
         id: String = "1",
-        firstName: String = "Bo",
-        lastName: String = "Nix"
+        firstName: String = "Hugh",
+        lastName: String = "Freeze"
     ) -> Coach {
         return Coach(
             id: id,

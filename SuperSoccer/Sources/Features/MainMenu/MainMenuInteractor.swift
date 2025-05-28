@@ -67,11 +67,9 @@ final class MainMenuInteractor: MainMenuInteractorProtocol {
     
     private func handleNewGameSelected() {
         // TODO: create a new game in data manager, pass the ID or something to the next screen
-        navigationCoordinator.navigateToScreen(.teamSelect)
+        navigationCoordinator.navigateToScreen(.newGame)
     }
 }
-
-
 
 #if DEBUG
 extension MainMenuInteractor {

@@ -29,6 +29,17 @@ final class SwiftDataManager: DataManagerProtocol {
         }
     }
     
+    func teamInfos() -> [TeamInfo] {
+        let sdTeamInfos = storage.fetchTeamInfos()
+        return sdTeamInfos.map { TeamInfo(sdTeamInfo: $0) }
+    }
+    
+    func addCoach(_ coach: Coach) {
+        let sdCoach = SDCoach(clientModel: coach)
+        storage.addCoach(sdCoach)
+        swiftDataTeams = storage.fetchTeams()
+    }
+    
     func addNewTeam(_ team: Team) {
         let sdTeam = SDTeam(clientModel: team)
         storage.addTeam(sdTeam)
@@ -43,4 +54,8 @@ final class SwiftDataManager: DataManagerProtocol {
     }
 }
 
-
+extension SwiftDataManager {
+    struct Data {
+        let coaches: [Coach]
+    }
+}

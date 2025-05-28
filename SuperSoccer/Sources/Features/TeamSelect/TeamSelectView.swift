@@ -19,7 +19,7 @@ struct TeamSelectView<Interactor: TeamSelectInteractorProtocol>: View {
         List(interactor.viewModel.teamModels) { teamModel in
             TeamThumbnailView(viewModel: teamModel)
                 .onTapGesture {
-                    interactor.eventBus.send(.teamSelected(teamInfoId: teamModel.teamInfoId))
+                    interactor.eventBus.send(.teamSelected(teamId: teamModel.id))
                 }
         }
         .navigationTitle(interactor.viewModel.title)
@@ -30,7 +30,7 @@ struct TeamSelectView<Interactor: TeamSelectInteractorProtocol>: View {
 extension TeamSelectViewModel {
     static func make(
         title: String = "Auburn Tigers",
-        teamModels: [TeamThumbnailViewModel] = [.make(), .make(teamInfoId: "2", text: "Alabama Crimson Tide Losers")]
+        teamModels: [TeamThumbnailViewModel] = [.make(), .make(text: "Alabama Crimson Tide Losers")]
     ) -> Self {
         self.init(
             title: title,

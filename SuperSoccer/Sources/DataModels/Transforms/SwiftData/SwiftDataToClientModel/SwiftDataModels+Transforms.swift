@@ -14,11 +14,11 @@ extension SDTeamInfo {
     }
 }
 
-extension SDTeam {
-    convenience init(clientModel: Team) {
+extension SDCoach {
+    convenience init(clientModel: Coach) {
         self.init(
-            info: SDTeamInfo(clientModel: clientModel.info),
-            players: clientModel.players.map { SDPlayer(clientModel: $0) }
+            firstName: clientModel.firstName,
+            lastName: clientModel.lastName
         )
     }
 }
@@ -28,6 +28,16 @@ extension SDPlayer {
         self.init(
             firstName: clientModel.firstName,
             lastName: clientModel.lastName
+        )
+    }
+}
+
+extension SDTeam {
+    convenience init(clientModel: Team) {
+        self.init(
+            coach: SDCoach(clientModel: clientModel.coach),
+            info: SDTeamInfo(clientModel: clientModel.info),
+            players: clientModel.players.map { SDPlayer(clientModel: $0) }
         )
     }
 }

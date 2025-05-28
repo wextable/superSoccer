@@ -69,18 +69,6 @@ final class NavigationCoordinator: NavigationCoordinatorProtocol {
     func dismissSheet() {
         router.dismissSheet()
     }
-    
-    // MARK: - Feature-specific navigation methods
-    
-    /// Navigate to the team detail screen for a specific team
-    func navigateToTeamDetail(teamId: String) {
-        navigateToScreen(.teamDetail(teamId: teamId))
-    }
-    
-    /// Navigate to the team selection screen
-    func navigateToTeamSelection() {
-        navigateToScreen(.teamSelect)
-    }
 }
 
 #if DEBUG

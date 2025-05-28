@@ -30,7 +30,6 @@ struct MenuItemView: View {
     }
 }
 
-
 struct MainMenuViewModel {
     let title: String
     let menuItemModels: [MenuItemViewModel]

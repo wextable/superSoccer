@@ -8,8 +8,7 @@
 import SwiftUI
 
 struct TeamThumbnailViewModel: Identifiable {
-    var id: String { teamInfoId }
-    let teamInfoId: String
+    let id: String
     let text: String
 }
 
@@ -25,15 +24,14 @@ struct TeamThumbnailView: View {
     TeamThumbnailView(viewModel: .make())
 }
 
-
 #if DEBUG
 extension TeamThumbnailViewModel {
     static func make(
-        teamInfoId: String = "1",
+        id: String = "1",
         text: String = "Auburn Tigers"
     ) -> Self {
         self.init(
-            teamInfoId: teamInfoId,
+            id: id,
             text: text
         )
     }

@@ -7,8 +7,9 @@
 
 protocol InteractorFactoryProtocol {
     func makeMainMenuInteractor() -> MainMenuInteractorProtocol
+    func makeNewGameInteractor() -> NewGameInteractorProtocol
     func makeTeamSelectInteractor() -> TeamSelectInteractorProtocol
-    func makeTeamDetailInteractor(teamId: String) -> TeamDetailInteractorProtocol
+    func makeTeamDetailInteractor(teamInfo: TeamInfo) -> TeamDetailInteractorProtocol
 }
 
 final class InteractorFactory: InteractorFactoryProtocol {
@@ -25,6 +26,13 @@ final class InteractorFactory: InteractorFactoryProtocol {
         )
     }
 
+    func makeNewGameInteractor() -> NewGameInteractorProtocol {
+        return NewGameInteractor(
+            navigationCoordinator: dependencies.navigationCoordinator,
+            dataManager: dependencies.dataManager
+        )
+    }
+
     func makeTeamSelectInteractor() -> TeamSelectInteractorProtocol {
         return TeamSelectInteractor(
             navigationCoordinator: dependencies.navigationCoordinator,
@@ -32,10 +40,10 @@ final class InteractorFactory: InteractorFactoryProtocol {
         )
     }
     
-    func makeTeamDetailInteractor(teamId: String) -> TeamDetailInteractorProtocol {
+    func makeTeamDetailInteractor(teamInfo: TeamInfo) -> TeamDetailInteractorProtocol {
         return TeamDetailInteractor(
             navigationCoordinator: dependencies.navigationCoordinator,
-            teamId: teamId,
+            teamInfo: teamInfo,
             dataManager: dependencies.dataManager
         )
     }
@@ -43,6 +51,10 @@ final class InteractorFactory: InteractorFactoryProtocol {
 
 #if DEBUG
 class MockInteractorFactory: InteractorFactoryProtocol {
+    func makeNewGameInteractor() -> any NewGameInteractorProtocol {
+        return MockNewGameInteractor()
+    }
+    
     func makeMainMenuInteractor() -> any MainMenuInteractorProtocol {
         return MockMainMenuInteractor()
     }
@@ -51,7 +63,7 @@ class MockInteractorFactory: InteractorFactoryProtocol {
         return MockTeamSelectInteractor()
     }
     
-    func makeTeamDetailInteractor(teamId: String) -> TeamDetailInteractorProtocol {
+    func makeTeamDetailInteractor(teamInfo: TeamInfo) -> TeamDetailInteractorProtocol {
         return MockTeamDetailInteractor()
     }
 }

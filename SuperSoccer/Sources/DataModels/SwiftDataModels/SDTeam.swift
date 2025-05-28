@@ -33,14 +33,17 @@ final class SDTeamInfo {
 final class SDTeam {
     var id: String
     var info: SDTeamInfo
+    var coach: SDCoach
     var players: [SDPlayer]
     
     init(
         id: String = UUID().uuidString,
+        coach: SDCoach,
         info: SDTeamInfo,
         players: [SDPlayer] = []
     ) {
         self.id = id
+        self.coach = coach
         self.info = info
         self.players = players
     }
@@ -64,11 +67,13 @@ extension SDTeamInfo {
 extension SDTeam {
     static func make(
         id: String = "1",
+        coach: SDCoach = .make(),
         info: SDTeamInfo = .make(),
         players: [SDPlayer] = [.make()]
     ) -> SDTeam {
         return SDTeam(
             id: id,
+            coach: coach,
             info: info,
             players: players
         )

@@ -6,7 +6,9 @@
 //
 
 extension TeamSelectViewModel {
-    init(clientModels: [TeamInfo]) {
+    init(
+        clientModels: [TeamInfo]
+    ) {
         self.init(
             title: "Select a team",
             teamModels: clientModels.map { TeamThumbnailViewModel(clientModel: $0) }
@@ -17,8 +19,29 @@ extension TeamSelectViewModel {
 extension TeamThumbnailViewModel {
     init(clientModel: TeamInfo) {
         self.init(
-            teamInfoId: clientModel.id,
+            id: clientModel.id,
             text: clientModel.city + " " + clientModel.teamName
         )
+    }
+}
+
+extension TeamSelectorViewModel {
+    init(
+        clientModel: TeamInfo?,
+        action: @escaping () -> Void
+    ) {
+        if let clientModel {
+            self.init(
+                title: "Team: \(clientModel.city) \(clientModel.teamName)",
+                buttonTitle: "Change team",
+                action: action
+            )
+        } else {
+            self.init(
+                title: "Team: ",
+                buttonTitle: "Select a team",
+                action: action
+            )
+        }
     }
 }

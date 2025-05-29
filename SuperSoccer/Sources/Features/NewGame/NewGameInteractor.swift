@@ -13,6 +13,7 @@ typealias NewGameEventBus = PassthroughSubject<NewGameEvent, Never>
 
 enum NewGameEvent: BusEvent {
     case submitTapped
+    case teamSelectorTapped
 }
 
 protocol NewGameInteractorProtocol: AnyObject {
@@ -24,39 +25,14 @@ protocol NewGameInteractorProtocol: AnyObject {
 
 @Observable
 final class NewGameInteractor: NewGameInteractorProtocol {
-    private let navigationCoordinator: NavigationCoordinatorProtocol
-    private let dataManager: DataManagerProtocol
+    private let featureCoordinator: NewGameFeatureCoordinatorProtocol
     let eventBus = NewGameEventBus()
     
-    var viewModel: NewGameViewModel
-    var selectedTeam: TeamInfo? {
-        didSet {
-            viewModel.teamSelectorModel = teamSelectorViewModel()
-        }
-    }
-    
+    var viewModel: NewGameViewModel = .init()
     private var cancellables = Set<AnyCancellable>()
     
-    init(navigationCoordinator: NavigationCoordinatorProtocol, dataManager: DataManagerProtocol) {
-        self.navigationCoordinator = navigationCoordinator
-        self.dataManager = dataManager
-        
-        self.viewModel = NewGameViewModel(
-            title: "New game",
-            coachLabelText: "Coach name",
-            coachFirstNameLabel: "First name",
-            coachFirstName: "",
-            coachLastNameLabel: "Last name",
-            coachLastName: "",
-            teamSelectorModel: TeamSelectorViewModel(
-                clientModel: nil,
-                action: {}
-            ),
-            buttonText: "Start game",
-            submitEnabled: false
-        )
-        viewModel.teamSelectorModel = teamSelectorViewModel()
-        
+    init(featureCoordinator: NewGameFeatureCoordinatorProtocol) {
+        self.featureCoordinator = featureCoordinator
         setupSubscriptions()
     }
     
@@ -65,8 +41,17 @@ final class NewGameInteractor: NewGameInteractorProtocol {
             .sink { [weak self] event in
                 switch event {
                 case .submitTapped:
-                    self?.handleSubmit()
+                    self?.featureCoordinator.handleGameStart()
+                case .teamSelectorTapped:
+                    self?.featureCoordinator.startTeamSelection()
                 }
+            }
+            .store(in: &cancellables)
+        
+        featureCoordinator.statePublisher
+            .sink { [weak self] state in
+                guard let self else { return }
+                self.viewModel = self.createViewModel(from: state)
             }
             .store(in: &cancellables)
     }
@@ -76,7 +61,10 @@ final class NewGameInteractor: NewGameInteractorProtocol {
             get: { self.viewModel.coachFirstName },
             set: { newValue in
                 self.viewModel.coachFirstName = newValue
-                self.updateSubmitEnabled()
+                self.featureCoordinator.updateCoachInfo(
+                    firstName: newValue,
+                    lastName: self.viewModel.coachLastName
+                )
             }
         )
     }
@@ -86,43 +74,31 @@ final class NewGameInteractor: NewGameInteractorProtocol {
             get: { self.viewModel.coachLastName },
             set: { newValue in
                 self.viewModel.coachLastName = newValue
-                self.updateSubmitEnabled()
+                self.featureCoordinator.updateCoachInfo(
+                    firstName: self.viewModel.coachFirstName,
+                    lastName: newValue
+                )
             }
         )
     }
     
-    private func updateSubmitEnabled() {
-        viewModel.submitEnabled = !viewModel.coachFirstName.isEmpty && !viewModel.coachLastName.isEmpty
-    }
-    
-    private func teamSelectorViewModel() -> TeamSelectorViewModel {
-        TeamSelectorViewModel(
-            clientModel: selectedTeam,
-            action: { [weak self] in
-                self?.selectTeam()
-            }
-        )
-    }
-    
-    private func selectTeam() {
-        navigationCoordinator.presentSheet(
-            .teamSelect { [weak self] teamInfo in
-                guard let self else {
-                    return
+    private func createViewModel(from state: NewGameState) -> NewGameViewModel {
+        return NewGameViewModel(
+            title: "New Game",
+            coachLabelText: "Coach name",
+            coachFirstNameLabel: "First name",
+            coachFirstName: state.coachInfo?.firstName ?? "",
+            coachLastNameLabel: "Last name",
+            coachLastName: state.coachInfo?.lastName ?? "",
+            teamSelectorModel: TeamSelectorViewModel(
+                clientModel: state.selectedTeam,
+                action: { [weak self] in
+                    self?.eventBus.send(.teamSelectorTapped)
                 }
-                self.selectedTeam = teamInfo
-                self.viewModel.teamSelectorModel = self.teamSelectorViewModel()
-            }
+            ),
+            buttonText: "Start Game",
+            submitEnabled: state.coachInfo != nil && state.selectedTeam != nil
         )
-    }
-    
-    private func handleSubmit() {
-//        let coach = Coach(
-//            id: UUID().uuidString,
-//            firstName: viewModel.coachFirstName,
-//            lastName: viewModel.coachLastName
-//        )
-//        navigationCoordinator.navigateToScreen(.teamSelect)
     }
 }
 
@@ -133,8 +109,7 @@ extension NewGameInteractor {
     struct TestHooks {
         let target: NewGameInteractor
         
-        var navigationCoordinator: NavigationCoordinatorProtocol { target.navigationCoordinator }
-        var dataManager: DataManagerProtocol { target.dataManager }
+        var featureCoordinator: NewGameFeatureCoordinatorProtocol { target.featureCoordinator }
     }
 }
 

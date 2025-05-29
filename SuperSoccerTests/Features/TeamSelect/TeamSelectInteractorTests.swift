@@ -71,24 +71,6 @@ struct TeamSelectInteractorTests {
         #expect(interactor.viewModel.teamModels[1].text == "Golden State Warriors")
     }
     
-    @Test func testTeamSelectionNavigatesToDetail() async throws {
-        // Arrange
-        let mockDataManager = MockDataManager()
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let selectedTeamId = "1"
-        
-        let interactor = TeamSelectInteractor(
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
-        
-        // Act
-        interactor.eventBus.send(.teamSelected(teamInfoId: selectedTeamId))
-        
-        // Assert
-        #expect(mockNavigationCoordinator.screenNavigatedTo == .teamDetail(teamId: selectedTeamId))
-    }
-    
     @Test func testViewModelUpdatesWhenTeamsChange() async throws {
         // Arrange
         let mockDataManager = MockDataManager()

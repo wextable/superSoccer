@@ -7,7 +7,8 @@
 
 protocol DependencyContainerProtocol {
     var dataManager: DataManagerProtocol { get }
-    var interactorFactory: InteractorFactoryProtocol { get }
+    var viewFactory: ViewFactoryProtocol { get }
+    var coordinatorRegistry: FeatureCoordinatorRegistryProtocol { get }
     var router: NavigationRouter { get }
     var navigationCoordinator: NavigationCoordinatorProtocol { get }
 }
@@ -22,19 +23,26 @@ final class DependencyContainer: DependencyContainerProtocol {
         SwiftDataManagerFactory.shared.makeDataManager()
     }()
     
-    // Factories
-    private(set) lazy var interactorFactory: InteractorFactoryProtocol = {
-        InteractorFactory(dependencies: self)
+    private(set) lazy var coordinatorRegistry: FeatureCoordinatorRegistryProtocol = {
+        FeatureCoordinatorRegistry()
     }()
-//    
-//    private(set) lazy var viewFactory: ViewFactory = {
-//        ViewFactory(interactorFactory: interactorFactory)
-//    }()
-//    
+    
     private(set) lazy var router = NavigationRouter()
     
     private(set) lazy var navigationCoordinator: NavigationCoordinatorProtocol = {
-        NavigationCoordinator(router: router)
+        NavigationCoordinator(
+            router: router,
+            coordinatorRegistry: coordinatorRegistry,
+            dataManager: dataManager
+        )
+    }()
+    
+    // Factories    
+    private(set) lazy var viewFactory: ViewFactoryProtocol = {
+        ViewFactory(
+            coordinatorRegistry: coordinatorRegistry,
+            dataManager: dataManager
+        )
     }()
     
     private init() {}
@@ -45,8 +53,11 @@ class MockDependencyContainer: DependencyContainerProtocol {
     var mockDataManager = MockDataManager()
     var dataManager: DataManagerProtocol { mockDataManager }
     
-    var mockInteractorFactory = MockInteractorFactory()
-    var interactorFactory: InteractorFactoryProtocol { mockInteractorFactory }
+    var mockCoordinatorRegistry = MockFeatureCoordinatorRegistry()
+    var coordinatorRegistry: FeatureCoordinatorRegistryProtocol { mockCoordinatorRegistry }
+    
+    var mockViewFactory = MockViewFactory()
+    var viewFactory: ViewFactoryProtocol { mockViewFactory }
     
     var router = NavigationRouter()
     

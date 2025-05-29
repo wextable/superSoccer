@@ -32,12 +32,14 @@ struct NavigationConfigurator: ViewModifier {
     @ViewBuilder
     private func makeDestinationView(for screen: NavigationRouter.Screen) -> some View {
         switch screen {
+        case .splash:
+            viewFactory.makeSplashView()
+        case .mainMenu:
+            viewFactory.makeMainMenuView()
         case .newGame:
             viewFactory.makeNewGameView()
         case .teamSelect:
             viewFactory.makeTeamSelectView()
-        case .teamDetail(let teamInfo):
-            viewFactory.makeTeamDetailView(teamInfo: teamInfo)
         }
     }
 }

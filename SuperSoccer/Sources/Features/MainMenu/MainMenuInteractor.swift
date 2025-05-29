@@ -21,20 +21,27 @@ protocol MainMenuInteractorProtocol: AnyObject {
     
 @Observable
 final class MainMenuInteractor: MainMenuInteractorProtocol {
-    private let navigationCoordinator: NavigationCoordinatorProtocol
+    private let featureCoordinator: MainMenuFeatureCoordinatorProtocol
     private let dataManager: DataManagerProtocol
     let eventBus = MainMenuEventBus()
     
-    var viewModel: MainMenuViewModel = .init(title: "Main menu", menuItemModels: [
-        .init(title: "New Game")
-    ])
+    var viewModel: MainMenuViewModel = .init(title: "Main menu", menuItemModels: [])
     
 //    private var clientModels: [TeamInfo] = []
     private var cancellables = Set<AnyCancellable>()
     
-    init(navigationCoordinator: NavigationCoordinatorProtocol, dataManager: DataManagerProtocol) {
-        self.navigationCoordinator = navigationCoordinator
+    init(featureCoordinator: MainMenuFeatureCoordinatorProtocol, dataManager: DataManagerProtocol) {
+        self.featureCoordinator = featureCoordinator
         self.dataManager = dataManager
+        
+        self.viewModel = MainMenuViewModel(
+            title: "Main menu",
+            menuItemModels: [
+                .init(title: "New Game") {
+                    self.eventBus.send(.newGameSelected)
+                }
+            ]
+        )
         
         setupSubscriptions()
     }
@@ -66,8 +73,7 @@ final class MainMenuInteractor: MainMenuInteractorProtocol {
     }
     
     private func handleNewGameSelected() {
-        // TODO: create a new game in data manager, pass the ID or something to the next screen
-        navigationCoordinator.navigateToScreen(.newGame)
+        featureCoordinator.handleNewGameSelected()
     }
 }
 
@@ -78,7 +84,7 @@ extension MainMenuInteractor {
     struct TestHooks {
         let target: MainMenuInteractor
         
-        var navigationCoordinator: NavigationCoordinatorProtocol { target.navigationCoordinator }
+        var featureCoordinator: MainMenuFeatureCoordinatorProtocol { target.featureCoordinator }
         var dataManager: DataManagerProtocol { target.dataManager }
     }
 }
@@ -88,8 +94,7 @@ class MockMainMenuInteractor: MainMenuInteractorProtocol {
         MainMenuViewModel(
             title: "Main menu",
             menuItemModels: [
-                .init(title: "New Game"),
-                .init(title: "Load Game")
+                .init(title: "New Game") {}
             ])
     }
     

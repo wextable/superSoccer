@@ -29,7 +29,6 @@ struct NavigationCoordinatorTests {
         
         // Add some screens first
         coordinator.navigateToScreen(.teamSelect)
-        coordinator.navigateToScreen(.teamDetail(teamId: "123"))
         #expect(router.path.count == 2)
         
         // Act

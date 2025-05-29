@@ -10,16 +10,15 @@ import SwiftUI
 struct MenuItemViewModel: Identifiable {
     var id: String { title }
     let title: String
-//    let action: () -> Void
+    let action: () -> Void
 }
 
 struct MenuItemView: View {
     let viewModel: MenuItemViewModel
-    let action: () -> Void
     
     var body: some View {
         Button(action: {
-            action()
+            viewModel.action()
         }) {
             Text(viewModel.title)
                 .padding()
@@ -40,9 +39,10 @@ struct MainMenuView<Interactor: MainMenuInteractorProtocol>: View {
     
     var body: some View {
         List(interactor.viewModel.menuItemModels) { menuItemModel in
-            MenuItemView(viewModel: menuItemModel) {
-                interactor.eventBus.send(.newGameSelected) // TODO: fix me
-            }
+            MenuItemView(viewModel: menuItemModel)
+//            {
+//                interactor.eventBus.send(.newGameSelected) // TODO: fix me
+//            }
         }
         .navigationTitle(interactor.viewModel.title)
     }
@@ -56,9 +56,7 @@ extension MainMenuViewModel {
         self.init(
             title: title,
             menuItemModels: [
-                .init(title: "New Game"),
-                .init(title: "Settings"),
-                .init(title: "Help")
+                .init(title: "New Game") {}
             ]
         )
     }

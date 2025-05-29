@@ -8,15 +8,15 @@
 import SwiftUI
 
 struct NewGameViewModel {
-    let title: String
-    let coachLabelText: String
-    let coachFirstNameLabel: String
-    var coachFirstName: String
-    let coachLastNameLabel: String
-    var coachLastName: String
-    var teamSelectorModel: TeamSelectorViewModel
-    let buttonText: String
-    var submitEnabled: Bool
+    var title: String = ""
+    var coachLabelText: String = ""
+    var coachFirstNameLabel: String = ""
+    var coachFirstName: String = ""
+    var coachLastNameLabel: String = ""
+    var coachLastName: String = ""
+    var teamSelectorModel: TeamSelectorViewModel = .init(title: "", buttonTitle: "", action: {})
+    var buttonText: String = ""
+    var submitEnabled: Bool = false
 }
 
 struct NewGameView<Interactor: NewGameInteractorProtocol>: View {

@@ -1,5 +1,5 @@
 //
-//  TeamInfoSelectInteractor.swift
+//  TeamSelectInteractor.swift
 //  SuperSoccer
 //
 //  Created by Wesley on 5/15/25.
@@ -21,42 +21,35 @@ protocol TeamSelectInteractorProtocol: AnyObject {
     
 @Observable
 final class TeamSelectInteractor: TeamSelectInteractorProtocol {
-    private let navigationCoordinator: NavigationCoordinatorProtocol
+    private let featureCoordinator: TeamSelectFeatureCoordinatorProtocol
     private let dataManager: DataManagerProtocol
     let eventBus = TeamSelectEventBus()
     
-    var viewModel: TeamSelectViewModel = .init(clientModels: [])
-    
-    private var clientModels: [TeamInfo] = []
+    var viewModel: TeamSelectViewModel
     private var cancellables = Set<AnyCancellable>()
     
     init(
-        navigationCoordinator: NavigationCoordinatorProtocol,
+        featureCoordinator: TeamSelectFeatureCoordinatorProtocol,
         dataManager: DataManagerProtocol
     ) {
-        self.navigationCoordinator = navigationCoordinator
+        self.featureCoordinator = featureCoordinator
         self.dataManager = dataManager
-        
-        clientModels = dataManager.teamInfos()
-        viewModel = TeamSelectViewModel(clientModels: clientModels)
-        
+        self.viewModel = Self.createViewModel(from: featureCoordinator.state)
         setupSubscriptions()
     }
     
     private func setupSubscriptions() {
-//        subscribeToDataSource()
         subscribeToEvents()
+        subscribeToStateChanges()
     }
     
-//    private func subscribeToDataSource() {
-//        dataManager.teamPublisher
-//            .sink { [weak self] teams in
-//                guard let self else { return }
-//                self.clientModels = teams.map(\.info)
-//                self.viewModel = TeamSelectViewModel(clientModels: self.clientModels)
-//            }
-//            .store(in: &cancellables)
-//    }
+    private func subscribeToStateChanges() {
+        featureCoordinator.statePublisher
+            .sink { [weak self] state in
+                self?.viewModel = Self.createViewModel(from: state)
+            }
+            .store(in: &cancellables)
+    }
     
     private func subscribeToEvents() {
         eventBus
@@ -70,7 +63,22 @@ final class TeamSelectInteractor: TeamSelectInteractorProtocol {
     }
     
     private func handleTeamSelected(teamId: String) {
-//        guard let teamInfo = clientModels.first(where: { $0.id == teamId }) else { return }
+        guard let teamInfo = featureCoordinator.state.teams.first(where: { $0.id == teamId }) else { return }
+        featureCoordinator.handleTeamSelected(teamInfo)
+    }
+    
+    private static func createViewModel(from state: TeamSelectState) -> TeamSelectViewModel {
+        let teamModels = state.teams.map { teamInfo in
+            TeamThumbnailViewModel(
+                id: teamInfo.id,
+                text: "\(teamInfo.city) \(teamInfo.teamName)"
+            )
+        }
+        
+        return TeamSelectViewModel(
+            title: "Select a team",
+            teamModels: teamModels
+        )
     }
 }
 
@@ -81,7 +89,7 @@ extension TeamSelectInteractor {
     struct TestHooks {
         let target: TeamSelectInteractor
         
-        var navigationCoordinator: NavigationCoordinatorProtocol { target.navigationCoordinator }
+        var featureCoordinator: TeamSelectFeatureCoordinatorProtocol { target.featureCoordinator }
         var dataManager: DataManagerProtocol { target.dataManager }
     }
 }

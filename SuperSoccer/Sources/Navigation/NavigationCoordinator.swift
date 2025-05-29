@@ -29,28 +29,100 @@ protocol NavigationCoordinatorProtocol {
     func dismissSheet()
 }
 
-/// Coordinator that handles navigation between screens
+/// Coordinator that handles navigation between screens and manages feature coordinators
 final class NavigationCoordinator: NavigationCoordinatorProtocol {
     private let router: NavigationRouter
+    private let coordinatorRegistry: FeatureCoordinatorRegistryProtocol
+    private let dataManager: DataManagerProtocol
     private var cancellables = Set<AnyCancellable>()
     
-    init(router: NavigationRouter) {
+    init(
+        router: NavigationRouter,
+        coordinatorRegistry: FeatureCoordinatorRegistryProtocol,
+        dataManager: DataManagerProtocol
+    ) {
         self.router = router
+        self.coordinatorRegistry = coordinatorRegistry
+        self.dataManager = dataManager
         setupEventSubscriptions()
     }
     
     private func setupEventSubscriptions() {
-        // Subscribe to global events that might trigger navigation
-        // This could be expanded in the future
+        // Subscribe to navigation path changes to manage feature coordinators
+        router.$screens
+            .sink { [weak self] screens in
+                self?.handleNavigationPathChange(screens)
+            }
+            .store(in: &cancellables)
+    }
+    
+    private func handleNavigationPathChange(_ path: [NavigationRouter.Screen]) {
+        // Clean up coordinators for screens no longer in the path
+        cleanupInactiveCoordinators(currentPath: path)
+        
+        // Ensure coordinators exist for all screens in the path
+        ensureCoordinatorsForPath(path)
+    }
+    
+    private func cleanupInactiveCoordinators(currentPath: [NavigationRouter.Screen]) {
+        // This would need to track which coordinators are active
+        // and clean up those not in the current path
+        // For now, we'll keep it simple and let coordinators manage their own lifecycle
+    }
+    
+    private func ensureCoordinatorsForPath(_ path: [NavigationRouter.Screen]) {
+        for screen in path {
+            ensureCoordinatorExists(for: screen)
+        }
+    }
+    
+    private func ensureCoordinatorExists(for screen: NavigationRouter.Screen) {
+        // Check if coordinator already exists
+        switch screen {
+        case .splash:
+            break
+            
+        case .mainMenu:
+            if coordinatorRegistry.coordinator(for: screen, as: MainMenuFeatureCoordinatorProtocol.self) == nil {
+                let coordinator = MainMenuFeatureCoordinator(
+                    navigationCoordinator: self,
+                    coordinatorRegistry: coordinatorRegistry,
+                    dataManager: dataManager
+                )
+                coordinatorRegistry.register(coordinator, for: screen)
+            }
+            
+        case .newGame:
+            if coordinatorRegistry.coordinator(for: screen, as: NewGameFeatureCoordinatorProtocol.self) == nil {
+                let coordinator = NewGameFeatureCoordinator(
+                    navigationCoordinator: self,
+                    coordinatorRegistry: coordinatorRegistry,
+                    dataManager: dataManager
+                )
+                coordinatorRegistry.register(coordinator, for: screen)
+            }
+            
+        case .teamSelect:
+            if coordinatorRegistry.coordinator(for: screen, as: TeamSelectFeatureCoordinatorProtocol.self) == nil {
+                let coordinator = TeamSelectFeatureCoordinator(
+                    navigationCoordinator: self,
+                    coordinatorRegistry: coordinatorRegistry,
+                    dataManager: dataManager
+                )
+                coordinatorRegistry.register(coordinator, for: screen)
+            }
+        }
     }
     
     // MARK: - NavigationCoordinating
     
     func navigateToScreen(_ screen: NavigationRouter.Screen) {
+        ensureCoordinatorExists(for: screen)
         router.navigate(to: screen)
     }
     
     func replaceStackWith(_ screen: NavigationRouter.Screen) {
+        ensureCoordinatorExists(for: screen)
         router.replaceNavigationStack(with: screen)
     }
     
@@ -63,6 +135,7 @@ final class NavigationCoordinator: NavigationCoordinatorProtocol {
     }
     
     func presentSheet(_ screen: NavigationRouter.Screen) {
+        ensureCoordinatorExists(for: screen)
         router.presentedSheet = screen
     }
     

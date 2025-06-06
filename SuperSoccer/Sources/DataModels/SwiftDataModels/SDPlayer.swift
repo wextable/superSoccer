@@ -17,15 +17,35 @@ final class SDPlayer {
     var id: String
     var firstName: String
     var lastName: String
+    var age: Int
+    var position: String
+    
+    // Relationships
+    var team: SDTeam?
+    @Relationship(inverse: \SDContract.player)
+    var contracts: [SDContract]
+    @Relationship(inverse: \SDPlayerCareerStats.player)
+    var careerStats: SDPlayerCareerStats?
+    @Relationship(inverse: \SDPlayerSeasonStats.player)
+    var seasonStats: [SDPlayerSeasonStats]
+    @Relationship(inverse: \SDPlayerMatchStats.player)
+    var matchStats: [SDPlayerMatchStats]
     
     init(
         id: String = UUID().uuidString,
         firstName: String,
-        lastName: String
+        lastName: String,
+        age: Int,
+        position: String
     ) {
         self.id = id
         self.firstName = firstName
         self.lastName = lastName
+        self.age = age
+        self.position = position
+        self.contracts = []
+        self.seasonStats = []
+        self.matchStats = []
     }
 }
 
@@ -34,12 +54,16 @@ extension SDPlayer {
     static func make(
         id: String = "1",
         firstName: String = "Bo",
-        lastName: String = "Nix"
+        lastName: String = "Nix",
+        age: Int = 25,
+        position: String = "Forward"
     ) -> SDPlayer {
         return SDPlayer(
             id: id,
             firstName: firstName,
-            lastName: lastName
+            lastName: lastName,
+            age: age,
+            position: position
         )
     }
 }

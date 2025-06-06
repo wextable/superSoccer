@@ -12,19 +12,22 @@ import SwiftData
 final class SDLeague {
     var id: String
     var name: String
+    
+    // Relationships
+    @Relationship(inverse: \SDTeam.league)
     var teams: [SDTeam]
-    var userTeamId: String
+    @Relationship(inverse: \SDSeason.league)
+    var seasons: [SDSeason]
     
     init(
         id: String = UUID().uuidString,
         name: String,
-        teams: [SDTeam] = [],
-        userTeamId: String
+        teams: [SDTeam] = []
     ) {
         self.id = id
         self.name = name
         self.teams = teams
-        self.userTeamId = userTeamId
+        self.seasons = []
     }
 }
 
@@ -33,14 +36,12 @@ extension SDLeague {
     static func make(
         id: String = "1",
         name: String = "English Premier League",
-        teams: [SDTeam] = [.make()],
-        userTeamId: String = "1"
+        teams: [SDTeam] = [.make()]
     ) -> SDLeague {
         return SDLeague(
             id: id,
             name: name,
-            teams: teams,
-            userTeamId: userTeamId
+            teams: teams
         )
     }
 }

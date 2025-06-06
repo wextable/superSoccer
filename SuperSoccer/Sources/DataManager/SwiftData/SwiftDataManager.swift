@@ -35,15 +35,15 @@ final class SwiftDataManager: DataManagerProtocol {
     }
     
     func addCoach(_ coach: Coach) {
-        let sdCoach = SDCoach(clientModel: coach)
-        storage.addCoach(sdCoach)
-        swiftDataTeams = storage.fetchTeams()
+//        let sdCoach = SDCoach(clientModel: coach)
+//        storage.addCoach(sdCoach)
+//        swiftDataTeams = storage.fetchTeams()
     }
     
     func addNewTeam(_ team: Team) {
-        let sdTeam = SDTeam(clientModel: team)
-        storage.addTeam(sdTeam)
-        swiftDataTeams = storage.fetchTeams()
+//        let sdTeam = SDTeam(clientModel: team)
+//        storage.addTeam(sdTeam)
+//        swiftDataTeams = storage.fetchTeams()
     }
     
     func deleteTeams(at offsets: IndexSet) {

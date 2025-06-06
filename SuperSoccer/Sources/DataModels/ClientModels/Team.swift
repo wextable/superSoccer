@@ -13,11 +13,14 @@ struct TeamInfo: Identifiable, Hashable, Equatable {
     let teamName: String
 }
 
-struct Team: Identifiable {
+struct Team: Identifiable, Hashable, Equatable {
     let id: String
-    let coach: Coach
+    let coachId: String
     let info: TeamInfo
-    let players: [Player]
+    let playerIds: [String]
+    
+    // ID-based relationships
+    let leagueId: String?
 }
 
 #if DEBUG
@@ -38,15 +41,17 @@ extension TeamInfo {
 extension Team {
     static func make(
         id: String = "1",
-        coach: Coach = .make(),
+        coachId: String = "1",
         info: TeamInfo = .make(),
-        players: [Player] = [.make()]
+        playerIds: [String] = ["1"],
+        leagueId: String? = nil
     ) -> Team {
         return Team(
             id: id,
-            coach: coach,
+            coachId: coachId,
             info: info,
-            players: players
+            playerIds: playerIds,
+            leagueId: leagueId
         )
     }
 }

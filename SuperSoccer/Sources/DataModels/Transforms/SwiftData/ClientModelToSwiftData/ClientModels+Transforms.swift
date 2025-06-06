@@ -26,14 +26,18 @@ extension Player {
         self.id = sdPlayer.id
         self.firstName = sdPlayer.firstName
         self.lastName = sdPlayer.lastName
+        self.age = sdPlayer.age
+        self.position = sdPlayer.position
+        self.teamId = sdPlayer.team?.id
     }
 }
 
 extension Team {
     init(sdTeam: SDTeam) {
         self.id = sdTeam.id
-        self.coach = Coach(sdCoach: sdTeam.coach)
+        self.coachId = sdTeam.coach.id
         self.info = TeamInfo(sdTeamInfo: sdTeam.info)
-        self.players = sdTeam.players.map { Player(sdPlayer: $0) }
+        self.playerIds = sdTeam.players.map { $0.id }
+        self.leagueId = sdTeam.league?.id
     }
 }

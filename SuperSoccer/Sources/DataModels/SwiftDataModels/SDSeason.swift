@@ -17,7 +17,6 @@ final class SDSeason {
     
     // Relationships
     var career: SDCareer?
-    @Relationship(inverse: \SDLeague.seasons)
     var league: SDLeague
     @Relationship(inverse: \SDMatch.season)
     var matches: [SDMatch]

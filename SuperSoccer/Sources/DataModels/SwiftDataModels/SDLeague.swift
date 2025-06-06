@@ -16,7 +16,7 @@ final class SDLeague {
     // Relationships
     @Relationship(inverse: \SDTeam.league)
     var teams: [SDTeam]
-    var currentSeasons: [SDCurrentSeason]
+    @Relationship(inverse: \SDSeason.league)
     var seasons: [SDSeason]
     
     init(
@@ -27,7 +27,6 @@ final class SDLeague {
         self.id = id
         self.name = name
         self.teams = teams
-        self.currentSeasons = []
         self.seasons = []
     }
 }

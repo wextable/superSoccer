@@ -11,8 +11,6 @@ import SwiftData
 @Model
 final class SDMatch {
     var id: String
-    var date: Date
-    var seasonNumber: Int
     var isCompleted: Bool
     
     // Relationships
@@ -26,15 +24,11 @@ final class SDMatch {
     
     init(
         id: String = UUID().uuidString,
-        date: Date,
-        seasonNumber: Int,
         isCompleted: Bool = false,
         homeTeam: SDTeam,
         awayTeam: SDTeam
     ) {
         self.id = id
-        self.date = date
-        self.seasonNumber = seasonNumber
         self.isCompleted = isCompleted
         self.homeTeam = homeTeam
         self.awayTeam = awayTeam
@@ -47,16 +41,12 @@ final class SDMatch {
 extension SDMatch {
     static func make(
         id: String = "1",
-        date: Date = Date(),
-        seasonNumber: Int = 1,
         isCompleted: Bool = false,
         homeTeam: SDTeam = .make(),
         awayTeam: SDTeam = .make()
     ) -> SDMatch {
         return SDMatch(
             id: id,
-            date: date,
-            seasonNumber: seasonNumber,
             isCompleted: isCompleted,
             homeTeam: homeTeam,
             awayTeam: awayTeam

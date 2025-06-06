@@ -17,6 +17,8 @@ final class SDTeamSeasonStats {
     var draws: Int
     var losses: Int
     var points: Int
+    var goalsFor: Int
+    var goalsAgainst: Int
     
     // Relationships
     var team: SDTeam
@@ -29,6 +31,8 @@ final class SDTeamSeasonStats {
         draws: Int = 0,
         losses: Int = 0,
         points: Int = 0,
+        goalsFor: Int = 0,
+        goalsAgainst: Int = 0,
         team: SDTeam
     ) {
         self.id = id
@@ -38,6 +42,8 @@ final class SDTeamSeasonStats {
         self.draws = draws
         self.losses = losses
         self.points = points
+        self.goalsFor = goalsFor
+        self.goalsAgainst = goalsAgainst
         self.team = team
     }
 }
@@ -52,6 +58,8 @@ extension SDTeamSeasonStats {
         draws: Int = 8,
         losses: Int = 5,
         points: Int = 83,
+        goalsFor: Int = 0,
+        goalsAgainst: Int = 0,
         team: SDTeam = .make()
     ) -> SDTeamSeasonStats {
         return SDTeamSeasonStats(
@@ -62,6 +70,8 @@ extension SDTeamSeasonStats {
             draws: draws,
             losses: losses,
             points: points,
+            goalsFor: goalsFor,
+            goalsAgainst: goalsAgainst,
             team: team
         )
     }

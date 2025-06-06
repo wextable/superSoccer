@@ -15,8 +15,7 @@ final class SDCareer {
     // Relationships
     var coach: SDCoach
     var userTeam: SDTeam
-    @Relationship(inverse: \SDCurrentSeason.career)
-    var currentSeason: SDCurrentSeason
+    var currentSeason: SDSeason
     @Relationship(inverse: \SDSeason.career)
     var seasons: [SDSeason]
     
@@ -24,7 +23,7 @@ final class SDCareer {
         id: String = UUID().uuidString,
         coach: SDCoach,
         userTeam: SDTeam,
-        currentSeason: SDCurrentSeason,
+        currentSeason: SDSeason,
         seasons: [SDSeason] = []
     ) {
         self.id = id
@@ -41,7 +40,7 @@ extension SDCareer {
         id: String = "1",
         coach: SDCoach = .make(),
         userTeam: SDTeam = .make(),
-        currentSeason: SDCurrentSeason = .make(),
+        currentSeason: SDSeason = .make(),
         seasons: [SDSeason] = []
     ) -> SDCareer {
         return SDCareer(

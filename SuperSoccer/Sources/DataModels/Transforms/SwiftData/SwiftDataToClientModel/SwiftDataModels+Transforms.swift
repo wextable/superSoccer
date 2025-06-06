@@ -27,7 +27,9 @@ extension SDPlayer {
     convenience init(clientModel: Player) {
         self.init(
             firstName: clientModel.firstName,
-            lastName: clientModel.lastName
+            lastName: clientModel.lastName,
+            age: 22,
+            position: "Forward"
         )
     }
 }
@@ -35,8 +37,8 @@ extension SDPlayer {
 extension SDTeam {
     convenience init(clientModel: Team) {
         self.init(
-            coach: SDCoach(clientModel: clientModel.coach),
             info: SDTeamInfo(clientModel: clientModel.info),
+            coach: SDCoach(clientModel: clientModel.coach),
             players: clientModel.players.map { SDPlayer(clientModel: $0) }
         )
     }

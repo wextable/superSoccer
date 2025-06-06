@@ -16,20 +16,35 @@ import SwiftData
 @Model
 final class SDTeam {
     var id: String
+    
+    // Relationships
     var info: SDTeamInfo
     var coach: SDCoach
+    var league: SDLeague?
+    @Relationship(inverse: \SDPlayer.team)
     var players: [SDPlayer]
+    @Relationship(inverse: \SDContract.team)
+    var contracts: [SDContract]
+    @Relationship(inverse: \SDTeamCareerStats.team)
+    var careerStats: SDTeamCareerStats?
+    @Relationship(inverse: \SDTeamSeasonStats.team)
+    var seasonStats: [SDTeamSeasonStats]
+    @Relationship(inverse: \SDTeamMatchStats.team)
+    var matchStats: [SDTeamMatchStats]
     
     init(
         id: String = UUID().uuidString,
-        coach: SDCoach,
         info: SDTeamInfo,
+        coach: SDCoach,
         players: [SDPlayer] = []
     ) {
         self.id = id
-        self.coach = coach
         self.info = info
+        self.coach = coach
         self.players = players
+        self.contracts = []
+        self.seasonStats = []
+        self.matchStats = []
     }
 }
 
@@ -37,14 +52,14 @@ final class SDTeam {
 extension SDTeam {
     static func make(
         id: String = "1",
-        coach: SDCoach = .make(),
         info: SDTeamInfo = .make(),
+        coach: SDCoach = .make(),
         players: [SDPlayer] = [.make()]
     ) -> SDTeam {
         return SDTeam(
             id: id,
-            coach: coach,
             info: info,
+            coach: coach,
             players: players
         )
     }

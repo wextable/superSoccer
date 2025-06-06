@@ -69,8 +69,6 @@ class NewGameFeatureCoordinator: BaseFeatureCoordinator<NewGameCoordinatorResult
                 self?.updateState()
             case .cancelled:
                 self?.navigationCoordinator.dismissSheet()
-//            case .error(let error):
-//                self?.handleError(error)
             }
         }
     }

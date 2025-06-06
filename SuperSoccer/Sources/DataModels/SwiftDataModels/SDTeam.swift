@@ -12,22 +12,6 @@ import SwiftData
 // The @Model macro is crucial - it automatically generates all the necessary code for persistence, 
 // similar to Core Data's @NSManaged but much simpler
 // Properties in a SwiftData model are automatically persisted
-@Model
-final class SDTeamInfo {
-    var id: String
-    var city: String
-    var teamName: String
-    
-    init(
-        id: String = UUID().uuidString,
-        city: String,
-        teamName: String
-    ) {
-        self.id = id
-        self.city = city
-        self.teamName = teamName
-    }
-}
 
 @Model
 final class SDTeam {
@@ -50,20 +34,6 @@ final class SDTeam {
 }
 
 #if DEBUG
-extension SDTeamInfo {
-    static func make(
-        id: String = "1",
-        city: String = "Eugene",
-        teamName: String = "Duckies"
-    ) -> SDTeamInfo {
-        return SDTeamInfo(
-            id: id,
-            city: city,
-            teamName: teamName
-        )
-    }
-}
-
 extension SDTeam {
     static func make(
         id: String = "1",

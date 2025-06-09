@@ -11,10 +11,10 @@ struct ClientToSwiftDataTransformer {
     
     // MARK: - Career Creation Bundle
     
-    func createCareerEntities(from request: CreateNewCareerRequest) -> CareerCreationBundle {
+    func createCareerEntities(from request: CreateNewCareerRequest, availableTeamInfos: [SDTeamInfo]) -> CareerCreationBundle {
         // Step 1: Create base entities (no relationships)
         let coach = createCoach(from: request)
-        let (teams, teamInfos, players) = createTeamsAndPlayers(from: request)
+        let (teams, teamInfos, players) = createTeamsAndPlayers(from: request, availableTeamInfos: availableTeamInfos)
         
         // Step 2: Create league with teams
         let league = createLeague(from: request, teams: teams)
@@ -28,7 +28,7 @@ struct ClientToSwiftDataTransformer {
         let season = createSeason(from: request, league: league)
         
         // Step 5: Create career with all relationships
-        let userTeam = teams.first { $0.id == request.selectedTeamId }!
+        let userTeam = teams.first { $0.info.id == request.selectedTeamInfoId }!
         let career = createCareer(from: request, coach: coach, userTeam: userTeam, currentSeason: season)
         
         // Step 6: Set season.career back-reference
@@ -55,30 +55,23 @@ struct ClientToSwiftDataTransformer {
         )
     }
     
-    private func createTeamsAndPlayers(from request: CreateNewCareerRequest) -> ([SDTeam], [SDTeamInfo], [SDPlayer]) {
+    private func createTeamsAndPlayers(from request: CreateNewCareerRequest, availableTeamInfos: [SDTeamInfo]) -> ([SDTeam], [SDTeamInfo], [SDPlayer]) {
         var teams: [SDTeam] = []
-        var teamInfos: [SDTeamInfo] = []
         var allPlayers: [SDPlayer] = []
         
-        // For now, create a simple league structure
-        // In the future, this could load from a data source or generate procedurally
-        let teamNames = ["Arsenal", "Chelsea", "Liverpool", "Manchester United"]
+        // Ensure we have at least some teams to work with
+        guard !availableTeamInfos.isEmpty else {
+            fatalError("No TeamInfo data provided. Ensure SwiftDataStorage.populateStaticData() has run.")
+        }
         
-        for (index, teamName) in teamNames.enumerated() {
-            let teamInfo = SDTeamInfo(
-                id: UUID().uuidString,
-                city: "City\(index + 1)",
-                teamName: teamName
-            )
-            teamInfos.append(teamInfo)
-            
+        for teamInfo in availableTeamInfos {
             // Create players for this team
             var teamPlayers: [SDPlayer] = []
             for playerIndex in 1...11 {
                 let player = SDPlayer(
                     id: UUID().uuidString,
                     firstName: "Player\(playerIndex)",
-                    lastName: "Team\(index + 1)",
+                    lastName: teamInfo.teamName,
                     age: Int.random(in: 18...35),
                     position: "Forward" // Simplified for now
                 )
@@ -87,15 +80,15 @@ struct ClientToSwiftDataTransformer {
             }
             
             // Create coach for this team (except user team which uses the main coach)
-            let isUserTeam = (teamName == request.selectedTeamId) // Simplified matching
+            let isUserTeam = (teamInfo.id == request.selectedTeamInfoId)
             let teamCoach: SDCoach
             if isUserTeam {
                 teamCoach = createCoach(from: request)
             } else {
                 teamCoach = SDCoach(
                     id: UUID().uuidString,
-                    firstName: "Coach\(index + 1)",
-                    lastName: "LastName"
+                    firstName: "Coach",
+                    lastName: teamInfo.teamName
                 )
             }
             
@@ -108,7 +101,7 @@ struct ClientToSwiftDataTransformer {
             teams.append(team)
         }
         
-        return (teams, teamInfos, allPlayers)
+        return (teams, availableTeamInfos, allPlayers)
     }
     
     private func createLeague(from request: CreateNewCareerRequest, teams: [SDTeam]) -> SDLeague {

@@ -58,8 +58,8 @@ class TeamSelectFeatureCoordinator: BaseFeatureCoordinator<TeamSelectCoordinator
         state = TeamSelectState(teams: [], isLoading: true)
         
         // Load teams from data manager
-//        let teams = dataManager.teamInfos()
-//        state = TeamSelectState(teams: teams, isLoading: false)
+        let teams = dataManager.fetchTeamInfos()
+        state = TeamSelectState(teams: teams, isLoading: false)
     }
 }
 

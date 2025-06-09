@@ -19,6 +19,7 @@ protocol DataManagerProtocol {
     var leaguePublisher: AnyPublisher<[League], Never> { get }
     
     // Team Management
+    func fetchTeamInfos() -> [TeamInfo]
     func fetchTeams() -> [Team]
     var teamPublisher: AnyPublisher<[Team], Never> { get }
     
@@ -35,6 +36,7 @@ protocol DataManagerProtocol {
 class MockDataManager: DataManagerProtocol {
     @Published var mockCareers: [Career] = []
     @Published var mockLeagues: [League] = []
+    var mockTeamInfos: [TeamInfo] = []
     @Published var mockTeams: [Team] = []
     @Published var mockPlayers: [Player] = []
     @Published var mockCoaches: [Coach] = []
@@ -60,6 +62,7 @@ class MockDataManager: DataManagerProtocol {
     
     func fetchCareers() -> [Career] { return mockCareers }
     func fetchLeagues() -> [League] { return mockLeagues }
+    func fetchTeamInfos() -> [TeamInfo] { return mockTeamInfos }
     func fetchTeams() -> [Team] { return mockTeams }
     func fetchPlayers() -> [Player] { return mockPlayers }
     func fetchCoaches() -> [Coach] { return mockCoaches }

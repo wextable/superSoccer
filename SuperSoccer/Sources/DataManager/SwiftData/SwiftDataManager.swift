@@ -42,20 +42,23 @@ final class SwiftDataManager: DataManagerProtocol {
     // MARK: - Career Management
     
     func createNewCareer(_ request: CreateNewCareerRequest) async throws -> CreateNewCareerResult {
-        // 1. Transform request to SwiftData entities
-        let bundle = clientToSDTransformer.createCareerEntities(from: request)
+        // 1. Fetch available TeamInfo data from storage
+        let availableTeamInfos = storage.fetchTeamInfos()
         
-        // 2. Save to storage using the complex operation
+        // 2. Transform request to SwiftData entities using available team data
+        let bundle = clientToSDTransformer.createCareerEntities(from: request, availableTeamInfos: availableTeamInfos)
+        
+        // 3. Save to storage using the complex operation
         let savedCareer = try storage.createCareerBundle(bundle)
         
-        // 3. Update reactive publishers
+        // 4. Update reactive publishers
         refreshPublishers()
         
-        // 4. Return result
+        // 5. Return result
         return CreateNewCareerResult(
             careerId: savedCareer.id,
             coachId: bundle.coach.id,
-            userTeamId: bundle.teams.first { $0.id == request.selectedTeamId }?.id ?? bundle.teams.first!.id,
+            userTeamId: bundle.teams.first { $0.info.id == request.selectedTeamInfoId }?.id ?? bundle.teams.first!.id,
             leagueId: bundle.league.id,
             currentSeasonId: bundle.season.id,
             allTeamIds: bundle.teams.map { $0.id },
@@ -76,6 +79,11 @@ final class SwiftDataManager: DataManagerProtocol {
     }
     
     // MARK: - Team Management
+    
+    func fetchTeamInfos() -> [TeamInfo] {
+        let sdTeamInfos = storage.fetchTeamInfos()
+        return sdTeamInfos.map { sdToClientTransformer.transform($0) }
+    }
     
     func fetchTeams() -> [Team] {
         let sdTeams = storage.fetchTeams()

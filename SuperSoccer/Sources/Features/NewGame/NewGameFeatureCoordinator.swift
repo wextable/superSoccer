@@ -8,13 +8,18 @@
 import Foundation
 import Combine
 
+enum NewGameCoordinatorResult: CoordinatorResult {
+    case gameCreated(CreateNewCareerResult)
+    case cancelled
+}
+
 protocol NewGameFeatureCoordinatorProtocol: AnyObject {
     var state: NewGameState { get }
     var statePublisher: AnyPublisher<NewGameState, Never> { get }
     
     func updateCoachInfo(firstName: String, lastName: String)
     func startTeamSelection()
-    func handleGameStart()
+    func createGame() async
 }
 
 class NewGameFeatureCoordinator: BaseFeatureCoordinator<NewGameCoordinatorResult>, NewGameFeatureCoordinatorProtocol, ObservableObject {
@@ -27,8 +32,9 @@ class NewGameFeatureCoordinator: BaseFeatureCoordinator<NewGameCoordinatorResult
         $state.eraseToAnyPublisher()
     }
     
-    private var selectedTeam: TeamInfo?
-    private var coachInfo: CoachInfo?
+    private var selectedTeamInfo: TeamInfo?
+    private var coachFirstName: String = ""
+    private var coachLastName: String = ""
     
     init(navigationCoordinator: NavigationCoordinatorProtocol, 
          coordinatorRegistry: FeatureCoordinatorRegistryProtocol,
@@ -50,7 +56,8 @@ class NewGameFeatureCoordinator: BaseFeatureCoordinator<NewGameCoordinatorResult
     }
     
     func updateCoachInfo(firstName: String, lastName: String) {
-        coachInfo = CoachInfo(firstName: firstName, lastName: lastName)
+        coachFirstName = firstName
+        coachLastName = lastName
         updateState()
     }
     
@@ -63,8 +70,8 @@ class NewGameFeatureCoordinator: BaseFeatureCoordinator<NewGameCoordinatorResult
         
         startChild(teamSelectCoordinator) { [weak self] result in
             switch result {
-            case .teamSelected(let team):
-                self?.selectedTeam = team
+            case .teamSelected(let teamInfo):
+                self?.selectedTeamInfo = teamInfo
                 self?.navigationCoordinator.dismissSheet()
                 self?.updateState()
             case .cancelled:
@@ -73,14 +80,36 @@ class NewGameFeatureCoordinator: BaseFeatureCoordinator<NewGameCoordinatorResult
         }
     }
     
-    func handleGameStart() {
-        guard let team = selectedTeam, let coach = coachInfo else { return }
-        let gameInfo = GameInfo(team: team, coach: coach)
-        finish(with: .gameStarted(gameInfo))
+    func createGame() async {
+        guard let teamInfo = selectedTeamInfo,
+              !coachFirstName.isEmpty,
+              !coachLastName.isEmpty else { return }
+        
+//        updateState(isLoading: true)
+        
+        let request = CreateNewCareerRequest(
+            coachFirstName: coachFirstName,
+            coachLastName: coachLastName,
+            selectedTeamInfoId: teamInfo.id,
+            leagueName: "Premier League", // Default league name
+            seasonYear: 2025
+        )
+        
+        do {
+            let result = try await dataManager.createNewCareer(request)
+            print("Career created successfully: \(result.careerId)")
+//            updateState(isLoading: false)
+            finish(with: .gameCreated(result))
+        } catch {
+            print("Error creating career: \(error)")
+//            updateState(isLoading: false)
+            // TODO: Handle error appropriately
+        }
     }
-    
+
     private func updateState() {
-        state = NewGameState(selectedTeam: selectedTeam, coachInfo: coachInfo)
+        let coachInfo = CoachInfo(firstName: coachFirstName, lastName: coachLastName)
+        state = NewGameState(selectedTeam: selectedTeamInfo, coachInfo: coachInfo)
     }
     
     private func handleError(_ error: Error) {
@@ -99,7 +128,7 @@ class MockNewGameFeatureCoordinator: NewGameFeatureCoordinatorProtocol {
     // Test tracking properties
     var updateCoachInfoCalled = false
     var startTeamSelectionCalled = false
-    var handleGameStartCalled = false
+    var createGameCalled = false
     var lastCoachInfo: (firstName: String, lastName: String)?
     
     func updateCoachInfo(firstName: String, lastName: String) {
@@ -115,8 +144,8 @@ class MockNewGameFeatureCoordinator: NewGameFeatureCoordinatorProtocol {
         startTeamSelectionCalled = true
     }
     
-    func handleGameStart() {
-        handleGameStartCalled = true
+    func createGame() async {
+        createGameCalled = true
     }
 }
 #endif

@@ -13,10 +13,21 @@ final class SwiftDataManagerFactory: DataManagerFactoryProtocol {
     static let shared = SwiftDataManagerFactory()
     
     static let schema = Schema([
-        SDTeamInfo.self,
+        SDCareer.self,
         SDCoach.self,
+        SDContract.self,
+        SDLeague.self,
+        SDMatch.self,
         SDPlayer.self,
-        SDTeam.self
+        SDPlayerCareerStats.self,
+        SDPlayerMatchStats.self,
+        SDPlayerSeasonStats.self,
+        SDSeason.self,
+        SDTeam.self,
+        SDTeamCareerStats.self,
+        SDTeamInfo.self,
+        SDTeamMatchStats.self,
+        SDTeamSeasonStats.self
     ])
     
     private let sharedModelContainer: ModelContainer = {

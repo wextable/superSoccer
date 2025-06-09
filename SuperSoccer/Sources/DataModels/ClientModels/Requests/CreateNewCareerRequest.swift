@@ -10,7 +10,7 @@ import Foundation
 struct CreateNewCareerRequest: Hashable, Equatable {
     let coachFirstName: String
     let coachLastName: String
-    let selectedTeamId: String
+    let selectedTeamInfoId: String
     let leagueName: String
     let seasonYear: Int
 }
@@ -20,14 +20,14 @@ extension CreateNewCareerRequest {
     static func make(
         coachFirstName: String = "John",
         coachLastName: String = "Manager",
-        selectedTeamId: String = "1",
+        selectedTeamInfoId: String = "1",
         leagueName: String = "English Premier League",
         seasonYear: Int = 2025
     ) -> CreateNewCareerRequest {
         return CreateNewCareerRequest(
             coachFirstName: coachFirstName,
             coachLastName: coachLastName,
-            selectedTeamId: selectedTeamId,
+            selectedTeamInfoId: selectedTeamInfoId,
             leagueName: leagueName,
             seasonYear: seasonYear
         )

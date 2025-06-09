@@ -8,13 +8,14 @@
 import Foundation
 import Combine
 
+enum MainMenuCoordinatorResult: CoordinatorResult {
+    case newGameCreated(CreateNewCareerResult)
+}
+
 protocol MainMenuFeatureCoordinatorProtocol: AnyObject {
     var state: MainMenuState { get }
     var statePublisher: AnyPublisher<MainMenuState, Never> { get }
-    
     func handleNewGameSelected()
-    func handleSettingsSelected()
-    func handleExitSelected()
 }
 
 class MainMenuFeatureCoordinator: BaseFeatureCoordinator<MainMenuCoordinatorResult>, MainMenuFeatureCoordinatorProtocol, ObservableObject {
@@ -54,35 +55,15 @@ class MainMenuFeatureCoordinator: BaseFeatureCoordinator<MainMenuCoordinatorResu
         )
         
         startChild(newGameCoordinator) { [weak self] result in
+            guard let self else { return }
             switch result {
-            case .gameStarted(let gameInfo):
-                // Handle game started - could navigate to game screen or finish with result
-                self?.handleGameStarted(gameInfo)
+            case .gameCreated(let createGameResult):
+                self.finish(with: .newGameCreated(createGameResult))
             case .cancelled:
                 // User cancelled new game creation, stay on main menu
                 break
-//            case .teamSelectRequested:
-//                break // should not be a case
             }
         }
-        
-//        finish(with: .newGameSelected)
-    }
-    
-    func handleSettingsSelected() {
-        // For now, just finish with settings selected
-        // In the future, this could start a SettingsFeatureCoordinator
-        finish(with: .settingsSelected)
-    }
-    
-    func handleExitSelected() {
-        finish(with: .exitSelected)
-    }
-    
-    private func handleGameStarted(_ gameInfo: GameInfo) {
-        // This could navigate to the actual game screen
-        // For now, we'll just log it
-        print("Game started with team: \(gameInfo.team.city) and coach: \(gameInfo.coach.firstName) \(gameInfo.coach.lastName)")
     }
     
     private func updateState(isLoading: Bool = false) {
@@ -97,21 +78,9 @@ class MockMainMenuFeatureCoordinator: MainMenuFeatureCoordinatorProtocol {
         $state.eraseToAnyPublisher()
     }
     
-    // Test tracking properties
     var handleNewGameSelectedCalled = false
-    var handleSettingsSelectedCalled = false
-    var handleExitSelectedCalled = false
-    
     func handleNewGameSelected() {
         handleNewGameSelectedCalled = true
-    }
-    
-    func handleSettingsSelected() {
-        handleSettingsSelectedCalled = true
-    }
-    
-    func handleExitSelected() {
-        handleExitSelectedCalled = true
     }
 }
 #endif

@@ -9,17 +9,6 @@ import Foundation
 
 // MARK: - Coordinator Results
 
-enum MainMenuCoordinatorResult: CoordinatorResult {
-    case newGameSelected
-    case settingsSelected
-    case exitSelected
-}
-
-enum NewGameCoordinatorResult: CoordinatorResult {
-    case gameStarted(GameInfo)
-    case cancelled
-}
-
 enum TeamSelectCoordinatorResult: CoordinatorResult {
     case teamSelected(TeamInfo)
     case cancelled
@@ -28,10 +17,6 @@ enum TeamSelectCoordinatorResult: CoordinatorResult {
 // Special result for root-level coordinators
 enum SplashCoordinatorResult: CoordinatorResult {
     case splashCompleted
-}
-
-enum RootCoordinatorResult: CoordinatorResult {
-    case appShouldExit
 }
 
 // MARK: - State Models

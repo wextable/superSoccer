@@ -25,30 +25,33 @@ protocol NewGameInteractorProtocol: AnyObject {
 
 @Observable
 final class NewGameInteractor: NewGameInteractorProtocol {
-    private let featureCoordinator: NewGameFeatureCoordinatorProtocol
+    private let newGameCoordinator: NewGameFeatureCoordinatorProtocol
     let eventBus = NewGameEventBus()
     
     var viewModel: NewGameViewModel = .init()
     private var cancellables = Set<AnyCancellable>()
     
-    init(featureCoordinator: NewGameFeatureCoordinatorProtocol) {
-        self.featureCoordinator = featureCoordinator
+    init(newGameCoordinator: NewGameFeatureCoordinatorProtocol) {
+        self.newGameCoordinator = newGameCoordinator
         setupSubscriptions()
     }
     
     private func setupSubscriptions() {
         eventBus
             .sink { [weak self] event in
+                guard let self else { return }
                 switch event {
                 case .submitTapped:
-                    self?.featureCoordinator.handleGameStart()
+                    Task {
+                        await self.newGameCoordinator.createGame()
+                    }
                 case .teamSelectorTapped:
-                    self?.featureCoordinator.startTeamSelection()
+                    self.newGameCoordinator.startTeamSelection()
                 }
             }
             .store(in: &cancellables)
         
-        featureCoordinator.statePublisher
+        newGameCoordinator.statePublisher
             .sink { [weak self] state in
                 guard let self else { return }
                 self.viewModel = self.createViewModel(from: state)
@@ -61,7 +64,7 @@ final class NewGameInteractor: NewGameInteractorProtocol {
             get: { self.viewModel.coachFirstName },
             set: { newValue in
                 self.viewModel.coachFirstName = newValue
-                self.featureCoordinator.updateCoachInfo(
+                self.newGameCoordinator.updateCoachInfo(
                     firstName: newValue,
                     lastName: self.viewModel.coachLastName
                 )
@@ -74,7 +77,7 @@ final class NewGameInteractor: NewGameInteractorProtocol {
             get: { self.viewModel.coachLastName },
             set: { newValue in
                 self.viewModel.coachLastName = newValue
-                self.featureCoordinator.updateCoachInfo(
+                self.newGameCoordinator.updateCoachInfo(
                     firstName: self.viewModel.coachFirstName,
                     lastName: newValue
                 )
@@ -109,7 +112,7 @@ extension NewGameInteractor {
     struct TestHooks {
         let target: NewGameInteractor
         
-        var featureCoordinator: NewGameFeatureCoordinatorProtocol { target.featureCoordinator }
+        var newGameCoordinator: NewGameFeatureCoordinatorProtocol { target.newGameCoordinator }
     }
 }
 

@@ -65,7 +65,7 @@ final class ViewFactory: ViewFactoryProtocol {
             fatalError("NewGameFeatureCoordinator must be active before creating view")
         }
         
-        let interactor = NewGameInteractor(featureCoordinator: coordinator)
+        let interactor = NewGameInteractor(newGameCoordinator: coordinator)
         return NewGameView(interactor: interactor)
     }
     
@@ -121,7 +121,7 @@ class MockViewFactory: ViewFactoryProtocol {
     func makeNewGameView() -> NewGameView<NewGameInteractor> {
         makeNewGameViewCalled = true
         let mockCoordinator = MockNewGameFeatureCoordinator()
-        let interactor = NewGameInteractor(featureCoordinator: mockCoordinator)
+        let interactor = NewGameInteractor(newGameCoordinator: mockCoordinator)
         return NewGameView(interactor: interactor)
     }
     

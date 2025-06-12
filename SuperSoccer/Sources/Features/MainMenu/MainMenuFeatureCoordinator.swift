@@ -13,44 +13,36 @@ enum MainMenuCoordinatorResult: CoordinatorResult {
 }
 
 protocol MainMenuFeatureCoordinatorProtocol: AnyObject {
-    var state: MainMenuState { get }
-    var statePublisher: AnyPublisher<MainMenuState, Never> { get }
-    func handleNewGameSelected()
 }
 
 class MainMenuFeatureCoordinator: BaseFeatureCoordinator<MainMenuCoordinatorResult>, MainMenuFeatureCoordinatorProtocol, ObservableObject {
     private let navigationCoordinator: NavigationCoordinatorProtocol
-    private let coordinatorRegistry: FeatureCoordinatorRegistryProtocol
     private let dataManager: DataManagerProtocol
-    
-    @Published private(set) var state = MainMenuState()
-    var statePublisher: AnyPublisher<MainMenuState, Never> {
-        $state.eraseToAnyPublisher()
-    }
-    
+    private let interactor: MainMenuInteractorProtocol
+
     init(navigationCoordinator: NavigationCoordinatorProtocol, 
-         coordinatorRegistry: FeatureCoordinatorRegistryProtocol,
          dataManager: DataManagerProtocol) {
         self.navigationCoordinator = navigationCoordinator
-        self.coordinatorRegistry = coordinatorRegistry
         self.dataManager = dataManager
+        
+        interactor = MainMenuInteractor(dataManager: dataManager)
+        
         super.init()
+        
+        interactor.delegate = self
     }
     
     override func start() {
-        coordinatorRegistry.register(self, for: .mainMenu)
-        // Don't navigate to mainMenu here - RootCoordinator handles navigation
+        navigationCoordinator.navigateToScreen(.mainMenu(interactor: interactor))
     }
     
     override func finish(with result: MainMenuCoordinatorResult) {
-        coordinatorRegistry.unregister(for: .mainMenu)
         super.finish(with: result)
     }
     
     func handleNewGameSelected() {
         let newGameCoordinator = NewGameFeatureCoordinator(
             navigationCoordinator: navigationCoordinator,
-            coordinatorRegistry: coordinatorRegistry,
             dataManager: dataManager
         )
         
@@ -65,22 +57,17 @@ class MainMenuFeatureCoordinator: BaseFeatureCoordinator<MainMenuCoordinatorResu
             }
         }
     }
-    
-    private func updateState(isLoading: Bool = false) {
-        state = MainMenuState(isLoading: isLoading)
+}
+                                               
+extension MainMenuFeatureCoordinator: MainMenuInteractorDelegate {
+    func interactorDidSelectNewGame() {
+        handleNewGameSelected()
     }
 }
+                                               
 
 #if DEBUG
 class MockMainMenuFeatureCoordinator: MainMenuFeatureCoordinatorProtocol {
-    @Published var state = MainMenuState()
-    var statePublisher: AnyPublisher<MainMenuState, Never> {
-        $state.eraseToAnyPublisher()
-    }
-    
-    var handleNewGameSelectedCalled = false
-    func handleNewGameSelected() {
-        handleNewGameSelectedCalled = true
-    }
+
 }
 #endif

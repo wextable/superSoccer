@@ -16,7 +16,7 @@ struct RootNavigationView: View {
         NavigationStack(path: $router.path) {
             if router.screens.isEmpty {
                 // No navigation screens, show splash
-                viewFactory.makeSplashView()
+                viewFactory.makeView(for: .splash)
             } else {
                 // Show the first screen in the navigation stack as the "root"
                 // All other screens will be handled by NavigationConfigurator

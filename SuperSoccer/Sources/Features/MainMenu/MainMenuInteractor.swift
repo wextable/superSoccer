@@ -14,24 +14,26 @@ enum MainMenuEvent: BusEvent {
     case newGameSelected
 }
 
+protocol MainMenuInteractorDelegate: AnyObject {
+    func interactorDidSelectNewGame()
+}
+
 protocol MainMenuInteractorProtocol: AnyObject {
     var viewModel: MainMenuViewModel { get }
     var eventBus: MainMenuEventBus { get }
+    var delegate: MainMenuInteractorDelegate? { get set }
 }
     
 @Observable
 final class MainMenuInteractor: MainMenuInteractorProtocol {
-    private let featureCoordinator: MainMenuFeatureCoordinatorProtocol
     private let dataManager: DataManagerProtocol
     let eventBus = MainMenuEventBus()
-    
     var viewModel: MainMenuViewModel = .init(title: "Main menu", menuItemModels: [])
+    weak var delegate: MainMenuInteractorDelegate?
     
-//    private var clientModels: [TeamInfo] = []
     private var cancellables = Set<AnyCancellable>()
     
-    init(featureCoordinator: MainMenuFeatureCoordinatorProtocol, dataManager: DataManagerProtocol) {
-        self.featureCoordinator = featureCoordinator
+    init(dataManager: DataManagerProtocol) {
         self.dataManager = dataManager
         
         self.viewModel = MainMenuViewModel(
@@ -53,12 +55,6 @@ final class MainMenuInteractor: MainMenuInteractorProtocol {
     
     private func subscribeToDataSource() {
         // TODO: see if we have any saved games, if so add a load game button
-        dataManager.teamPublisher
-            .sink { _ in // [weak self] teams in
-//                guard let self else { return }
-//                self.viewModel = TeamSelectViewModel(clientModels: teams.map(\.info))
-            }
-            .store(in: &cancellables)
     }
     
     private func subscribeToEvents() {
@@ -73,7 +69,7 @@ final class MainMenuInteractor: MainMenuInteractorProtocol {
     }
     
     private func handleNewGameSelected() {
-        featureCoordinator.handleNewGameSelected()
+        delegate?.interactorDidSelectNewGame()
     }
 }
 
@@ -84,12 +80,12 @@ extension MainMenuInteractor {
     struct TestHooks {
         let target: MainMenuInteractor
         
-        var featureCoordinator: MainMenuFeatureCoordinatorProtocol { target.featureCoordinator }
         var dataManager: DataManagerProtocol { target.dataManager }
     }
 }
 
 class MockMainMenuInteractor: MainMenuInteractorProtocol {
+    weak var delegate: MainMenuInteractorDelegate?
     var viewModel: MainMenuViewModel {
         MainMenuViewModel(
             title: "Main menu",

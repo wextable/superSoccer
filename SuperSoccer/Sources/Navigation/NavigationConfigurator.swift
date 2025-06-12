@@ -29,17 +29,7 @@ struct NavigationConfigurator: ViewModifier {
             .environmentObject(router)
     }
     
-    @ViewBuilder
     private func makeDestinationView(for screen: NavigationRouter.Screen) -> some View {
-        switch screen {
-        case .splash:
-            viewFactory.makeSplashView()
-        case .mainMenu:
-            viewFactory.makeMainMenuView()
-        case .newGame:
-            viewFactory.makeNewGameView()
-        case .teamSelect:
-            viewFactory.makeTeamSelectView()
-        }
+        return viewFactory.makeView(for: screen)
     }
 }

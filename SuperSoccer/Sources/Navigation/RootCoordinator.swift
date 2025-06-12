@@ -17,15 +17,12 @@ protocol RootCoordinatorProtocol: AnyObject {
 
 class RootCoordinator: BaseFeatureCoordinator<RootCoordinatorResult>, RootCoordinatorProtocol, ObservableObject {
     private let navigationCoordinator: NavigationCoordinatorProtocol
-    private let coordinatorRegistry: FeatureCoordinatorRegistryProtocol
     private let dataManager: DataManagerProtocol
     private var splashTimer: Timer?
     
     init(navigationCoordinator: NavigationCoordinatorProtocol, 
-         coordinatorRegistry: FeatureCoordinatorRegistryProtocol,
          dataManager: DataManagerProtocol) {
         self.navigationCoordinator = navigationCoordinator
-        self.coordinatorRegistry = coordinatorRegistry
         self.dataManager = dataManager
         super.init()
     }
@@ -52,7 +49,6 @@ class RootCoordinator: BaseFeatureCoordinator<RootCoordinatorResult>, RootCoordi
     private func startMainMenuFlow() {
         let mainMenuCoordinator = MainMenuFeatureCoordinator(
             navigationCoordinator: navigationCoordinator,
-            coordinatorRegistry: coordinatorRegistry,
             dataManager: dataManager
         )
         
@@ -64,9 +60,6 @@ class RootCoordinator: BaseFeatureCoordinator<RootCoordinatorResult>, RootCoordi
                 break
             }
         }
-        
-        // Navigate to main menu screen AFTER coordinator is started and registered
-        navigationCoordinator.replaceStackWith(.mainMenu)
     }
     
 }

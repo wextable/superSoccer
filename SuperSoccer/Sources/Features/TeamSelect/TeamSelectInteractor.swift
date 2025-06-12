@@ -11,74 +11,68 @@ import Observation
 typealias TeamSelectEventBus = PassthroughSubject<TeamSelectEvent, Never>
 
 enum TeamSelectEvent: BusEvent {
-    case teamSelected(teamId: String)
+    case teamSelected(teamInfoId: String)
+}
+
+protocol TeamSelectInteractorDelegate: AnyObject {
+    func interactorDidSelectTeam(_ team: TeamInfo)
+    func interactorDidCancel()
 }
 
 protocol TeamSelectInteractorProtocol: AnyObject {
     var viewModel: TeamSelectViewModel { get }
     var eventBus: TeamSelectEventBus { get }
+    var delegate: TeamSelectInteractorDelegate? { get set }
 }
     
 @Observable
 final class TeamSelectInteractor: TeamSelectInteractorProtocol {
-    private let featureCoordinator: TeamSelectFeatureCoordinatorProtocol
     private let dataManager: DataManagerProtocol
     let eventBus = TeamSelectEventBus()
+    weak var delegate: TeamSelectInteractorDelegate?
     
+    private let teamInfos: [TeamInfo]
     var viewModel: TeamSelectViewModel
     private var cancellables = Set<AnyCancellable>()
     
-    init(
-        featureCoordinator: TeamSelectFeatureCoordinatorProtocol,
-        dataManager: DataManagerProtocol
-    ) {
-        self.featureCoordinator = featureCoordinator
+    init(dataManager: DataManagerProtocol) {
         self.dataManager = dataManager
-        self.viewModel = Self.createViewModel(from: featureCoordinator.state)
+        
+        teamInfos = dataManager.fetchTeamInfos()
+        let teamModels = teamInfos.map {
+            TeamThumbnailViewModel(
+                id: $0.id,
+                text: "\($0.city) \($0.teamName)"
+            )
+        }
+        viewModel = TeamSelectViewModel(
+            title: "Select a team",
+            teamModels: teamModels
+        )
+        
         setupSubscriptions()
+        
     }
     
     private func setupSubscriptions() {
         subscribeToEvents()
-        subscribeToStateChanges()
-    }
-    
-    private func subscribeToStateChanges() {
-        featureCoordinator.statePublisher
-            .sink { [weak self] state in
-                self?.viewModel = Self.createViewModel(from: state)
-            }
-            .store(in: &cancellables)
     }
     
     private func subscribeToEvents() {
         eventBus
             .sink { [weak self] event in
                 switch event {
-                case .teamSelected(let teamId):
-                    self?.handleTeamSelected(teamId: teamId)
+                case .teamSelected(let teamInfoId):
+                    self?.handleTeamSelected(teamInfoId: teamInfoId)
                 }
             }
             .store(in: &cancellables)
     }
     
-    private func handleTeamSelected(teamId: String) {
-        guard let teamInfo = featureCoordinator.state.teams.first(where: { $0.id == teamId }) else { return }
-        featureCoordinator.handleTeamSelected(teamInfo)
-    }
-    
-    private static func createViewModel(from state: TeamSelectState) -> TeamSelectViewModel {
-        let teamModels = state.teams.map { teamInfo in
-            TeamThumbnailViewModel(
-                id: teamInfo.id,
-                text: "\(teamInfo.city) \(teamInfo.teamName)"
-            )
-        }
+    private func handleTeamSelected(teamInfoId: String) {
+        guard let teamInfo = teamInfos.first(where: { $0.id == teamInfoId }) else { return }
         
-        return TeamSelectViewModel(
-            title: "Select a team",
-            teamModels: teamModels
-        )
+        delegate?.interactorDidSelectTeam(teamInfo)
     }
 }
 
@@ -89,7 +83,6 @@ extension TeamSelectInteractor {
     struct TestHooks {
         let target: TeamSelectInteractor
         
-        var featureCoordinator: TeamSelectFeatureCoordinatorProtocol { target.featureCoordinator }
         var dataManager: DataManagerProtocol { target.dataManager }
     }
 }
@@ -107,5 +100,6 @@ class MockTeamSelectInteractor: TeamSelectInteractorProtocol {
         )
     }
     var eventBus: TeamSelectEventBus = TeamSelectEventBus()
+    weak var delegate: TeamSelectInteractorDelegate?
 }
 #endif

@@ -6,11 +6,10 @@
 //
 
 protocol DependencyContainerProtocol {
-    var dataManager: DataManagerProtocol { get }
+    @MainActor var dataManager: DataManagerProtocol { get }
     var viewFactory: ViewFactoryProtocol { get }
-    var coordinatorRegistry: FeatureCoordinatorRegistryProtocol { get }
     var router: NavigationRouter { get }
-    var navigationCoordinator: NavigationCoordinatorProtocol { get }
+    @MainActor var navigationCoordinator: NavigationCoordinatorProtocol { get }
 }
 
 final class DependencyContainer: DependencyContainerProtocol {
@@ -23,26 +22,15 @@ final class DependencyContainer: DependencyContainerProtocol {
         SwiftDataManagerFactory.shared.makeDataManager()
     }()
     
-    private(set) lazy var coordinatorRegistry: FeatureCoordinatorRegistryProtocol = {
-        FeatureCoordinatorRegistry()
-    }()
-    
     private(set) lazy var router = NavigationRouter()
     
     private(set) lazy var navigationCoordinator: NavigationCoordinatorProtocol = {
-        NavigationCoordinator(
-            router: router,
-            coordinatorRegistry: coordinatorRegistry,
-            dataManager: dataManager
-        )
+        NavigationCoordinator(router: router)
     }()
     
     // Factories    
     private(set) lazy var viewFactory: ViewFactoryProtocol = {
-        ViewFactory(
-            coordinatorRegistry: coordinatorRegistry,
-            dataManager: dataManager
-        )
+        ViewFactory()
     }()
     
     private init() {}
@@ -52,9 +40,6 @@ final class DependencyContainer: DependencyContainerProtocol {
 class MockDependencyContainer: DependencyContainerProtocol {
     var mockDataManager = MockDataManager()
     var dataManager: DataManagerProtocol { mockDataManager }
-    
-    var mockCoordinatorRegistry = MockFeatureCoordinatorRegistry()
-    var coordinatorRegistry: FeatureCoordinatorRegistryProtocol { mockCoordinatorRegistry }
     
     var mockViewFactory = MockViewFactory()
     var viewFactory: ViewFactoryProtocol { mockViewFactory }

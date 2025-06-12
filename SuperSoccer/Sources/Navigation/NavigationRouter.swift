@@ -8,9 +8,9 @@ final class NavigationRouter: ObservableObject {
     
     enum Screen: Hashable, Identifiable {
         case splash
-        case mainMenu
-        case newGame
-        case teamSelect
+        case mainMenu(interactor: MainMenuInteractorProtocol)
+        case newGame(interactor: NewGameInteractorProtocol)
+        case teamSelect(interactor: TeamSelectInteractorProtocol)
         
         var id: String {
             switch self {
@@ -35,12 +35,15 @@ final class NavigationRouter: ObservableObject {
             switch self {
             case .splash:
                 hasher.combine("splash")
-            case .mainMenu:
+            case .mainMenu(let interactor):
                 hasher.combine("mainMenu")
-            case .newGame:
+                hasher.combine(ObjectIdentifier(interactor))
+            case .newGame(let interactor):
                 hasher.combine("newGame")
-            case .teamSelect:
+                hasher.combine(ObjectIdentifier(interactor))
+            case .teamSelect(let interactor):
                 hasher.combine("teamSelect")
+                hasher.combine(ObjectIdentifier(interactor))
             }
         }
     }
@@ -53,10 +56,11 @@ final class NavigationRouter: ObservableObject {
     func replaceNavigationStack(with screen: Screen) {
         // For root-level screens (splash, mainMenu), set them as the base screen
         // and clear the navigation path
-        if screen == .splash || screen == .mainMenu {
+        switch screen {
+        case .splash, .mainMenu:
             path = NavigationPath()
             screens = [screen]
-        } else {
+        default:
             // For other screens, they should be in the navigation path
             path = NavigationPath([screen])
             screens = [screen]

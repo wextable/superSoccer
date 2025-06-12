@@ -34,11 +34,9 @@ class TeamSelectFeatureCoordinator: BaseFeatureCoordinator<TeamSelectCoordinator
     }
     
     override func start() {
-        navigationCoordinator.presentSheet(.teamSelect(interactor: interactor))
-    }
-    
-    override func finish(with result: TeamSelectCoordinatorResult) {
-        super.finish(with: result)
+        Task { @MainActor in
+            self.navigationCoordinator.presentSheet(.teamSelect(interactor: interactor))
+        }
     }
 
 }

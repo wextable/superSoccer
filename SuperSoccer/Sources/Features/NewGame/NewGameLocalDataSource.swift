@@ -46,4 +46,3 @@ final class NewGameLocalDataSource: NewGameLocalDataSourceProtocol {
         data.selectedTeamInfo = teamInfo
     }
 }
-

@@ -11,7 +11,10 @@ struct ClientToSwiftDataTransformer {
     
     // MARK: - Career Creation Bundle
     
-    func createCareerEntities(from request: CreateNewCareerRequest, availableTeamInfos: [SDTeamInfo]) -> CareerCreationBundle {
+    func createCareerEntities(
+        from request: CreateNewCareerRequest, 
+        availableTeamInfos: [SDTeamInfo]
+    ) -> CareerCreationBundle {
         // Step 1: Create base entities (no relationships)
         let coach = createCoach(from: request)
         let (teams, teamInfos, players) = createTeamsAndPlayers(from: request, availableTeamInfos: availableTeamInfos)
@@ -28,7 +31,7 @@ struct ClientToSwiftDataTransformer {
         let season = createSeason(from: request, league: league)
         
         // Step 5: Create career with all relationships
-        let userTeam = teams.first { $0.info.id == request.selectedTeamInfoId }!
+        let userTeam = teams.first { $0.info.id == request.selectedTeamInfoId }! // TODO: fix force unwrap
         let career = createCareer(from: request, coach: coach, userTeam: userTeam, currentSeason: season)
         
         // Step 6: Set season.career back-reference
@@ -41,7 +44,8 @@ struct ClientToSwiftDataTransformer {
             season: season,
             teams: teams,
             players: players,
-            teamInfos: teamInfos
+            teamInfos: teamInfos,
+            userTeamId: userTeam.id
         )
     }
     
@@ -55,7 +59,10 @@ struct ClientToSwiftDataTransformer {
         )
     }
     
-    private func createTeamsAndPlayers(from request: CreateNewCareerRequest, availableTeamInfos: [SDTeamInfo]) -> ([SDTeam], [SDTeamInfo], [SDPlayer]) {
+    private func createTeamsAndPlayers(
+        from request: CreateNewCareerRequest, 
+        availableTeamInfos: [SDTeamInfo]
+    ) -> ([SDTeam], [SDTeamInfo], [SDPlayer]) {
         var teams: [SDTeam] = []
         var allPlayers: [SDPlayer] = []
         
@@ -123,7 +130,11 @@ struct ClientToSwiftDataTransformer {
         )
     }
     
-    private func createCareer(from request: CreateNewCareerRequest, coach: SDCoach, userTeam: SDTeam, currentSeason: SDSeason) -> SDCareer {
+    private func createCareer(
+        from request: CreateNewCareerRequest, 
+        coach: SDCoach, 
+        userTeam: SDTeam, currentSeason: SDSeason
+    ) -> SDCareer {
         return SDCareer(
             id: UUID().uuidString,
             coach: coach,
@@ -178,4 +189,5 @@ struct CareerCreationBundle {
     let teams: [SDTeam]
     let players: [SDPlayer]
     let teamInfos: [SDTeamInfo]
+    let userTeamId: String
 }

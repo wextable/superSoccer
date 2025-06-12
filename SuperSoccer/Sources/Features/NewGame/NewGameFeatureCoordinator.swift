@@ -34,13 +34,16 @@ class NewGameFeatureCoordinator: BaseFeatureCoordinator<NewGameCoordinatorResult
     }
     
     override func start() {
-        navigationCoordinator.navigateToScreen(.newGame(interactor: interactor))
+        Task { @MainActor in
+            self.navigationCoordinator.navigateToScreen(.newGame(interactor: interactor))
+        }
     }
     
     override func finish(with result: NewGameCoordinatorResult) {
         super.finish(with: result)
     }
     
+    @MainActor
     private func startTeamSelection() {
         let teamSelectCoordinator = TeamSelectFeatureCoordinator(
             navigationCoordinator: navigationCoordinator,
@@ -48,15 +51,32 @@ class NewGameFeatureCoordinator: BaseFeatureCoordinator<NewGameCoordinatorResult
         )
         
         startChild(teamSelectCoordinator) { [weak self] result in
-            switch result {
-            case .teamSelected(let teamInfo):
-                self?.navigationCoordinator.dismissSheet()
-                // Update interactor with selected team using new architecture
-                self?.interactor.updateSelectedTeam(teamInfo)
-            case .cancelled:
-                self?.navigationCoordinator.dismissSheet()
+            guard let self else { return }
+            Task { @MainActor in
+                self.handleTeamSelectionResult(result)
             }
         }
+    }
+    
+    @MainActor
+    private func handleTeamSelectionResult(_ result: TeamSelectCoordinatorResult) {
+        switch result {
+        case .teamSelected(let teamInfo):
+            handleTeamSelected(teamInfo: teamInfo)
+        case .cancelled:
+            handleTeamSelectionCancelled()
+        }
+    }
+    
+    @MainActor
+    private func handleTeamSelected(teamInfo: TeamInfo) {
+        navigationCoordinator.dismissSheet()
+        interactor.updateSelectedTeam(teamInfo)
+    }
+    
+    @MainActor
+    private func handleTeamSelectionCancelled() {
+        navigationCoordinator.dismissSheet()
     }
     
     private func handleError(_ error: Error) {
@@ -67,7 +87,9 @@ class NewGameFeatureCoordinator: BaseFeatureCoordinator<NewGameCoordinatorResult
 
 extension NewGameFeatureCoordinator: NewGameInteractorDelegate {
     func interactorDidRequestTeamSelection() {
-        startTeamSelection()
+        Task { @MainActor in
+            self.startTeamSelection()
+        }
     }
     
     func interactorDidCreateGame(with result: CreateNewCareerResult) {

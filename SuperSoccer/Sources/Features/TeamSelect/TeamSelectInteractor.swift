@@ -24,7 +24,7 @@ protocol TeamSelectInteractorProtocol: AnyObject {
     var eventBus: TeamSelectEventBus { get }
     var delegate: TeamSelectInteractorDelegate? { get set }
 }
-    
+
 @Observable
 final class TeamSelectInteractor: TeamSelectInteractorProtocol {
     private let dataManager: DataManagerProtocol

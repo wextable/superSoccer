@@ -9,6 +9,7 @@ import Combine
 import Foundation
 
 /// Protocol defining the navigation coordination capabilities
+@MainActor
 protocol NavigationCoordinatorProtocol {
     /// Navigate to a specific screen
     func navigateToScreen(_ screen: NavigationRouter.Screen)

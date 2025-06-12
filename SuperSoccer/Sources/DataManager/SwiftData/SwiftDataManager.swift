@@ -58,7 +58,7 @@ final class SwiftDataManager: DataManagerProtocol {
         return CreateNewCareerResult(
             careerId: savedCareer.id,
             coachId: bundle.coach.id,
-            userTeamId: bundle.teams.first { $0.info.id == request.selectedTeamInfoId }?.id ?? bundle.teams.first!.id,
+            userTeamId: bundle.userTeamId,
             leagueId: bundle.league.id,
             currentSeasonId: bundle.season.id,
             allTeamIds: bundle.teams.map { $0.id },

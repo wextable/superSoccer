@@ -33,11 +33,9 @@ class MainMenuFeatureCoordinator: BaseFeatureCoordinator<MainMenuCoordinatorResu
     }
     
     override func start() {
-        navigationCoordinator.navigateToScreen(.mainMenu(interactor: interactor))
-    }
-    
-    override func finish(with result: MainMenuCoordinatorResult) {
-        super.finish(with: result)
+        Task { @MainActor in
+            self.navigationCoordinator.navigateToScreen(.mainMenu(interactor: interactor))
+        }
     }
     
     func handleNewGameSelected() {
@@ -63,8 +61,7 @@ extension MainMenuFeatureCoordinator: MainMenuInteractorDelegate {
     func interactorDidSelectNewGame() {
         handleNewGameSelected()
     }
-}
-                                               
+}                                           
 
 #if DEBUG
 class MockMainMenuFeatureCoordinator: MainMenuFeatureCoordinatorProtocol {

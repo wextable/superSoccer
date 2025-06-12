@@ -45,7 +45,7 @@ class RootCoordinator: BaseFeatureCoordinator<RootCoordinatorResult>, RootCoordi
         splashTimer?.invalidate()
         splashTimer = nil
     }
-    
+        
     private func startMainMenuFlow() {
         let mainMenuCoordinator = MainMenuFeatureCoordinator(
             navigationCoordinator: navigationCoordinator,

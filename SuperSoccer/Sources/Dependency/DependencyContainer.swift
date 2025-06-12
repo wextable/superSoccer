@@ -7,8 +7,8 @@
 
 protocol DependencyContainerProtocol {
     @MainActor var dataManager: DataManagerProtocol { get }
-    var viewFactory: ViewFactoryProtocol { get }
-    var router: NavigationRouter { get }
+    @MainActor var viewFactory: ViewFactoryProtocol { get }
+    @MainActor var router: NavigationRouter { get }
     @MainActor var navigationCoordinator: NavigationCoordinatorProtocol { get }
 }
 

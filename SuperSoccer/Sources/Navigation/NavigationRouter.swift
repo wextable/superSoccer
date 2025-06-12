@@ -1,6 +1,7 @@
 import SwiftUI
 import Combine
 
+@MainActor
 final class NavigationRouter: ObservableObject {
     @Published var path = NavigationPath()
     @Published var screens: [Screen] = []

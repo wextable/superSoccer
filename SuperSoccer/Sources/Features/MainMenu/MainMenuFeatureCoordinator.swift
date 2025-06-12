@@ -13,8 +13,6 @@ enum MainMenuCoordinatorResult: CoordinatorResult {
 }
 
 protocol MainMenuFeatureCoordinatorProtocol: AnyObject {
-    var state: MainMenuState { get }
-    var statePublisher: AnyPublisher<MainMenuState, Never> { get }
     func handleNewGameSelected()
 }
 
@@ -22,12 +20,7 @@ class MainMenuFeatureCoordinator: BaseFeatureCoordinator<MainMenuCoordinatorResu
     private let navigationCoordinator: NavigationCoordinatorProtocol
     private let coordinatorRegistry: FeatureCoordinatorRegistryProtocol
     private let dataManager: DataManagerProtocol
-    
-    @Published private(set) var state = MainMenuState()
-    var statePublisher: AnyPublisher<MainMenuState, Never> {
-        $state.eraseToAnyPublisher()
-    }
-    
+
     init(navigationCoordinator: NavigationCoordinatorProtocol, 
          coordinatorRegistry: FeatureCoordinatorRegistryProtocol,
          dataManager: DataManagerProtocol) {
@@ -65,19 +58,10 @@ class MainMenuFeatureCoordinator: BaseFeatureCoordinator<MainMenuCoordinatorResu
             }
         }
     }
-    
-    private func updateState(isLoading: Bool = false) {
-        state = MainMenuState(isLoading: isLoading)
-    }
 }
 
 #if DEBUG
 class MockMainMenuFeatureCoordinator: MainMenuFeatureCoordinatorProtocol {
-    @Published var state = MainMenuState()
-    var statePublisher: AnyPublisher<MainMenuState, Never> {
-        $state.eraseToAnyPublisher()
-    }
-    
     var handleNewGameSelectedCalled = false
     func handleNewGameSelected() {
         handleNewGameSelectedCalled = true

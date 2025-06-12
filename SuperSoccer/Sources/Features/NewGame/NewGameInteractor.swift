@@ -26,35 +26,55 @@ protocol NewGameInteractorProtocol: AnyObject {
 @Observable
 final class NewGameInteractor: NewGameInteractorProtocol {
     private let newGameCoordinator: NewGameFeatureCoordinatorProtocol
+    private let dataManager: DataManagerProtocol
+    private let localDataSource: NewGameLocalDataSourceProtocol
     let eventBus = NewGameEventBus()
     
     var viewModel: NewGameViewModel = .init()
     private var cancellables = Set<AnyCancellable>()
     
-    init(newGameCoordinator: NewGameFeatureCoordinatorProtocol) {
+    private var coachFirstName: String = ""
+    private var coachLastName: String = ""
+    private var selectedTeamInfo: TeamInfo?
+    
+    init(
+        newGameCoordinator: NewGameFeatureCoordinatorProtocol,
+        dataManager: DataManagerProtocol,
+        localDataSource: NewGameLocalDataSourceProtocol = NewGameLocalDataSource()
+    ) {
         self.newGameCoordinator = newGameCoordinator
+        self.dataManager = dataManager
+        self.localDataSource = localDataSource
         setupSubscriptions()
     }
     
     private func setupSubscriptions() {
+        subscribeToDataSources()
+        subscribeToUIEvents()
+    }
+    
+    private func subscribeToDataSources() {
+        localDataSource.dataPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] data in
+                guard let self else { return }
+                self.viewModel = createViewModel(localData: data)
+            }
+            .store(in: &cancellables)
+    }
+    
+    private func subscribeToUIEvents() {
         eventBus
             .sink { [weak self] event in
                 guard let self else { return }
                 switch event {
                 case .submitTapped:
                     Task {
-                        await self.newGameCoordinator.createGame()
+                        await self.createGame()
                     }
                 case .teamSelectorTapped:
                     self.newGameCoordinator.startTeamSelection()
                 }
-            }
-            .store(in: &cancellables)
-        
-        newGameCoordinator.statePublisher
-            .sink { [weak self] state in
-                guard let self else { return }
-                self.viewModel = self.createViewModel(from: state)
             }
             .store(in: &cancellables)
     }
@@ -63,11 +83,7 @@ final class NewGameInteractor: NewGameInteractorProtocol {
         Binding(
             get: { self.viewModel.coachFirstName },
             set: { newValue in
-                self.viewModel.coachFirstName = newValue
-                self.newGameCoordinator.updateCoachInfo(
-                    firstName: newValue,
-                    lastName: self.viewModel.coachLastName
-                )
+                self.localDataSource.updateCoach(firstName: newValue)
             }
         )
     }
@@ -76,32 +92,51 @@ final class NewGameInteractor: NewGameInteractorProtocol {
         Binding(
             get: { self.viewModel.coachLastName },
             set: { newValue in
-                self.viewModel.coachLastName = newValue
-                self.newGameCoordinator.updateCoachInfo(
-                    firstName: self.viewModel.coachFirstName,
-                    lastName: newValue
-                )
+                self.localDataSource.updateCoach(lastName: newValue)
             }
         )
     }
     
-    private func createViewModel(from state: NewGameState) -> NewGameViewModel {
+    private func createViewModel(localData: NewGameLocalDataSource.Data) -> NewGameViewModel {
         return NewGameViewModel(
             title: "New Game",
             coachLabelText: "Coach name",
             coachFirstNameLabel: "First name",
-            coachFirstName: state.coachInfo?.firstName ?? "",
+            coachFirstName: localData.coachFirstName,
             coachLastNameLabel: "Last name",
-            coachLastName: state.coachInfo?.lastName ?? "",
+            coachLastName: localData.coachLastName,
             teamSelectorModel: TeamSelectorViewModel(
-                clientModel: state.selectedTeam,
+                clientModel: localData.selectedTeamInfo,
                 action: { [weak self] in
                     self?.eventBus.send(.teamSelectorTapped)
                 }
             ),
             buttonText: "Start Game",
-            submitEnabled: state.coachInfo != nil && state.selectedTeam != nil
+            submitEnabled: localData.isValid
         )
+    }
+    
+    func createGame() async {
+        guard let teamInfo = selectedTeamInfo,
+              !coachFirstName.isEmpty,
+              !coachLastName.isEmpty else { return }
+        
+        let request = CreateNewCareerRequest(
+            coachFirstName: coachFirstName,
+            coachLastName: coachLastName,
+            selectedTeamInfoId: teamInfo.id,
+            leagueName: "Premier League", // Default league name
+            seasonYear: 2025
+        )
+        
+        do {
+            let result = try await dataManager.createNewCareer(request)
+            print("Career created successfully: \(result.careerId)")
+//            finish(with: .gameCreated(result))
+        } catch {
+            print("Error creating career: \(error)")
+            // TODO: Handle error appropriately
+        }
     }
 }
 

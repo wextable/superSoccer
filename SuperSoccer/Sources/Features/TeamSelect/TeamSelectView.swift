@@ -19,7 +19,7 @@ struct TeamSelectView<Interactor: TeamSelectInteractorProtocol>: View {
         List(interactor.viewModel.teamModels) { teamModel in
             TeamThumbnailView(viewModel: teamModel)
                 .onTapGesture {
-                    interactor.eventBus.send(.teamSelected(teamId: teamModel.id))
+                    interactor.eventBus.send(.teamSelected(teamInfoId: teamModel.id))
                 }
         }
         .navigationTitle(interactor.viewModel.title)

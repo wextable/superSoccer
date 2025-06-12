@@ -8,10 +8,12 @@
 import Foundation
 import Combine
 
+enum TeamSelectCoordinatorResult: CoordinatorResult {
+    case teamSelected(TeamInfo)
+    case cancelled
+}
+
 protocol TeamSelectFeatureCoordinatorProtocol: AnyObject {
-    var state: TeamSelectState { get }
-    var statePublisher: AnyPublisher<TeamSelectState, Never> { get }
-    
     func handleTeamSelected(_ team: TeamInfo)
     func handleUserCancelled()
 }
@@ -20,11 +22,6 @@ class TeamSelectFeatureCoordinator: BaseFeatureCoordinator<TeamSelectCoordinator
     private let navigationCoordinator: NavigationCoordinatorProtocol
     private let coordinatorRegistry: FeatureCoordinatorRegistryProtocol
     private let dataManager: DataManagerProtocol
-    
-    @Published private(set) var state = TeamSelectState()
-    var statePublisher: AnyPublisher<TeamSelectState, Never> {
-        $state.eraseToAnyPublisher()
-    }
     
     init(navigationCoordinator: NavigationCoordinatorProtocol,
          coordinatorRegistry: FeatureCoordinatorRegistryProtocol,
@@ -38,7 +35,6 @@ class TeamSelectFeatureCoordinator: BaseFeatureCoordinator<TeamSelectCoordinator
     override func start() {
         coordinatorRegistry.register(self, for: .teamSelect)
         navigationCoordinator.presentSheet(.teamSelect)
-        loadTeams()
     }
     
     override func finish(with result: TeamSelectCoordinatorResult) {
@@ -53,23 +49,10 @@ class TeamSelectFeatureCoordinator: BaseFeatureCoordinator<TeamSelectCoordinator
     func handleUserCancelled() {
         finish(with: .cancelled)
     }
-    
-    private func loadTeams() {
-        state = TeamSelectState(teams: [], isLoading: true)
-        
-        // Load teams from data manager
-        let teams = dataManager.fetchTeamInfos()
-        state = TeamSelectState(teams: teams, isLoading: false)
-    }
 }
 
 #if DEBUG
 class MockTeamSelectFeatureCoordinator: TeamSelectFeatureCoordinatorProtocol {
-    @Published var state = TeamSelectState()
-    var statePublisher: AnyPublisher<TeamSelectState, Never> {
-        $state.eraseToAnyPublisher()
-    }
-    
     // Test tracking properties
     var handleTeamSelectedCalled = false
     var handleUserCancelledCalled = false

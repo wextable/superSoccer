@@ -1,0 +1,209 @@
+# SuperSoccer Project Rules
+
+## Architecture Principles
+
+### Clean Architecture
+- Follow the established 3-layer data architecture: SwiftDataStorage (Persistence) → DataManager (Orchestration) → Transformers (Translation)
+- Maintain strict separation between Client models and SwiftData models - they should never cross layer boundaries
+- Use Request/Result pattern for complex operations (e.g., CreateNewCareerRequest/CreateNewCareerResult)
+- DataManager should only expose Client models to upper layers, never SwiftData models
+- SwiftDataStorage should only work with SwiftData models, never Client models
+
+### Dependency Injection
+- Use DependencyContainer for all dependency management
+- All dependencies must be protocol-based with mock implementations for testing
+- Inject dependencies through initializers, not as singletons (except DependencyContainer.shared)
+- Every protocol should have a corresponding Mock implementation in #if DEBUG blocks
+
+### Model Design
+- Client models must be immutable structs with `let` properties
+- All Client models must conform to `Identifiable`, `Hashable`, and `Equatable`
+- Use ID-based relationships (String IDs) instead of direct object references to prevent circular dependencies
+- SwiftData models use `@Model` and can have mutable properties for persistence
+- Transformers handle all conversion between Client and SwiftData models
+
+## Code Organization
+
+### Feature Structure
+Each feature must follow this structure:
+```
+Features/[FeatureName]/
+├── [FeatureName]FeatureCoordinator.swift
+├── [FeatureName]Interactor.swift
+├── [FeatureName]View.swift
+├── [FeatureName]LocalDataSource.swift (if needed)
+└── Supporting files (ViewModels, etc.)
+```
+
+### File Naming Conventions
+- Feature coordinators: `[FeatureName]FeatureCoordinator.swift`
+- Interactors: `[FeatureName]Interactor.swift`
+- Views: `[FeatureName]View.swift`
+- Client models: Use domain names (Team.swift, Player.swift, etc.)
+- SwiftData models: Prefix with `SD` (SDTeam.swift, SDPlayer.swift, etc.)
+- Transformers: `ClientToSwiftDataTransformer.swift`, `SwiftDataToClientTransformer.swift`
+- Protocols: End with `Protocol` (DataManagerProtocol, NavigationCoordinatorProtocol)
+- Mock implementations: Prefix with `Mock` (MockDataManager, MockNavigationCoordinator)
+
+### Directory Structure
+- Keep the established Sources/ structure: App/, DataManager/, DataModels/, Dependency/, Features/, Navigation/, Shared/
+- Group related files in subdirectories (Core/, Requests/, Results/, Stats/, etc.)
+- Maintain parallel test structure in SuperSoccerTests/
+
+## Navigation & Coordination
+
+### Coordinator Pattern
+- All features must use BaseFeatureCoordinator<Result> pattern
+- Define specific CoordinatorResult enums for each feature (e.g., TeamSelectCoordinatorResult)
+- Use `startChild()` for automatic child coordinator management
+- Call `finish(with:)` when coordinator completes its task
+- Implement protocol abstractions for all coordinators with mock implementations
+
+### Navigation Flow
+- Use NavigationCoordinator for all navigation operations
+- Present sheets, push views, and handle dismissal through NavigationCoordinator
+- Never perform navigation directly from Views or Interactors
+
+## Data Layer Guidelines
+
+### DataManager Operations
+- All DataManager methods should be async when performing persistence operations
+- Return Client models only, never SwiftData models
+- Use Publishers for reactive UI updates (e.g., careerPublisher)
+- Handle errors appropriately and propagate them to calling layers
+- Complex operations should use dedicated Request/Result models
+
+### Transformers
+- Keep transformation logic pure - no side effects or business logic
+- Handle complex entity creation sequences in ClientToSwiftDataTransformer
+- Ensure bidirectional transformation capability
+- Use CareerCreationBundle pattern for complex multi-entity operations
+
+### SwiftData Integration
+- SwiftDataStorage handles only persistence operations
+- Use proper transaction management with save() and rollback()
+- Create complex entity relationships in single transactions
+- Never expose SwiftData models outside the storage layer
+
+## SwiftUI Best Practices
+
+### View Architecture
+- Use ViewModels for view state (e.g., TeamSelectViewModel, TeamThumbnailViewModel)
+- Implement static `make()` factory methods for view creation
+- Keep Views focused on presentation, delegate business logic to Interactors
+- Use Interactor protocols for testability
+
+### State Management
+- Use Combine for reactive data flow
+- Subscribe to EventBus for feature-specific events
+- Manage cancellables properly in Interactors
+- Use @MainActor for UI-related operations
+
+### View Composition
+- Create reusable components (e.g., TeamThumbnailView)
+- Use ViewModels for component configuration
+- Implement proper preview support for SwiftUI previews
+
+## Testing Requirements
+
+### Test Coverage
+- Every protocol must have a mock implementation
+- Unit tests required for all Interactors, DataManager operations, and Transformers
+- UI tests for critical user flows
+- Test hooks for accessing internal state when needed
+
+### Mock Strategy
+- Implement mocks in #if DEBUG blocks within the same file as the protocol
+- Provide realistic test data in mocks
+- Use MockDependencyContainer for test dependency injection
+
+### Test Organization
+- Mirror the main source structure in test directories
+- Group tests by layer (DataManager/, Features/, Navigation/, etc.)
+- Use descriptive test method names that explain the scenario
+
+## Code Style & Quality
+
+### SwiftLint Compliance
+- Follow the existing .swiftlint.yml configuration
+- Line length limit: 120 characters
+- No force unwrapping in production code
+- Use empty_count rule for collection checks
+
+### Naming Conventions
+- Use descriptive, self-documenting names
+- Protocols end with `Protocol`
+- Event types end with `Event`
+- Result types end with `Result`
+- Request types end with `Request`
+- ViewModels end with `ViewModel`
+
+### Error Handling
+- Use proper Swift error handling with throws/async throws
+- Create specific error types when needed
+- Handle errors at appropriate layers
+- Provide meaningful error messages
+
+## Event-Driven Communication
+
+### EventBus Usage
+- Use feature-specific EventBus instances (e.g., TeamSelectEventBus)
+- Define events as enums conforming to BusEvent protocol
+- Subscribe to events in Interactors, not Views
+- Clean up subscriptions properly with cancellables
+
+### Delegate Pattern
+- Use delegate protocols for coordinator communication
+- Implement weak delegate references to prevent retain cycles
+- Provide clear delegate method names that describe the action
+
+## Performance & Memory Management
+
+### Memory Management
+- Use weak references for delegates and parent coordinators
+- Properly manage Combine cancellables
+- Clean up child coordinators automatically through BaseFeatureCoordinator
+
+### Data Loading
+- Use lazy loading for large datasets
+- Implement proper caching strategies in DataManager
+- Use Publishers for reactive data updates to minimize unnecessary fetches
+
+## Documentation
+
+### Code Documentation
+- Document complex business logic and architectural decisions
+- Maintain README files for major architectural components
+- Update architecture summaries when making significant changes
+- Use inline comments for non-obvious code sections
+
+### Architecture Documentation
+- Keep NEW_ARCHITECTURE_SUMMARY.md updated
+- Document data flow patterns
+- Explain design decisions and trade-offs
+- Provide examples of proper usage patterns
+
+## Future Development Guidelines
+
+### Adding New Features
+1. Create feature directory following established structure
+2. Implement Coordinator with proper Result type
+3. Create Interactor with protocol and mock
+4. Build Views with ViewModels
+5. Add comprehensive tests
+6. Update navigation flows as needed
+
+### Modifying Data Models
+1. Update both Client and SwiftData models
+2. Modify transformers for bidirectional conversion
+3. Update DataManager operations if needed
+4. Add migration logic for SwiftData changes
+5. Update tests for all affected components
+
+### Extending Navigation
+1. Add new navigation cases to NavigationCoordinator
+2. Implement proper coordinator result handling
+3. Update ViewFactory if new view types are needed
+4. Test navigation flows thoroughly
+
+This rules file should be referenced for all future development to maintain consistency and architectural integrity.

@@ -34,15 +34,12 @@ struct MainMenuViewModel {
     let menuItemModels: [MenuItemViewModel]
 }
 
-struct MainMenuView<Interactor: MainMenuInteractorProtocol>: View {
-    let interactor: Interactor
+struct MainMenuView: View {
+    let interactor: any MainMenuInteractorProtocol
     
     var body: some View {
         List(interactor.viewModel.menuItemModels) { menuItemModel in
             MenuItemView(viewModel: menuItemModel)
-//            {
-//                interactor.eventBus.send(.newGameSelected) // TODO: fix me
-//            }
         }
         .navigationTitle(interactor.viewModel.title)
     }

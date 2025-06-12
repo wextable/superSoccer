@@ -14,37 +14,36 @@ enum NewGameCoordinatorResult: CoordinatorResult {
 }
 
 protocol NewGameFeatureCoordinatorProtocol: AnyObject {
-    func startTeamSelection()
 }
 
 class NewGameFeatureCoordinator: BaseFeatureCoordinator<NewGameCoordinatorResult>, NewGameFeatureCoordinatorProtocol, ObservableObject {
     private let navigationCoordinator: NavigationCoordinatorProtocol
-    private let coordinatorRegistry: FeatureCoordinatorRegistryProtocol
-    private let dataManager: DataManagerProtocol        
+    private let dataManager: DataManagerProtocol
+    private let interactor: NewGameInteractor
     
     init(navigationCoordinator: NavigationCoordinatorProtocol, 
-         coordinatorRegistry: FeatureCoordinatorRegistryProtocol,
          dataManager: DataManagerProtocol) {
         self.navigationCoordinator = navigationCoordinator
-        self.coordinatorRegistry = coordinatorRegistry
         self.dataManager = dataManager
+        
+        interactor = NewGameInteractor(dataManager: dataManager)
+        
         super.init()
+        
+        interactor.delegate = self
     }
     
     override func start() {
-        coordinatorRegistry.register(self, for: .newGame)
-        navigationCoordinator.navigateToScreen(.newGame)
+        navigationCoordinator.navigateToScreen(.newGame(interactor: interactor))
     }
     
     override func finish(with result: NewGameCoordinatorResult) {
-        coordinatorRegistry.unregister(for: .newGame)
         super.finish(with: result)
     }
     
-    func startTeamSelection() {
+    private func startTeamSelection() {
         let teamSelectCoordinator = TeamSelectFeatureCoordinator(
             navigationCoordinator: navigationCoordinator,
-            coordinatorRegistry: coordinatorRegistry,
             dataManager: dataManager
         )
         
@@ -52,14 +51,13 @@ class NewGameFeatureCoordinator: BaseFeatureCoordinator<NewGameCoordinatorResult
             switch result {
             case .teamSelected(let teamInfo):
                 self?.navigationCoordinator.dismissSheet()
-                // interactor needs the updated info
+                // Update interactor with selected team using new architecture
+                self?.interactor.updateSelectedTeam(teamInfo)
             case .cancelled:
                 self?.navigationCoordinator.dismissSheet()
             }
         }
     }
-    
-    
     
     private func handleError(_ error: Error) {
         // Handle error appropriately
@@ -67,18 +65,22 @@ class NewGameFeatureCoordinator: BaseFeatureCoordinator<NewGameCoordinatorResult
     }
 }
 
+extension NewGameFeatureCoordinator: NewGameInteractorDelegate {
+    func interactorDidRequestTeamSelection() {
+        startTeamSelection()
+    }
+    
+    func interactorDidCreateGame(with result: CreateNewCareerResult) {
+        finish(with: .gameCreated(result))
+    }
+    
+    func interactorDidCancel() {
+        finish(with: .cancelled)
+    }
+}
+
 #if DEBUG
 class MockNewGameFeatureCoordinator: NewGameFeatureCoordinatorProtocol {
-    // Test tracking properties
-    var startTeamSelectionCalled = false
-    var createGameCalled = false
-    
-    func startTeamSelection() {
-        startTeamSelectionCalled = true
-    }
-    
-    func createGame() async {
-        createGameCalled = true
-    }
+
 }
 #endif

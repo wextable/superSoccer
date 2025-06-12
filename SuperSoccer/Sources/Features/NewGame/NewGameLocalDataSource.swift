@@ -8,6 +8,7 @@
 import Combine
 
 protocol NewGameLocalDataSourceProtocol {
+    var data: NewGameLocalDataSource.Data { get }
     var dataPublisher: AnyPublisher<NewGameLocalDataSource.Data, Never> { get }
     
     func updateCoach(firstName: String)
@@ -26,7 +27,7 @@ final class NewGameLocalDataSource: NewGameLocalDataSourceProtocol {
         }
     }
     
-    @Published private var data: Data
+    @Published private(set) var data: Data
     lazy var dataPublisher = $data.eraseToAnyPublisher()
     
     init(data: Data = Data()) {

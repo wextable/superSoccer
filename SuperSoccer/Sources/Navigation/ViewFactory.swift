@@ -7,137 +7,42 @@
 
 import SwiftUI
 
+@MainActor
 protocol ViewFactoryProtocol {
-    func makeSplashView() -> SplashView
-    func makeMainMenuView() -> MainMenuView<MainMenuInteractor>
-    func makeNewGameView() -> NewGameView<NewGameInteractor>
-    func makeTeamSelectView() -> TeamSelectView<TeamSelectInteractor>
     func makeView(for screen: NavigationRouter.Screen) -> AnyView
 }
 
 final class ViewFactory: ViewFactoryProtocol {
-    private let coordinatorRegistry: FeatureCoordinatorRegistryProtocol
-    private let dataManager: DataManagerProtocol
-    
-    init(coordinatorRegistry: FeatureCoordinatorRegistryProtocol, 
-         dataManager: DataManagerProtocol) {
-        self.coordinatorRegistry = coordinatorRegistry
-        self.dataManager = dataManager
-    }
-    
     func makeView(for screen: NavigationRouter.Screen) -> AnyView {
         switch screen {
         case .splash:
-            return AnyView(makeSplashView())
-        case .mainMenu:
-            return AnyView(makeMainMenuView())
-        case .newGame:
-            return AnyView(makeNewGameView())
-        case .teamSelect:
-            return AnyView(makeTeamSelectView())
+            return AnyView(SplashView())
+        case .mainMenu(let interactor):
+            return AnyView(MainMenuView(interactor: interactor))
+        case .newGame(let interactor):
+            return AnyView(NewGameView(interactor: interactor))
+        case .teamSelect(let interactor):
+            return AnyView(TeamSelectView(interactor: interactor))
         }
-    }
-    
-    func makeSplashView() -> SplashView {
-        return SplashView()
-    }
-    
-    func makeMainMenuView() -> MainMenuView<MainMenuInteractor> {
-        guard let coordinator = coordinatorRegistry.coordinator(
-            for: .mainMenu,
-            as: MainMenuFeatureCoordinatorProtocol.self
-        ) else {
-            fatalError("MainMenuFeatureCoordinator must be active before creating view")
-        }
-        
-        let interactor = MainMenuInteractor(
-            featureCoordinator: coordinator,
-            dataManager: dataManager
-        )
-        return MainMenuView(interactor: interactor)
-    }
-    
-    func makeNewGameView() -> NewGameView<NewGameInteractor> {
-        guard let coordinator = coordinatorRegistry.coordinator(
-            for: .newGame, 
-            as: NewGameFeatureCoordinatorProtocol.self
-        ) else {
-            fatalError("NewGameFeatureCoordinator must be active before creating view")
-        }
-        
-        let interactor = NewGameInteractor(
-            newGameCoordinator: coordinator,
-            dataManager: dataManager
-        )
-        return NewGameView(interactor: interactor)
-    }
-    
-    func makeTeamSelectView() -> TeamSelectView<TeamSelectInteractor> {
-        guard let coordinator = coordinatorRegistry.coordinator(
-            for: .teamSelect,
-            as: TeamSelectFeatureCoordinatorProtocol.self
-        ) else {
-            fatalError("TeamSelectFeatureCoordinator must be active before creating view")
-        }
-        
-        let interactor = TeamSelectInteractor(
-            featureCoordinator: coordinator,
-            dataManager: dataManager
-        )
-        return TeamSelectView(interactor: interactor)
     }
 }
 
 #if DEBUG
 class MockViewFactory: ViewFactoryProtocol {
-    var makeSplashViewCalled = false
-    var makeMainMenuViewCalled = false
-    var makeNewGameViewCalled = false
-    var makeTeamSelectViewCalled = false
+    var screensMade: [NavigationRouter.Screen] = []
     
     func makeView(for screen: NavigationRouter.Screen) -> AnyView {
+        screensMade.append(screen)
         switch screen {
         case .splash:
-            return AnyView(makeSplashView())
-        case .mainMenu:
-            return AnyView(makeMainMenuView())
-        case .newGame:
-            return AnyView(makeNewGameView())
-        case .teamSelect:
-            return AnyView(makeTeamSelectView())
+            return AnyView(SplashView())
+        case .mainMenu(let interactor):
+            return AnyView(MainMenuView(interactor: interactor))
+        case .newGame(let interactor):
+            return AnyView(NewGameView(interactor: interactor))
+        case .teamSelect(let interactor):
+            return AnyView(TeamSelectView(interactor: interactor))
         }
-    }
-    
-    func makeSplashView() -> SplashView {
-        makeSplashViewCalled = true
-        return SplashView()
-    }
-    
-    func makeMainMenuView() -> MainMenuView<MainMenuInteractor> {
-        makeMainMenuViewCalled = true
-        let mockCoordinator = MockMainMenuFeatureCoordinator()
-        let mockDataManager = MockDataManager()
-        let interactor = MainMenuInteractor(featureCoordinator: mockCoordinator, dataManager: mockDataManager)
-        return MainMenuView(interactor: interactor)
-    }
-    
-    func makeNewGameView() -> NewGameView<NewGameInteractor> {
-        makeNewGameViewCalled = true
-        let mockCoordinator = MockNewGameFeatureCoordinator()
-        let mockDataManager = MockDataManager()
-        let interactor = NewGameInteractor(newGameCoordinator: mockCoordinator, dataManager: mockDataManager)
-        return NewGameView(interactor: interactor)
-    }
-    
-    func makeTeamSelectView() -> TeamSelectView<TeamSelectInteractor> {
-        makeTeamSelectViewCalled = true
-        let mockCoordinator = MockTeamSelectFeatureCoordinator()
-        let mockDataManager = MockDataManager()
-        let interactor = TeamSelectInteractor(
-            featureCoordinator: mockCoordinator,
-            dataManager: mockDataManager
-        )
-        return TeamSelectView(interactor: interactor)
     }
 }
 #endif

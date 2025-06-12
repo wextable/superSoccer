@@ -12,8 +12,8 @@ struct TeamSelectViewModel {
     let teamModels: [TeamThumbnailViewModel]
 }
 
-struct TeamSelectView<Interactor: TeamSelectInteractorProtocol>: View {
-    let interactor: Interactor
+struct TeamSelectView: View {
+    let interactor: any TeamSelectInteractorProtocol
     
     var body: some View {
         List(interactor.viewModel.teamModels) { teamModel in

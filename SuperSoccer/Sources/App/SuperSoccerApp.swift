@@ -19,7 +19,6 @@ struct SuperSoccerApp: App {
         router = container.router
         rootCoordinator = RootCoordinator(
             navigationCoordinator: container.navigationCoordinator,
-            coordinatorRegistry: container.coordinatorRegistry,
             dataManager: container.dataManager
         )
         

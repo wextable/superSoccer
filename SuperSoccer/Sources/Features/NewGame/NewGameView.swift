@@ -19,8 +19,8 @@ struct NewGameViewModel {
     var submitEnabled: Bool = false
 }
 
-struct NewGameView<Interactor: NewGameInteractorProtocol>: View {
-    let interactor: Interactor
+struct NewGameView: View {
+    let interactor: any NewGameInteractorProtocol
     
     var body: some View {
         VStack(spacing: 20) {

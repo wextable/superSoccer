@@ -14,26 +14,28 @@ enum TeamSelectEvent: BusEvent {
     case teamSelected(teamInfoId: String)
 }
 
+protocol TeamSelectInteractorDelegate: AnyObject {
+    func interactorDidSelectTeam(_ team: TeamInfo)
+    func interactorDidCancel()
+}
+
 protocol TeamSelectInteractorProtocol: AnyObject {
     var viewModel: TeamSelectViewModel { get }
     var eventBus: TeamSelectEventBus { get }
+    var delegate: TeamSelectInteractorDelegate? { get set }
 }
     
 @Observable
 final class TeamSelectInteractor: TeamSelectInteractorProtocol {
-    private let featureCoordinator: TeamSelectFeatureCoordinatorProtocol
     private let dataManager: DataManagerProtocol
     let eventBus = TeamSelectEventBus()
+    weak var delegate: TeamSelectInteractorDelegate?
     
     private let teamInfos: [TeamInfo]
     var viewModel: TeamSelectViewModel
     private var cancellables = Set<AnyCancellable>()
     
-    init(
-        featureCoordinator: TeamSelectFeatureCoordinatorProtocol,
-        dataManager: DataManagerProtocol
-    ) {
-        self.featureCoordinator = featureCoordinator
+    init(dataManager: DataManagerProtocol) {
         self.dataManager = dataManager
         
         teamInfos = dataManager.fetchTeamInfos()
@@ -69,7 +71,8 @@ final class TeamSelectInteractor: TeamSelectInteractorProtocol {
     
     private func handleTeamSelected(teamInfoId: String) {
         guard let teamInfo = teamInfos.first(where: { $0.id == teamInfoId }) else { return }
-        featureCoordinator.handleTeamSelected(teamInfo)
+        
+        delegate?.interactorDidSelectTeam(teamInfo)
     }
 }
 
@@ -80,7 +83,6 @@ extension TeamSelectInteractor {
     struct TestHooks {
         let target: TeamSelectInteractor
         
-        var featureCoordinator: TeamSelectFeatureCoordinatorProtocol { target.featureCoordinator }
         var dataManager: DataManagerProtocol { target.dataManager }
     }
 }
@@ -98,5 +100,6 @@ class MockTeamSelectInteractor: TeamSelectInteractorProtocol {
         )
     }
     var eventBus: TeamSelectEventBus = TeamSelectEventBus()
+    weak var delegate: TeamSelectInteractorDelegate?
 }
 #endif

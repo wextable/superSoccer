@@ -16,33 +16,36 @@ enum NewGameEvent: BusEvent {
     case teamSelectorTapped
 }
 
+protocol NewGameInteractorDelegate: AnyObject {
+    func interactorDidRequestTeamSelection()
+    func interactorDidCreateGame(with result: CreateNewCareerResult)
+    func interactorDidCancel()
+}
+
 protocol NewGameInteractorProtocol: AnyObject {
     var viewModel: NewGameViewModel { get }
     var eventBus: NewGameEventBus { get }
+    var delegate: NewGameInteractorDelegate? { get set }
     func bindFirstName() -> Binding<String>
     func bindLastName() -> Binding<String>
+    func updateSelectedTeam(_ teamInfo: TeamInfo)
 }
 
 @Observable
 final class NewGameInteractor: NewGameInteractorProtocol {
-    private let newGameCoordinator: NewGameFeatureCoordinatorProtocol
     private let dataManager: DataManagerProtocol
     private let localDataSource: NewGameLocalDataSourceProtocol
     let eventBus = NewGameEventBus()
     
+    weak var delegate: NewGameInteractorDelegate?
+    
     var viewModel: NewGameViewModel = .init()
     private var cancellables = Set<AnyCancellable>()
     
-    private var coachFirstName: String = ""
-    private var coachLastName: String = ""
-    private var selectedTeamInfo: TeamInfo?
-    
     init(
-        newGameCoordinator: NewGameFeatureCoordinatorProtocol,
         dataManager: DataManagerProtocol,
         localDataSource: NewGameLocalDataSourceProtocol = NewGameLocalDataSource()
     ) {
-        self.newGameCoordinator = newGameCoordinator
         self.dataManager = dataManager
         self.localDataSource = localDataSource
         setupSubscriptions()
@@ -73,7 +76,7 @@ final class NewGameInteractor: NewGameInteractorProtocol {
                         await self.createGame()
                     }
                 case .teamSelectorTapped:
-                    self.newGameCoordinator.startTeamSelection()
+                    delegate?.interactorDidRequestTeamSelection()
                 }
             }
             .store(in: &cancellables)
@@ -97,6 +100,10 @@ final class NewGameInteractor: NewGameInteractorProtocol {
         )
     }
     
+    func updateSelectedTeam(_ teamInfo: TeamInfo) {
+        localDataSource.updateSelectedTeam(teamInfo)
+    }
+    
     private func createViewModel(localData: NewGameLocalDataSource.Data) -> NewGameViewModel {
         return NewGameViewModel(
             title: "New Game",
@@ -117,13 +124,14 @@ final class NewGameInteractor: NewGameInteractorProtocol {
     }
     
     func createGame() async {
-        guard let teamInfo = selectedTeamInfo,
-              !coachFirstName.isEmpty,
-              !coachLastName.isEmpty else { return }
+        guard localDataSource.data.isValid,
+              let teamInfo = localDataSource.data.selectedTeamInfo else {
+            return
+        }
         
         let request = CreateNewCareerRequest(
-            coachFirstName: coachFirstName,
-            coachLastName: coachLastName,
+            coachFirstName: localDataSource.data.coachFirstName,
+            coachLastName: localDataSource.data.coachLastName,
             selectedTeamInfoId: teamInfo.id,
             leagueName: "Premier League", // Default league name
             seasonYear: 2025
@@ -132,7 +140,13 @@ final class NewGameInteractor: NewGameInteractorProtocol {
         do {
             let result = try await dataManager.createNewCareer(request)
             print("Career created successfully: \(result.careerId)")
-//            finish(with: .gameCreated(result))
+            
+            // Try new delegate pattern first, fallback to old coordinator pattern
+            if let delegate = delegate {
+                delegate.interactorDidCreateGame(with: result)
+            } else {
+                // TODO: Handle with old coordinator pattern if needed
+            }
         } catch {
             print("Error creating career: \(error)")
             // TODO: Handle error appropriately
@@ -145,15 +159,14 @@ extension NewGameInteractor {
     var testHooks: TestHooks { TestHooks(target: self) }
     
     struct TestHooks {
-        let target: NewGameInteractor
-        
-        var newGameCoordinator: NewGameFeatureCoordinatorProtocol { target.newGameCoordinator }
+        let target: NewGameInteractor        
     }
 }
 
 class MockNewGameInteractor: NewGameInteractorProtocol {
     var viewModel: NewGameViewModel = .make()
     var eventBus: NewGameEventBus = NewGameEventBus()
+    weak var delegate: NewGameInteractorDelegate?
     
     func bindFirstName() -> Binding<String> {
         .constant("")
@@ -161,6 +174,10 @@ class MockNewGameInteractor: NewGameInteractorProtocol {
     
     func bindLastName() -> Binding<String> {
         .constant("")
+    }
+    
+    func updateSelectedTeam(_ teamInfo: TeamInfo) {
+        // Mock implementation
     }
 }
 #endif

@@ -12,6 +12,8 @@ final class NavigationRouter: ObservableObject {
         case mainMenu(interactor: MainMenuInteractorProtocol)
         case newGame(interactor: NewGameInteractorProtocol)
         case teamSelect(interactor: TeamSelectInteractorProtocol)
+        case team(interactor: TeamInteractorProtocol)
+        case tabContainer(tabs: [TabConfiguration])
         
         var id: String {
             switch self {
@@ -19,6 +21,8 @@ final class NavigationRouter: ObservableObject {
             case .mainMenu: return "mainMenu"
             case .newGame: return "newGame"
             case .teamSelect: return "teamSelect"
+            case .team: return "team"
+            case .tabContainer: return "tabContainer"
             }
         }
         
@@ -28,6 +32,8 @@ final class NavigationRouter: ObservableObject {
             case (.mainMenu, .mainMenu): return true
             case (.newGame, .newGame): return true
             case (.teamSelect, .teamSelect): return true
+            case (.team, .team): return true
+            case (.tabContainer, .tabContainer): return true
             default: return false
             }
         }
@@ -45,6 +51,12 @@ final class NavigationRouter: ObservableObject {
             case .teamSelect(let interactor):
                 hasher.combine("teamSelect")
                 hasher.combine(ObjectIdentifier(interactor))
+            case .team(let interactor):
+                hasher.combine("team")
+                hasher.combine(ObjectIdentifier(interactor))
+            case .tabContainer(let tabs):
+                hasher.combine("tabContainer")
+                hasher.combine(tabs)
             }
         }
     }

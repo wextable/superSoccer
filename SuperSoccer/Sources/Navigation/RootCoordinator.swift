@@ -56,8 +56,22 @@ class RootCoordinator: BaseFeatureCoordinator<RootCoordinatorResult>, RootCoordi
         startChild(mainMenuCoordinator) { [weak self] result in
             switch result {
             case .newGameCreated(let createGameResult):
-                // TODO: navigate to the team detail screen
-                break
+                self?.startInGameFlow(with: createGameResult)
+            }
+        }
+    }
+    
+    private func startInGameFlow(with careerResult: CreateNewCareerResult) {
+        let inGameCoordinator = InGameCoordinator(
+            careerResult: careerResult,
+            navigationCoordinator: navigationCoordinator,
+            dataManager: dataManager
+        )
+        
+        startChild(inGameCoordinator) { [weak self] result in
+            switch result {
+            case .exitToMainMenu:
+                self?.startMainMenuFlow()
             }
         }
     }

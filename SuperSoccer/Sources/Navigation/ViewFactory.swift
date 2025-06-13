@@ -23,6 +23,10 @@ final class ViewFactory: ViewFactoryProtocol {
             return AnyView(NewGameView(interactor: interactor))
         case .teamSelect(let interactor):
             return AnyView(TeamSelectView(interactor: interactor))
+        case .team(let interactor):
+            return AnyView(TeamView.make(interactor: interactor))
+        case .tabContainer(let tabs):
+            return AnyView(TabContainerView.make(tabs: tabs, viewFactory: self))
         }
     }
 }
@@ -42,6 +46,10 @@ class MockViewFactory: ViewFactoryProtocol {
             return AnyView(NewGameView(interactor: interactor))
         case .teamSelect(let interactor):
             return AnyView(TeamSelectView(interactor: interactor))
+        case .team(let interactor):
+            return AnyView(TeamView.make(interactor: interactor))
+        case .tabContainer(let tabs):
+            return AnyView(TabContainerView.make(tabs: tabs, viewFactory: self))
         }
     }
 }

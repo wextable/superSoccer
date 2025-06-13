@@ -34,7 +34,7 @@ class MainMenuFeatureCoordinator: BaseFeatureCoordinator<MainMenuCoordinatorResu
     
     override func start() {
         Task { @MainActor in
-            self.navigationCoordinator.navigateToScreen(.mainMenu(interactor: interactor))
+            self.navigationCoordinator.replaceStackWith(.mainMenu(interactor: interactor))
         }
     }
     

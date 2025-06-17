@@ -43,14 +43,17 @@ extension SDMatch {
         id: String = "1",
         isCompleted: Bool = false,
         homeTeam: SDTeam = .make(),
-        awayTeam: SDTeam = .make()
+        awayTeam: SDTeam = .make(),
+        season: SDSeason? = nil
     ) -> SDMatch {
-        return SDMatch(
+        let match = SDMatch(
             id: id,
             isCompleted: isCompleted,
             homeTeam: homeTeam,
             awayTeam: awayTeam
         )
+        match.season = season
+        return match
     }
 }
 #endif

@@ -56,15 +56,18 @@ extension SDPlayer {
         firstName: String = "Bo",
         lastName: String = "Nix",
         age: Int = 25,
-        position: String = "Forward"
+        position: String = "Forward",
+        team: SDTeam? = nil
     ) -> SDPlayer {
-        return SDPlayer(
+        let player = SDPlayer(
             id: id,
             firstName: firstName,
             lastName: lastName,
             age: age,
             position: position
         )
+        player.team = team
+        return player
     }
 }
 #endif

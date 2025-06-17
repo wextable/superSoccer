@@ -46,3 +46,65 @@ final class NewGameLocalDataSource: NewGameLocalDataSourceProtocol {
         data.selectedTeamInfo = teamInfo
     }
 }
+
+#if DEBUG
+class MockNewGameLocalDataSource: NewGameLocalDataSourceProtocol {
+    private let dataSubject = CurrentValueSubject<NewGameLocalDataSource.Data, Never>(
+        NewGameLocalDataSource.Data(
+            coachFirstName: "",
+            coachLastName: "",
+            selectedTeamInfo: nil
+        )
+    )
+    
+    var dataPublisher: AnyPublisher<NewGameLocalDataSource.Data, Never> {
+        dataSubject.eraseToAnyPublisher()
+    }
+    
+    var data: NewGameLocalDataSource.Data {
+        dataSubject.value
+    }
+    
+    // Test tracking properties
+    var lastUpdatedFirstName: String?
+    var lastUpdatedLastName: String?
+    var lastUpdatedTeamInfo: TeamInfo?
+    var isDataValid: Bool = false
+    
+    func updateCoach(firstName: String) {
+        lastUpdatedFirstName = firstName
+        var currentData = dataSubject.value
+        currentData.coachFirstName = firstName
+        dataSubject.send(currentData)
+    }
+    
+    func updateCoach(lastName: String) {
+        lastUpdatedLastName = lastName
+        var currentData = dataSubject.value
+        currentData.coachLastName = lastName
+        dataSubject.send(currentData)
+    }
+    
+    func updateSelectedTeam(_ teamInfo: TeamInfo?) {
+        lastUpdatedTeamInfo = teamInfo
+        var currentData = dataSubject.value
+        currentData.selectedTeamInfo = teamInfo
+        dataSubject.send(currentData)
+    }
+    
+    // Test helper method
+    func updateData(
+        coachFirstName: String,
+        coachLastName: String,
+        selectedTeamInfo: TeamInfo?,
+        isValid: Bool
+    ) {
+        let newData = NewGameLocalDataSource.Data(
+            coachFirstName: coachFirstName,
+            coachLastName: coachLastName,
+            selectedTeamInfo: selectedTeamInfo
+        )
+        dataSubject.send(newData)
+    }
+}
+#endif

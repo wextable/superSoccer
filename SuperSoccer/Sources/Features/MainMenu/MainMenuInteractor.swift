@@ -4,7 +4,7 @@
 //
 //  Created by Wesley on 5/15/25.
 //
-
+import Foundation
 import Combine
 import Observation
 
@@ -59,6 +59,7 @@ final class MainMenuInteractor: MainMenuInteractorProtocol {
     
     private func subscribeToEvents() {
         eventBus
+//            .receive(on: DispatchQueue.main)
             .sink { [weak self] event in
                 switch event {
                 case .newGameSelected:
@@ -95,5 +96,15 @@ class MockMainMenuInteractor: MainMenuInteractorProtocol {
     }
     
     var eventBus: MainMenuEventBus = MainMenuEventBus()
+}
+
+class MockMainMenuInteractorDelegate: MainMenuInteractorDelegate {
+    var didSelectNewGameCalled = false
+    var onDidSelectNewGame: (() -> Void)?
+    
+    func interactorDidSelectNewGame() {
+        didSelectNewGameCalled = true
+        onDidSelectNewGame?()
+    }
 }
 #endif

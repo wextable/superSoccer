@@ -106,19 +106,20 @@ final class NewGameInteractor: NewGameInteractorProtocol {
     
     private func createViewModel(localData: NewGameLocalDataSource.Data) -> NewGameViewModel {
         return NewGameViewModel(
-            title: "New Game",
-            coachLabelText: "Coach name",
+            title: "New game",
+            coachLabelText: "Coach",
             coachFirstNameLabel: "First name",
             coachFirstName: localData.coachFirstName,
             coachLastNameLabel: "Last name",
             coachLastName: localData.coachLastName,
             teamSelectorModel: TeamSelectorViewModel(
-                clientModel: localData.selectedTeamInfo,
+                title: localData.selectedTeamInfo?.city ?? "Team:",
+                buttonTitle: localData.selectedTeamInfo?.teamName ?? "Select your team",
                 action: { [weak self] in
                     self?.eventBus.send(.teamSelectorTapped)
                 }
             ),
-            buttonText: "Start Game",
+            buttonText: "Start game",
             submitEnabled: localData.isValid
         )
     }
@@ -141,11 +142,9 @@ final class NewGameInteractor: NewGameInteractorProtocol {
             let result = try await dataManager.createNewCareer(request)
             print("Career created successfully: \(result.careerId)")
             
-            // Try new delegate pattern first, fallback to old coordinator pattern
-            if let delegate = delegate {
-                delegate.interactorDidCreateGame(with: result)
-            } else {
-                // TODO: Handle with old coordinator pattern if needed
+            // Ensure delegate call happens on main thread for UI updates and testing
+            await MainActor.run {
+                delegate?.interactorDidCreateGame(with: result)
             }
         } catch {
             print("Error creating career: \(error)")
@@ -178,6 +177,31 @@ class MockNewGameInteractor: NewGameInteractorProtocol {
     
     func updateSelectedTeam(_ teamInfo: TeamInfo) {
         // Mock implementation
+    }
+}
+
+class MockNewGameInteractorDelegate: NewGameInteractorDelegate {
+    var didRequestTeamSelection = false
+    var onDidRequestTeamSelection: (() -> Void)?
+    func interactorDidRequestTeamSelection() {
+        didRequestTeamSelection = true
+        onDidRequestTeamSelection?()
+    }
+    
+    var didCreateGameCalled = false
+    var lastCreateGameResult: CreateNewCareerResult?
+    var onDidCreateGame: (() -> Void)?
+    func interactorDidCreateGame(with result: CreateNewCareerResult) {
+        didCreateGameCalled = true
+        lastCreateGameResult = result
+        onDidCreateGame?()
+    }
+    
+    var didCancelCalled = false
+    var onDidCancel: (() -> Void)?
+    func interactorDidCancel() {
+        didCancelCalled = true
+        onDidCancel?()
     }
 }
 #endif

@@ -20,13 +20,13 @@ struct CreateNewCareerResult: Hashable, Equatable {
 #if DEBUG
 extension CreateNewCareerResult {
     static func make(
-        careerId: String = "1",
-        coachId: String = "1",
-        userTeamId: String = "1",
-        leagueId: String = "1",
-        currentSeasonId: String = "1",
-        allTeamIds: [String] = ["1", "2", "3", "4"],
-        allPlayerIds: [String] = ["1", "2", "3", "4"]
+        careerId: String = "test-career",
+        coachId: String = "test-coach",
+        userTeamId: String = "test-team",
+        leagueId: String = "test-league",
+        currentSeasonId: String = "test-season",
+        allTeamIds: [String] = ["test-team"],
+        allPlayerIds: [String] = ["test-player"]
     ) -> CreateNewCareerResult {
         return CreateNewCareerResult(
             careerId: careerId,

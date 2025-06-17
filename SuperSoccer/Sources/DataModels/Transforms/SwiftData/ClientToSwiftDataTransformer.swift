@@ -34,7 +34,7 @@ struct ClientToSwiftDataTransformer {
         let userTeam = teams.first { $0.info.id == request.selectedTeamInfoId }! // TODO: fix force unwrap
         let career = createCareer(from: request, coach: coach, userTeam: userTeam, currentSeason: season)
         
-        // Step 6: Set season.career back-reference
+        // Step 6: Set season.career back-reference (SwiftData will automatically handle the inverse relationship)
         season.career = career
         
         return CareerCreationBundle(
@@ -65,6 +65,7 @@ struct ClientToSwiftDataTransformer {
     ) -> ([SDTeam], [SDTeamInfo], [SDPlayer]) {
         var teams: [SDTeam] = []
         var allPlayers: [SDPlayer] = []
+        var teamPlayersMap: [String: [SDPlayer]] = [:] // Track which players belong to which team
         
         // Ensure we have at least some teams to work with
         guard !availableTeamInfos.isEmpty else {
@@ -103,9 +104,19 @@ struct ClientToSwiftDataTransformer {
                 id: UUID().uuidString,
                 info: teamInfo,
                 coach: teamCoach,
-                players: teamPlayers
+                players: [] // Let SwiftData handle the inverse relationship automatically
             )
             teams.append(team)
+            teamPlayersMap[team.id] = teamPlayers
+        }
+        
+        // Now set player.team back-references to establish the relationship
+        for team in teams {
+            if let teamPlayers = teamPlayersMap[team.id] {
+                for player in teamPlayers {
+                    player.team = team
+                }
+            }
         }
         
         return (teams, availableTeamInfos, allPlayers)
@@ -115,7 +126,7 @@ struct ClientToSwiftDataTransformer {
         return SDLeague(
             id: UUID().uuidString,
             name: request.leagueName,
-            teams: teams
+            teams: [] // Let SwiftData handle the inverse relationship automatically
         )
     }
     
@@ -140,7 +151,7 @@ struct ClientToSwiftDataTransformer {
             coach: coach,
             userTeam: userTeam,
             currentSeason: currentSeason,
-            seasons: [currentSeason]
+            seasons: [] // Let SwiftData handle the inverse relationship automatically
         )
     }
     

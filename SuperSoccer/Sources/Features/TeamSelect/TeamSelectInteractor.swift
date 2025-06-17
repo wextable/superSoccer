@@ -102,4 +102,22 @@ class MockTeamSelectInteractor: TeamSelectInteractorProtocol {
     var eventBus: TeamSelectEventBus = TeamSelectEventBus()
     weak var delegate: TeamSelectInteractorDelegate?
 }
+
+class MockTeamSelectInteractorDelegate: TeamSelectInteractorDelegate {    
+    var didSelectTeam = false
+    var selectedTeam: TeamInfo?
+    var onDidSelectTeam: (() -> Void)?
+    func interactorDidSelectTeam(_ team: TeamInfo) {
+        didSelectTeam = true
+        selectedTeam = team
+        onDidSelectTeam?()
+    }
+    
+    var didCancel = false
+    var onDidCancel: (() -> Void)?
+    func interactorDidCancel() {
+        didCancel = true
+        onDidCancel?()
+    }
+}
 #endif

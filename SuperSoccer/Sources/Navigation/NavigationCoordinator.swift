@@ -71,8 +71,10 @@ class MockNavigationCoordinator: NavigationCoordinatorProtocol {
     }
     
     var screenToReplaceStack: NavigationRouter.Screen?
+    var replaceStackWithCalled = false
     func replaceStackWith(_ screen: NavigationRouter.Screen) {
         screenToReplaceStack = screen
+        replaceStackWithCalled = true
     }
     
     var didCallPopToRoot = false

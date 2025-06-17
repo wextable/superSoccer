@@ -54,14 +54,17 @@ extension SDTeam {
         id: String = "1",
         info: SDTeamInfo = .make(),
         coach: SDCoach = .make(),
-        players: [SDPlayer] = [.make()]
+        players: [SDPlayer] = [.make()],
+        league: SDLeague? = nil
     ) -> SDTeam {
-        return SDTeam(
+        let team = SDTeam(
             id: id,
             info: info,
             coach: coach,
             players: players
         )
+        team.league = league
+        return team
     }
 }
 #endif

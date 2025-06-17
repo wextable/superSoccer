@@ -47,17 +47,21 @@ class MockDataManager: DataManagerProtocol {
     lazy var playerPublisher: AnyPublisher<[Player], Never> = $mockPlayers.eraseToAnyPublisher()
     lazy var coachPublisher: AnyPublisher<[Coach], Never> = $mockCoaches.eraseToAnyPublisher()
     
+    var createNewCareerCalled = false
+    var lastCreateNewCareerRequest: CreateNewCareerRequest?
+    var mockCreateNewCareerResult = CreateNewCareerResult(
+        careerId: "mock-career-id",
+        coachId: "mock-coach-id",
+        userTeamId: "mock-user-team-id",
+        leagueId: "mock-league-id",
+        currentSeasonId: "mock-season-id",
+        allTeamIds: ["mock-team-1", "mock-team-2"],
+        allPlayerIds: ["mock-player-1", "mock-player-2"]
+    )
     func createNewCareer(_ request: CreateNewCareerRequest) async throws -> CreateNewCareerResult {
-        // Mock implementation
-        return CreateNewCareerResult(
-            careerId: "mock-career-id",
-            coachId: "mock-coach-id",
-            userTeamId: "mock-user-team-id",
-            leagueId: "mock-league-id",
-            currentSeasonId: "mock-season-id",
-            allTeamIds: ["mock-team-1", "mock-team-2"],
-            allPlayerIds: ["mock-player-1", "mock-player-2"]
-        )
+        createNewCareerCalled = true
+        lastCreateNewCareerRequest = request        
+        return mockCreateNewCareerResult
     }
     
     func fetchCareers() -> [Career] { return mockCareers }

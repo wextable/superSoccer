@@ -46,9 +46,10 @@ extension SDSeason {
         year: Int = 2025,
         isCompleted: Bool = false,
         league: SDLeague = .make(),
-        matches: [SDMatch] = []
+        matches: [SDMatch] = [],
+        career: SDCareer? = nil
     ) -> SDSeason {
-        return SDSeason(
+        let season =  SDSeason(
             id: id,
             seasonNumber: seasonNumber,
             year: year,
@@ -56,6 +57,8 @@ extension SDSeason {
             league: league,
             matches: matches
         )
+        season.career = career
+        return season
     }
 }
 #endif

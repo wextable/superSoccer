@@ -212,6 +212,10 @@ class MockSwiftDataStorage: SwiftDataStorageProtocol {
     var mockCoaches: [SDCoach] = []
     var mockTeamInfos: [SDTeamInfo] = []
     
+    init(mockTeamInfos: [SDTeamInfo] = [.make()]) {
+        self.mockTeamInfos = mockTeamInfos
+    }
+    
     // Career Operations
     func createCareer(_ career: SDCareer) throws -> SDCareer {
         mockCareers.append(career)
@@ -264,13 +268,46 @@ class MockSwiftDataStorage: SwiftDataStorageProtocol {
     
     // Complex Operations
     func createCareerBundle(_ bundle: CareerCreationBundle) throws -> SDCareer {
-        mockCoaches.append(bundle.coach)
-        mockTeamInfos.append(contentsOf: bundle.teamInfos)
-        mockPlayers.append(contentsOf: bundle.players)
-        mockTeams.append(contentsOf: bundle.teams)
-        mockLeagues.append(bundle.league)
-        mockSeasons.append(bundle.season)
-        mockCareers.append(bundle.career)
+        // Only append entities that don't already exist (mimic database unique constraints)
+        
+        // Coach - check for existing ID
+        if !mockCoaches.contains(where: { $0.id == bundle.coach.id }) {
+            mockCoaches.append(bundle.coach)
+        }
+        
+        // TeamInfos - only append new ones
+        let newTeamInfos = bundle.teamInfos.filter { newInfo in
+            !mockTeamInfos.contains { existing in existing.id == newInfo.id }
+        }
+        mockTeamInfos.append(contentsOf: newTeamInfos)
+        
+        // Players - only append new ones
+        let newPlayers = bundle.players.filter { newPlayer in
+            !mockPlayers.contains { existing in existing.id == newPlayer.id }
+        }
+        mockPlayers.append(contentsOf: newPlayers)
+        
+        // Teams - only append new ones
+        let newTeams = bundle.teams.filter { newTeam in
+            !mockTeams.contains { existing in existing.id == newTeam.id }
+        }
+        mockTeams.append(contentsOf: newTeams)
+        
+        // League - check for existing ID
+        if !mockLeagues.contains(where: { $0.id == bundle.league.id }) {
+            mockLeagues.append(bundle.league)
+        }
+        
+        // Season - check for existing ID
+        if !mockSeasons.contains(where: { $0.id == bundle.season.id }) {
+            mockSeasons.append(bundle.season)
+        }
+        
+        // Career - check for existing ID
+        if !mockCareers.contains(where: { $0.id == bundle.career.id }) {
+            mockCareers.append(bundle.career)
+        }
+        
         return bundle.career
     }
     

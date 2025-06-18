@@ -13,97 +13,208 @@ import Testing
 
 struct SwiftDataManagerTests {
     
-    @Test func testInitFetchesTeamsFromStorage() async throws {
+    // MARK: - Career Operations Tests
+    
+    @Test("Creating a new career should work")
+    func testCreateNewCareer() async throws {
         // Arrange
-        let mockStorage = MockSwiftDataStorage()
-        let team1 = SDTeam.make()
-        let team2 = SDTeam.make(
-            info: SDTeamInfo.make(city: "Los Angeles", teamName: "Lakers")
+        let storage = MockSwiftDataStorage()
+        let manager = SwiftDataManager(storage: storage)
+        
+        let request = CreateNewCareerRequest(
+            coachFirstName: "Hugh",
+            coachLastName: "Freeze",
+            selectedTeamInfoId: "1",
+            leagueName: "English Premier League",
+            seasonYear: 2025
         )
-        mockStorage.mockTeams = [team1, team2]
         
         // Act
-        let manager = SwiftDataManager(storage: mockStorage)
+        let result = try await manager.createNewCareer(request)
         
         // Assert
-        var receivedTeams: [Team] = []
-        let cancellable = manager.teamPublisher.sink { teams in
-            receivedTeams = teams
-        }
+        let careers = manager.fetchCareers()
+        let coaches = manager.fetchCoaches()
+        let teams = manager.fetchTeams()
         
-        #expect(receivedTeams.count == 2)
-        #expect(receivedTeams[0].info.city == "Eugene")
-        #expect(receivedTeams[0].info.teamName == "Duckies")
-        #expect(receivedTeams[1].info.city == "Los Angeles")
-        #expect(receivedTeams[1].info.teamName == "Lakers")
+        #expect(careers.count == 1)
+        #expect(coaches.count == 1)
+        #expect(teams.count == 1)
+        #expect(storage.mockCareers.count == 1)
+        #expect(storage.mockCoaches.count == 1)
+        #expect(storage.mockTeams.count == 1)
+        #expect(careers[0].id == result.careerId)
+        #expect(coaches[0].id == result.coachId)
+        #expect(teams.contains { $0.id == result.userTeamId })
+    }
+    
+    @Test("Career publishers should emit updates")
+    func testCareerPublisherUpdates() async throws {
+        // Arrange
+        let storage = MockSwiftDataStorage()
+        let manager = SwiftDataManager(storage: storage)
+        var receivedCareers: [Career] = []
+        
+        let cancellable = manager.careerPublisher
+            .sink { careers in
+                receivedCareers = careers
+            }
+        
+        // Act
+        let request = CreateNewCareerRequest(
+            coachFirstName: "Hugh",
+            coachLastName: "Freeze",
+            selectedTeamInfoId: "1",
+            leagueName: "English Premier League",
+            seasonYear: 2025
+        )
+        _ = try await manager.createNewCareer(request)
+        
+        // Assert
+        #expect(!receivedCareers.isEmpty)
+        #expect(receivedCareers.count == 1)
+        #expect(storage.mockCareers.count == 1)
         
         cancellable.cancel()
     }
     
-    @Test func testAddNewTeamWith() async throws {
+    @Test("League operations should work")
+    func testLeagueOperations() async throws {
         // Arrange
-        let mockStorage = MockSwiftDataStorage()
-        let manager = SwiftDataManager(storage: mockStorage)
+        let storage = MockSwiftDataStorage()
+        let manager = SwiftDataManager(storage: storage)
+        var receivedLeagues: [League] = []
         
-        let teamInfo = TeamInfo.make()
-        let player = Player.make()
-        let team = Team.make(info: teamInfo, players: [player])
+        let cancellable = manager.leaguePublisher
+            .sink { leagues in
+                receivedLeagues = leagues
+            }
+        
+        // Create a career which will create a league
+        let request = CreateNewCareerRequest(
+            coachFirstName: "Hugh",
+            coachLastName: "Freeze",
+            selectedTeamInfoId: "1",
+            leagueName: "English Premier League",
+            seasonYear: 2025
+        )
+        _ = try await manager.createNewCareer(request)
         
         // Act
-        manager.addNewTeam(team)
+        let leagues = manager.fetchLeagues()
         
         // Assert
-        #expect(mockStorage.mockTeams.count == 1)
-        #expect(mockStorage.mockTeams[0].info.city == "San Francisco")
-        #expect(mockStorage.mockTeams[0].info.teamName == "49ers")
-        #expect(mockStorage.mockTeams[0].players.count == 1)
-        #expect(mockStorage.mockTeams[0].players[0].firstName == "Bo")
-        #expect(mockStorage.mockTeams[0].players[0].lastName == "Nix")
-        
-        var receivedTeams: [Team] = []
-        let cancellable = manager.teamPublisher.sink { teams in
-            receivedTeams = teams
-        }
-        
-        #expect(receivedTeams.count == 1)
-        #expect(receivedTeams[0].info.city == "San Francisco")
-        #expect(receivedTeams[0].info.teamName == "49ers")
-        #expect(receivedTeams[0].players.count == 1)
-        #expect(receivedTeams[0].players[0].firstName == "Bo")
-        #expect(receivedTeams[0].players[0].lastName == "Nix")
+        #expect(!leagues.isEmpty)
+        #expect(!receivedLeagues.isEmpty)
+        #expect(storage.mockLeagues.count == 1)
+        #expect(leagues.count == receivedLeagues.count)
+        #expect(leagues[0].name == "English Premier League")
         
         cancellable.cancel()
     }
     
-    @Test func testTeamPublisherUpdatesWhenTeamsChange() async throws {
+    @Test("Team operations should work")
+    func testTeamOperations() async throws {
         // Arrange
-        let mockStorage = MockSwiftDataStorage()
-        let manager = SwiftDataManager(storage: mockStorage)
+        let storage = MockSwiftDataStorage()
+        let manager = SwiftDataManager(storage: storage)
+        var receivedTeams: [Team] = []
         
-        var receivedTeamsSequence: [[Team]] = []
-        let cancellable = manager.teamPublisher.sink { teams in
-            receivedTeamsSequence.append(teams)
-        }
+        let cancellable = manager.teamPublisher
+            .sink { teams in
+                receivedTeams = teams
+            }
         
-        // Initial state should be empty
-        #expect(receivedTeamsSequence.count == 1)
-        #expect(receivedTeamsSequence[0].isEmpty)
+        // Create a career which will create teams
+        let request = CreateNewCareerRequest(
+            coachFirstName: "Hugh",
+            coachLastName: "Freeze",
+            selectedTeamInfoId: "1",
+            leagueName: "English Premier League",
+            seasonYear: 2025
+        )
+        _ = try await manager.createNewCareer(request)
         
-        // Act 1: Add a team
+        // Act
+        let teams = manager.fetchTeams()
+        let teamInfos = manager.fetchTeamInfos()
         
+        // Assert
+        #expect(!teams.isEmpty)
+        #expect(!teamInfos.isEmpty)
+        #expect(!receivedTeams.isEmpty)
+        #expect(storage.mockTeams.count == 1)
+        #expect(storage.mockTeamInfos.count == 1)
+        #expect(teams.count == receivedTeams.count)
         
-        // Assert 1
-        #expect(receivedTeamsSequence.count == 2)
-        #expect(receivedTeamsSequence[1].count == 1)
-        #expect(receivedTeamsSequence[1][0].info.city == "Chicago")
+        cancellable.cancel()
+    }
+    
+    @Test("Player operations should work")
+    func testPlayerOperations() async throws {
+        // Arrange
+        let storage = MockSwiftDataStorage()
+        let manager = SwiftDataManager(storage: storage)
+        var receivedPlayers: [Player] = []
         
-        // Act 2: Add another team
+        let cancellable = manager.playerPublisher
+            .sink { players in
+                receivedPlayers = players
+            }
         
+        // Create a career which will create players
+        let request = CreateNewCareerRequest(
+            coachFirstName: "Hugh",
+            coachLastName: "Freeze",
+            selectedTeamInfoId: "1",
+            leagueName: "English Premier League",
+            seasonYear: 2025
+        )
+        _ = try await manager.createNewCareer(request)
         
-        // Assert 2
-        #expect(receivedTeamsSequence.count == 3)
-        #expect(receivedTeamsSequence[2].count == 2)
-        #expect(receivedTeamsSequence[2][1].info.city == "Los Angeles")
+        // Act
+        let players = manager.fetchPlayers()
+        
+        // Assert
+        #expect(!players.isEmpty)
+        #expect(!receivedPlayers.isEmpty)
+        #expect(storage.mockPlayers.count > 0)
+        #expect(players.count == receivedPlayers.count)
+        
+        cancellable.cancel()
+    }
+    
+    @Test("Coach operations should work")
+    func testCoachOperations() async throws {
+        // Arrange
+        let storage = MockSwiftDataStorage()
+        let manager = SwiftDataManager(storage: storage)
+        var receivedCoaches: [Coach] = []
+        
+        let cancellable = manager.coachPublisher
+            .sink { coaches in
+                receivedCoaches = coaches
+            }
+        
+        // Create a career which will create a coach
+        let request = CreateNewCareerRequest(
+            coachFirstName: "Hugh",
+            coachLastName: "Freeze",
+            selectedTeamInfoId: "1",
+            leagueName: "English Premier League",
+            seasonYear: 2025
+        )
+        _ = try await manager.createNewCareer(request)
+        
+        // Act
+        let coaches = manager.fetchCoaches()
+        
+        // Assert
+        #expect(!coaches.isEmpty)
+        #expect(!receivedCoaches.isEmpty)
+        #expect(storage.mockCoaches.count == 1)
+        #expect(coaches[0].firstName == "Hugh")
+        #expect(coaches[0].lastName == "Freeze")
         
         cancellable.cancel()
     }

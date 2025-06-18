@@ -10,5 +10,5 @@ import SwiftUI
 @testable import SuperSoccer
 
 struct NavigationConfiguratorTests {
-    // Test functions will be added here
+    
 }

@@ -9,5 +9,5 @@ import Testing
 @testable import SuperSoccer
 
 struct RootCoordinatorTests {
-    // Test functions will be added here
+    
 }

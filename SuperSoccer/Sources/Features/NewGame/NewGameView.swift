@@ -7,43 +7,6 @@
 
 import SwiftUI
 
-struct RetroTextFieldStyle: ViewModifier {
-    @Environment(\.ssTheme) private var theme
-    
-    func body(content: Content) -> some View {
-        content
-            .font(theme.fonts.body)
-            .padding()
-            .background(theme.colors.background)
-            .overlay(
-                RoundedRectangle(cornerRadius: theme.cornerRadius.medium)
-                    .stroke(theme.colors.primaryCyan, lineWidth: 2)
-            )
-            .foregroundColor(theme.colors.textPrimary)
-    }
-}
-
-struct RetroTeamSelector: View {
-    @Environment(\.ssTheme) private var theme
-    
-    let title: String
-    let buttonTitle: String
-    let action: () -> Void
-    
-    var body: some View {
-        HStack {
-            SSLabel.headline(title)
-            Spacer()
-            SSTextButton.make(title: buttonTitle, action: action)
-        }
-        .padding()
-        .overlay(
-            RoundedRectangle(cornerRadius: theme.cornerRadius.medium)
-                .stroke(theme.colors.primaryCyan, lineWidth: 2)
-        )
-    }
-}
-
 struct NewGameViewModel {
     var title: String = "New game"
     var coachLabelText: String = "Coach"
@@ -60,52 +23,54 @@ struct NewGameViewModel {
 
 struct NewGameView: View {
     let interactor: any NewGameInteractorProtocol
-    
-    var body: some View {
-        SSThemeProvider {
-            ThemedNewGameView(interactor: interactor)
-        }
-    }
-}
-
-private struct ThemedNewGameView: View {
-    let interactor: any NewGameInteractorProtocol
     @Environment(\.ssTheme) private var theme
     
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: theme.spacing.large) {
-                SSTitle.title(interactor.viewModel.coachLabelText)
-                
-                VStack(spacing: theme.spacing.medium) {
-                    TextField(interactor.viewModel.coachFirstNameLabel, text: interactor.bindFirstName())
-                        .modifier(RetroTextFieldStyle())
-                    
-                    TextField(interactor.viewModel.coachLastNameLabel, text: interactor.bindLastName())
-                        .modifier(RetroTextFieldStyle())
-                }
-                
-                RetroTeamSelector(
-                    title: interactor.viewModel.teamSelectorTitle,
-                    buttonTitle: interactor.viewModel.teamSelectorButtonTitle,
-                    action: interactor.viewModel.teamSelectorAction
-                )
-                
-                Spacer()
-            }
-            .padding(theme.spacing.large)
+            formContent
         }
         .safeAreaInset(edge: .bottom) {
-            SSPrimaryButton.make(title: interactor.viewModel.buttonText) {
-                interactor.eventBus.send(.submitTapped)
-            }
-            .disabled(!interactor.viewModel.submitEnabled)
-            .padding(theme.spacing.large)
+            submitButton
         }
         .background(theme.colors.background)
         .navigationTitle(interactor.viewModel.title)
         .toolbarBackground(theme.colors.background, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
+    }
+    
+    private var formContent: some View {
+        VStack(alignment: .leading, spacing: theme.spacing.large) {
+            SSTitle.title(interactor.viewModel.coachLabelText)
+            
+            coachNameFields
+            
+            TeamSelectorView(
+                title: interactor.viewModel.teamSelectorTitle,
+                buttonTitle: interactor.viewModel.teamSelectorButtonTitle,
+                action: interactor.viewModel.teamSelectorAction
+            )
+            
+            Spacer()
+        }
+        .padding(theme.spacing.large)
+    }
+    
+    private var coachNameFields: some View {
+        VStack(spacing: theme.spacing.medium) {
+            TextField(interactor.viewModel.coachFirstNameLabel, text: interactor.bindFirstName())
+                .textFieldStyle(SSTextFieldStyle())
+            
+            TextField(interactor.viewModel.coachLastNameLabel, text: interactor.bindLastName())
+                .textFieldStyle(SSTextFieldStyle())
+        }
+    }
+    
+    private var submitButton: some View {
+        SSPrimaryButton.make(title: interactor.viewModel.buttonText) {
+            interactor.eventBus.send(.submitTapped)
+        }
+        .disabled(!interactor.viewModel.submitEnabled)
+        .padding(theme.spacing.large)
     }
 }
 

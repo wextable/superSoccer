@@ -25,23 +25,23 @@ extension TeamThumbnailViewModel {
     }
 }
 
-extension TeamSelectorViewModel {
-    init(
-        clientModel: TeamInfo?,
-        action: @escaping () -> Void
-    ) {
-        if let clientModel {
-            self.init(
-                title: "Team: \(clientModel.city) \(clientModel.teamName)",
-                buttonTitle: "Change team",
-                action: action
-            )
-        } else {
-            self.init(
-                title: "Team: ",
-                buttonTitle: "Select a team",
-                action: action
-            )
-        }
-    }
-}
+//extension TeamSelectorViewModel {
+//    init(
+//        clientModel: TeamInfo?,
+//        action: @escaping () -> Void
+//    ) {
+//        if let clientModel {
+//            self.init(
+//                title: "Team: \(clientModel.city) \(clientModel.teamName)",
+//                buttonTitle: "Change team",
+//                action: action
+//            )
+//        } else {
+//            self.init(
+//                title: "Team: ",
+//                buttonTitle: "Select a team",
+//                action: action
+//            )
+//        }
+//    }
+//}

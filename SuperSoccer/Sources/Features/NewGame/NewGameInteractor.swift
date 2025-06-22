@@ -105,6 +105,17 @@ final class NewGameInteractor: NewGameInteractorProtocol {
     }
     
     private func createViewModel(localData: NewGameLocalDataSource.Data) -> NewGameViewModel {
+        let teamSelectorTitle: String
+        let teamSelectorButtonTitle: String
+        
+        if let teamInfo = localData.selectedTeamInfo {
+            teamSelectorTitle = "\(teamInfo.city) \(teamInfo.teamName)"
+            teamSelectorButtonTitle = "Change"
+        } else {
+            teamSelectorTitle = "Team:"
+            teamSelectorButtonTitle = "Select your team"
+        }
+        
         return NewGameViewModel(
             title: "New game",
             coachLabelText: "Coach",
@@ -112,13 +123,11 @@ final class NewGameInteractor: NewGameInteractorProtocol {
             coachFirstName: localData.coachFirstName,
             coachLastNameLabel: "Last name",
             coachLastName: localData.coachLastName,
-            teamSelectorModel: TeamSelectorViewModel(
-                title: localData.selectedTeamInfo?.city ?? "Team:",
-                buttonTitle: localData.selectedTeamInfo?.teamName ?? "Select your team",
-                action: { [weak self] in
-                    self?.eventBus.send(.teamSelectorTapped)
-                }
-            ),
+            teamSelectorTitle: teamSelectorTitle,
+            teamSelectorButtonTitle: teamSelectorButtonTitle,
+            teamSelectorAction: { [weak self] in
+                self?.eventBus.send(.teamSelectorTapped)
+            },
             buttonText: "Start game",
             submitEnabled: localData.isValid
         )
@@ -167,16 +176,20 @@ class MockNewGameInteractor: NewGameInteractorProtocol {
     var eventBus: NewGameEventBus = NewGameEventBus()
     weak var delegate: NewGameInteractorDelegate?
     
+    private var firstName = ""
+    private var lastName = ""
+    
     func bindFirstName() -> Binding<String> {
-        .constant("")
+        Binding(get: { self.firstName }, set: { self.firstName = $0 })
     }
     
     func bindLastName() -> Binding<String> {
-        .constant("")
+        Binding(get: { self.lastName }, set: { self.lastName = $0 })
     }
     
     func updateSelectedTeam(_ teamInfo: TeamInfo) {
-        // Mock implementation
+        viewModel.teamSelectorTitle = teamInfo.city
+        viewModel.teamSelectorButtonTitle = teamInfo.teamName
     }
 }
 

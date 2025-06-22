@@ -2,47 +2,28 @@
 //  TeamSelectorView.swift
 //  SuperSoccer
 //
-//  Created by Wesley on 5/26/25.
+//  Created by Wesley on 7/8/24.
 //
 
 import SwiftUI
 
-struct TeamSelectorViewModel {
+struct TeamSelectorView: View {
+    @Environment(\.ssTheme) private var theme
+    
     let title: String
     let buttonTitle: String
-    let action: (() -> Void)
-}
-
-struct TeamSelectorView: View {
-    var viewModel: TeamSelectorViewModel
+    let action: () -> Void
     
     var body: some View {
         HStack {
-            Text(viewModel.title)
-                .font(.headline)
-            Button(action: {
-                viewModel.action()
-            }) {
-                Text(viewModel.buttonTitle)
-                    .font(.subheadline)
-                    .foregroundColor(.blue)
-            }
+            SSLabel.headline(title)
+            Spacer()
+            SSTextButton.make(title: buttonTitle, action: action)
         }
-    }
-}
-
-#if DEBUG
-extension TeamSelectorViewModel {
-    static func make(
-        title: String = "Team:",
-        buttonTitle: String = "Select Your Team",
-        action: @escaping () -> Void = {}
-    ) -> Self {
-        self.init(
-            title: title,
-            buttonTitle: buttonTitle,
-            action: action
+        .padding()
+        .overlay(
+            RoundedRectangle(cornerRadius: theme.cornerRadius.medium)
+                .stroke(theme.colors.primaryCyan, lineWidth: 2)
         )
     }
-}
-#endif
+} 

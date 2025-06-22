@@ -5,6 +5,12 @@ The SuperSoccer project has completed major architectural milestones and is now 
 
 ## Recent Major Changes
 
+### ✅ Completed: New Game UI Redesign
+- **Retro Styling**: Implemented a retro-inspired UI for the New Game screen using the `DesignSystem`.
+- **Custom Components**: Created `RetroTextFieldStyle` and `RetroTeamSelector` for a consistent look.
+- **ViewModel Refactor**: Decoupled `NewGameViewModel` from `TeamSelect` components for better feature encapsulation.
+- **Code Cleanup**: Removed redundant `TeamSelectorView` file.
+
 ### ✅ Completed: Tab Navigation System
 - **TabNavigationCoordinator**: Fully implemented with proper navigation delegation
 - **TabContainerView**: Complete tab-based UI for in-game features
@@ -119,6 +125,7 @@ The SuperSoccer project has completed major architectural milestones and is now 
 - **Player Statistics**: What statistics to track and display?
 - **League Structure**: Number of teams, seasons, and competition format
 - **UI Design**: Specific retro styling approach and color scheme
+- **UI Design**: The `NewGame` feature has been updated with a retro theme, establishing a visual direction. Further work is needed to apply this style consistently across the app.
 
 ## Project Insights and Learnings
 

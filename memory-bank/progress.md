@@ -17,21 +17,17 @@
   - Basic UI structure in place
 
 - **NewGame**: 
-  - Coach profile creation (name, nationality, experience)
-  - Team selection integration
+  - Coach profile creation with retro-styled UI.
+  - Integrated team selection.
+  - ViewModel refactored for better encapsulation.
   - Career creation request/result pattern working
-
-- **TeamSelect**: 
-  - Team thumbnail grid display
-  - Team selection functionality
-  - Integration with NewGame flow
-  - TeamSelectViewModel for presentation state
 
 - **Team**: 
   - Team overview display
   - Player roster listing with PlayerRowView
   - Team information display
   - Basic team management interface
+  - **Retro Styling**: Nintendo-era visual design implementation for the `NewGame` screen. A visual direction has been established.
 
 - **InGame Flow**:
   - Complete career creation to in-game team management flow
@@ -127,12 +123,13 @@
 - Complete tab navigation system
 
 ### Feature Completeness: 🟡 Early Stage
-- Basic career creation flow working
+- Basic career creation flow working with a redesigned UI.
 - Core navigation structure in place
 - Tab navigation system complete
 - InGame flow fully functional
 - Need to implement game simulation features
 - UI needs retro styling implementation
+- **UI Design**: A retro styling approach has been implemented for the `NewGame` screen, setting a precedent for other features.
 
 ### Testing Coverage: 🟡 In Progress
 - Basic test infrastructure in place
@@ -169,6 +166,11 @@
 - **UI Design**: Specific retro styling approach and color scheme
 
 ## Evolution of Project Decisions 📈
+
+### UI/UX Evolution
+1. **Standard SwiftUI**: Initial views built with default components.
+2. **Basic Design System**: Custom colors and fonts were added.
+3. **Retro UI Redesign**: The `NewGame` screen was completely redesigned with a retro aesthetic, establishing a clear visual identity for the app.
 
 ### Architecture Evolution
 1. **Initial Simple Architecture**: Basic SwiftUI + SwiftData

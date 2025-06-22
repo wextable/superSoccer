@@ -1,15 +1,28 @@
 # Active Context
 
 ## Current Work Focus
-The SuperSoccer project has completed major architectural milestones and is now focused on comprehensive unit testing. The core data layer, navigation system, and feature coordinators are fully implemented and working.
+The SuperSoccer project has completed major architectural milestones and comprehensive UI redesign work. The core data layer, navigation system, feature coordinators, and retro-themed UI are fully implemented and working.
 
 ## Recent Major Changes
 
-### ✅ Completed: New Game UI Redesign
-- **Retro Styling**: Implemented a retro-inspired UI for the New Game screen using the `DesignSystem`.
-- **Custom Components**: Created `RetroTextFieldStyle` and `RetroTeamSelector` for a consistent look.
-- **ViewModel Refactor**: Decoupled `NewGameViewModel` from `TeamSelect` components for better feature encapsulation.
-- **Code Cleanup**: Removed redundant `TeamSelectorView` file.
+### ✅ Completed: Comprehensive UI Redesign
+- **NewGame Screen**: Complete retro-inspired redesign using the DesignSystem
+  - Custom `SSTextFieldStyle` for consistent text input styling
+  - Integrated `TeamSelectorView` with retro aesthetics
+  - Proper dark mode support and theme integration
+  - Clean view structure with computed properties
+- **MainMenu Screen**: Redesigned with consistent retro theming
+  - Replaced generic List with themed VStack layout
+  - Uses SSPrimaryButton for menu items
+  - Consistent navigation bar and background styling
+- **Component Architecture**: Established reusable design system components
+  - `SSTextFieldStyle` moved to DesignSystem for reusability
+  - `TeamSelectorView` extracted as standalone, themed component
+  - Centralized theme application through ViewFactory
+- **Theme Integration**: Implemented consistent theming architecture
+  - SSThemeProvider applied at ViewFactory level for centralized theme management
+  - Environment-based theme distribution to all child components
+  - Proper light/dark mode support across all redesigned screens
 
 ### ✅ Completed: Tab Navigation System
 - **TabNavigationCoordinator**: Fully implemented with proper navigation delegation
@@ -32,8 +45,11 @@ The SuperSoccer project has completed major architectural milestones and is now 
 ### Current Implementation Status
 
 #### ✅ Completed Features
-- **MainMenu**: Career management entry point with continue/new career options
-- **NewGame**: Coach profile creation and team selection flow
+- **MainMenu**: Career management entry point with retro-themed UI and SSPrimaryButton styling
+- **NewGame**: Coach profile creation and team selection with comprehensive retro design
+  - Custom text field styling with cyan borders
+  - Integrated team selector with proper state management
+  - Clean view architecture with computed properties
 - **TeamSelect**: Team selection interface with thumbnail views
 - **Team**: Basic team overview showing roster and team information
 - **Data Layer**: Complete 3-layer architecture with transformers
@@ -45,33 +61,40 @@ The SuperSoccer project has completed major architectural milestones and is now 
   - Typography system with SF Mono headers
   - Button components (Primary, Secondary, Text)
   - Text components (Titles, Labels with hierarchy)
+  - Form components (SSTextFieldStyle for consistent input styling)
   - Theme system with proper light/dark mode support
-  - SSThemeProvider for automatic color scheme detection
-  - Fixed dark mode text visibility bug
+  - SSThemeProvider for automatic color scheme detection and centralized theme management
+  - Environment-based theme distribution architecture
 
-#### 🔄 Current Focus: Unit Testing
-- **Comprehensive Test Coverage**: Adding and updating unit tests for all source code files with testable logic
-- **Test Infrastructure**: Ensuring all protocols have proper mock implementations
-- **Data Layer Testing**: Testing transformers, data managers, and storage operations
-- **Navigation Testing**: Testing coordinators, routers, and navigation flows
-- **Feature Testing**: Testing interactors, view models, and business logic
-- **Design System Testing**: Testing theme components and styling
+#### 🔄 Current Focus: Feature Expansion
+- **Apply Retro Theme**: Extend retro styling to remaining screens (TeamSelect, Team, etc.)
+- **Component Library**: Expand design system with additional themed components
+- **Unit Testing**: Comprehensive test coverage for all redesigned components
 
 ## Next Immediate Steps
 
-### 1. Complete Unit Testing Coverage
-- **Data Layer Tests**: Complete testing for transformers and data managers
-- **Navigation Tests**: Test all coordinator and navigation components
-- **Feature Tests**: Test all interactors and business logic
-- **Design System Tests**: Test theme components and styling
-- **Integration Tests**: Test complete feature flows
+### 1. Extend UI Consistency
+- **TeamSelect Screen**: Apply retro theming to team selection interface
+- **Team Screen**: Redesign team overview with consistent styling
+- **Additional Components**: Create more reusable design system components as needed
 
-### 2. Implement Core Game Features
+### 2. Complete Unit Testing Coverage
+- **UI Component Tests**: Test all design system components
+- **Feature Tests**: Test redesigned views and their interactions
+- **Theme Tests**: Test theme application and dark mode switching
+
+### 3. Implement Core Game Features
 - **League Feature**: League standings, schedule, and match results
 - **Match Simulation**: Basic match simulation engine
 - **Player Management**: Enhanced player details and statistics
 
 ## Current Technical Decisions
+
+### UI/UX Architecture
+- **Centralized Theming**: SSThemeProvider applied at ViewFactory level for consistent theme management
+- **Environment-Based Distribution**: Theme distributed through SwiftUI Environment to all components
+- **Component Reusability**: Shared components read theme from environment, ensuring consistency
+- **Clean View Structure**: Views broken into computed properties for maintainability
 
 ### Architecture Patterns in Use
 - **Clean Architecture**: 3-layer data architecture with strict boundaries
@@ -89,6 +112,13 @@ The SuperSoccer project has completed major architectural milestones and is now 
 - **Comprehensive Testing**: All business logic must have unit test coverage
 
 ## Active Development Patterns
+
+### UI Development Flow
+1. Apply SSThemeProvider at ViewFactory level for feature screens
+2. Use @Environment(\.ssTheme) in components to access theme
+3. Break complex views into computed properties for readability
+4. Leverage existing design system components (SSPrimaryButton, SSTextFieldStyle, etc.)
+5. Ensure proper dark mode support through theme system
 
 ### Feature Development Flow
 1. Create FeatureCoordinator with Result enum
@@ -113,21 +143,28 @@ The SuperSoccer project has completed major architectural milestones and is now 
 
 ## Current Challenges and Considerations
 
-### Testing Priorities
-- **Data Layer**: Transformers, DataManager, and Storage operations
-- **Navigation**: Coordinators, routers, and navigation flows
-- **Features**: Interactors, view models, and business logic
-- **Design System**: Theme components and styling
-- **Integration**: Complete feature flows and data operations
+### UI Consistency Priorities
+- **Remaining Screens**: TeamSelect, Team, and other screens need retro theming
+- **Component Expansion**: May need additional design system components for complex layouts
+- **Animation System**: Consider adding consistent animations and transitions
+
+### Design Decisions Resolved
+- **Theme Architecture**: Centralized theme application through ViewFactory established
+- **Component Reusability**: Environment-based theme distribution pattern confirmed
+- **Visual Direction**: Retro aesthetic with cyan accents and proper dark mode support established
 
 ### Design Decisions Pending
 - **Match Simulation Engine**: How detailed should the simulation be?
 - **Player Statistics**: What statistics to track and display?
 - **League Structure**: Number of teams, seasons, and competition format
-- **UI Design**: Specific retro styling approach and color scheme
-- **UI Design**: The `NewGame` feature has been updated with a retro theme, establishing a visual direction. Further work is needed to apply this style consistently across the app.
 
 ## Project Insights and Learnings
+
+### UI/UX Evolution
+- **Centralized Theming**: ViewFactory-level theme application provides clean separation of concerns
+- **Environment Distribution**: SwiftUI Environment system works excellently for theme distribution
+- **Component Architecture**: Extracting reusable components to DesignSystem improves maintainability
+- **View Structure**: Breaking views into computed properties significantly improves readability
 
 ### Architecture Evolution
 - **Simplification**: Moving from complex RequestProcessor to simple DataManager + Transformers improved maintainability
@@ -148,6 +185,13 @@ The SuperSoccer project has completed major architectural milestones and is now 
 - **Testing**: Comprehensive unit testing ensures code quality and maintainability
 
 ## Important Files to Monitor
+
+### UI Architecture Files
+- `SuperSoccer/Sources/Navigation/ViewFactory.swift` - Centralized theme application
+- `SuperSoccer/Sources/DesignSystem/Components/Form/SSTextFieldStyle.swift` - Reusable text field styling
+- `SuperSoccer/Sources/Features/TeamSelect/TeamSelectorView.swift` - Themed team selector component
+- `SuperSoccer/Sources/Features/MainMenu/MainMenuView.swift` - Redesigned main menu
+- `SuperSoccer/Sources/Features/NewGame/NewGameView.swift` - Comprehensive redesign example
 
 ### Core Architecture Files
 - `SuperSoccer/Sources/DataManager/SwiftData/SwiftDataManager.swift`

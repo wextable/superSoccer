@@ -12,14 +12,16 @@
 
 ### Implemented Features
 - **MainMenu**: 
-  - Career selection interface (continue existing or create new)
+  - Career selection interface with retro-themed UI
+  - Uses SSPrimaryButton for consistent styling
+  - Proper dark mode support and theme integration
   - Navigation to NewGame flow
-  - Basic UI structure in place
 
 - **NewGame**: 
-  - Coach profile creation with retro-styled UI.
-  - Integrated team selection.
-  - ViewModel refactored for better encapsulation.
+  - Coach profile creation with comprehensive retro-styled UI
+  - Custom SSTextFieldStyle for consistent text input styling
+  - Integrated TeamSelectorView with proper state management
+  - Clean view architecture with computed properties
   - Career creation request/result pattern working
 
 - **Team**: 
@@ -27,7 +29,6 @@
   - Player roster listing with PlayerRowView
   - Team information display
   - Basic team management interface
-  - **Retro Styling**: Nintendo-era visual design implementation for the `NewGame` screen. A visual direction has been established.
 
 - **InGame Flow**:
   - Complete career creation to in-game team management flow
@@ -41,9 +42,19 @@
   - Typography system with SF Mono headers and system fonts
   - Button components (Primary, Secondary, Text buttons)
   - Text components (Titles, Labels with hierarchy)
+  - Form components (SSTextFieldStyle for consistent input styling)
+  - Reusable UI components (TeamSelectorView)
   - Theme system with proper light/dark mode support
-  - SSThemeProvider for automatic color scheme detection
+  - SSThemeProvider for centralized theme management at ViewFactory level
+  - Environment-based theme distribution to all components
   - Comprehensive preview system for all components
+
+### UI Architecture
+- **Centralized Theming**: SSThemeProvider applied at ViewFactory level for consistent theme management
+- **Environment Distribution**: Theme distributed through SwiftUI Environment to all child components
+- **Component Reusability**: Shared components automatically inherit theme from environment
+- **Clean View Structure**: Complex views broken into computed properties for maintainability
+- **Consistent Styling**: Established retro aesthetic with cyan accents across redesigned screens
 
 ### Data Layer
 - **SwiftData Models**: Complete set of SD models (SDTeam, SDPlayer, SDCoach, etc.)
@@ -108,10 +119,13 @@
 - **Performance Metrics**: Detailed performance tracking
 
 ### UI/UX Improvements
-- **Retro Styling**: Nintendo-era visual design implementation
-- **Animations**: Smooth transitions and feedback
+- **Retro Styling**: Comprehensive retro theme implementation for MainMenu and NewGame screens
+- **Component Library**: Reusable design system components (SSTextFieldStyle, TeamSelectorView)
+- **Theme Architecture**: Centralized theme application with environment-based distribution
+- **Dark Mode Support**: Proper light/dark mode theming across all redesigned components
+- **Animations**: Smooth transitions and feedback (planned)
 - **Responsive Design**: Proper iOS device adaptation
-- **Accessibility**: VoiceOver and accessibility support
+- **Accessibility**: VoiceOver and accessibility support (planned)
 
 ## Current Status 📊
 
@@ -121,37 +135,50 @@
 - Testable design with mock implementations
 - Clear data flow patterns
 - Complete tab navigation system
+- Centralized theme management architecture
 
-### Feature Completeness: 🟡 Early Stage
-- Basic career creation flow working with a redesigned UI.
+### Feature Completeness: 🟡 Progressing
+- Basic career creation flow working with comprehensive retro UI design
+- MainMenu and NewGame screens fully redesigned with consistent theming
 - Core navigation structure in place
 - Tab navigation system complete
 - InGame flow fully functional
-- Need to implement game simulation features
-- UI needs retro styling implementation
-- **UI Design**: A retro styling approach has been implemented for the `NewGame` screen, setting a precedent for other features.
+- Need to extend retro theming to remaining screens (TeamSelect, Team)
+- Need to implement core game simulation features
+
+### UI/UX Status: 🟢 Strong Foundation
+- Comprehensive design system with retro aesthetic established
+- Centralized theme architecture implemented
+- Two major screens (MainMenu, NewGame) fully redesigned
+- Reusable components created and properly themed
+- Dark mode support working correctly
+- Ready to extend consistent styling to remaining screens
 
 ### Testing Coverage: 🟡 In Progress
 - Basic test infrastructure in place
 - Some core components tested
-- Need comprehensive unit test coverage
+- Need comprehensive unit test coverage for redesigned components
 - Testing strategy established
 - Mock implementations available
 
 ### Technical Debt: 🟢 Minimal
 - Architecture is clean and well-structured
+- UI components properly extracted and reusable
 - No major technical debt identified
 - All major architectural components completed
 - Ready for comprehensive testing phase
 
 ## Known Issues 🐛
 
+### UI Consistency Gaps
+- **Remaining Screens**: TeamSelect and Team screens need retro theming
+- **Component Expansion**: May need additional design system components for complex layouts
+- **Animation System**: No consistent animation system implemented yet
+
 ### Testing Gaps
-- **Data Layer**: Need comprehensive tests for transformers and data managers
-- **Navigation**: Need tests for all coordinator and navigation components
-- **Features**: Need tests for all interactors and business logic
-- **Design System**: Need tests for theme components and styling
-- **Integration**: Need tests for complete feature flows
+- **UI Component Tests**: Need tests for all design system components
+- **Theme Tests**: Need tests for theme application and switching
+- **Integration Tests**: Need tests for complete redesigned feature flows
 
 ### Feature Gaps
 - **Match Simulation**: No simulation engine implemented yet
@@ -159,18 +186,25 @@
 - **League Management**: No league standings or schedule system
 - **Player Details**: Limited player information and statistics
 
-### Design Decisions Needed
+### Design Decisions Resolved
+- **Theme Architecture**: Centralized theme application through ViewFactory established
+- **Component Reusability**: Environment-based theme distribution pattern confirmed
+- **Visual Direction**: Retro aesthetic with cyan accents and proper dark mode support established
+
+### Design Decisions Pending
 - **Match Simulation Complexity**: How detailed should match simulation be?
 - **Player Statistics**: What statistics to track and display?
 - **League Structure**: Number of teams, seasons, and competition format
-- **UI Design**: Specific retro styling approach and color scheme
+- **Animation System**: What animations and transitions to implement
 
 ## Evolution of Project Decisions 📈
 
 ### UI/UX Evolution
-1. **Standard SwiftUI**: Initial views built with default components.
-2. **Basic Design System**: Custom colors and fonts were added.
-3. **Retro UI Redesign**: The `NewGame` screen was completely redesigned with a retro aesthetic, establishing a clear visual identity for the app.
+1. **Standard SwiftUI**: Initial views built with default components
+2. **Basic Design System**: Custom colors and fonts were added
+3. **Comprehensive Redesign**: MainMenu and NewGame screens completely redesigned with retro aesthetic
+4. **Component Architecture**: Reusable components extracted to DesignSystem with proper theming
+5. **Centralized Theming**: ViewFactory-level theme application established for consistent management
 
 ### Architecture Evolution
 1. **Initial Simple Architecture**: Basic SwiftUI + SwiftData
@@ -202,14 +236,14 @@
 ## Next Milestones 🎯
 
 ### Immediate (Current Focus)
-1. **Complete Unit Testing**: Comprehensive test coverage for all source code files
-2. **Test Infrastructure**: Ensure all protocols have proper mock implementations
-3. **Integration Testing**: Test complete feature flows and data operations
-4. **Test Documentation**: Document testing patterns and strategies
+1. **Extend UI Consistency**: Apply retro theming to TeamSelect and Team screens
+2. **Component Testing**: Comprehensive test coverage for all design system components
+3. **Theme Testing**: Test theme application and dark mode switching
+4. **Animation System**: Implement consistent animations and transitions
 
 ### Short Term (Next Month)
-1. **Core Game Features**: League standings, match simulation, player management
-2. **UI Polish**: Add retro styling and animations
+1. **Complete UI Redesign**: Finish applying retro theme to all screens
+2. **Core Game Features**: League standings, match simulation, player management
 3. **Performance Optimization**: Optimize for smooth iOS performance
 4. **Feature Integration**: Integrate new game features with existing architecture
 

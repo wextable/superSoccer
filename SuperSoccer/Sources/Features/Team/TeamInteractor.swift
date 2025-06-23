@@ -167,4 +167,16 @@ class MockTeamInteractor: TeamInteractorProtocol {
         self.viewModel = .make()
     }
 }
+
+class MockTeamInteractorDelegate: TeamInteractorDelegate {
+    var playerRowTappedCalled = false
+    var lastPlayerRowTappedId: String?
+    var onPlayerRowTapped: (() -> Void)?
+    
+    func playerRowTapped(_ playerId: String) {
+        playerRowTappedCalled = true
+        lastPlayerRowTappedId = playerId
+        onPlayerRowTapped?()
+    }
+} 
 #endif

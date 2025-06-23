@@ -372,17 +372,3 @@ struct TeamInteractorTests {
         // The test passes if no retain cycles prevent deallocation
     }
 }
-
-// MARK: - Mock Delegate
-
-class MockTeamInteractorDelegate: TeamInteractorDelegate {
-    var playerRowTappedCalled = false
-    var lastPlayerRowTappedId: String?
-    var onPlayerRowTapped: (() -> Void)?
-    
-    func playerRowTapped(_ playerId: String) {
-        playerRowTappedCalled = true
-        lastPlayerRowTappedId = playerId
-        onPlayerRowTapped?()
-    }
-} 

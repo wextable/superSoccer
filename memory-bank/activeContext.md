@@ -1,9 +1,39 @@
 # Active Context
 
 ## Current Work Focus
-The SuperSoccer project has completed major architectural milestones and comprehensive UI redesign work. The core data layer, navigation system, feature coordinators, and retro-themed UI are fully implemented and working.
+The SuperSoccer project has completed major architectural milestones, comprehensive UI redesign work, and comprehensive Team feature unit testing. The core data layer, navigation system, feature coordinators, retro-themed UI, and Team feature testing infrastructure are fully implemented and working.
 
 ## Recent Major Changes
+
+### ✅ Completed: Team Feature Unit Tests
+- **TeamInteractorTests**: Comprehensive test coverage for team business logic
+  - Initialization tests verifying dependency injection
+  - Event handling tests for event bus functionality (loadTeamData, playerRowTapped)
+  - Data loading tests for team data retrieval and view model creation
+  - Team header creation tests validating view model generation
+  - Event bus tests confirming proper event publishing and subscription
+  - Delegate tests ensuring interaction delegate forwarding
+  - Data reactivity tests verifying reactive updates when data changes
+  - Memory management tests ensuring no memory leaks
+- **TeamFeatureCoordinatorTests**: Complete coordinator testing
+  - Initialization tests verifying proper coordinator setup
+  - Start tests confirming navigation to team screen
+  - Player interaction tests validating user action handling
+  - Navigation integration tests confirming proper coordinator usage
+  - Data manager integration tests verifying dependency injection
+  - Lifecycle tests covering complete coordinator flows
+  - Memory management tests ensuring proper cleanup
+- **MockTeamInteractorDelegate**: Comprehensive mock implementation
+  - Tracking properties for test verification
+  - Callback support for async testing patterns
+  - Follows established project testing patterns
+
+### ✅ Completed: Team Feature Consistency Improvements
+- **Removed make() functions from production code**: Only kept for SwiftUI previews and DEBUG testing
+- **Moved view models outside view declarations**: PlayerRowViewModel extracted to file scope
+- **Implemented event bus pattern**: Views communicate with interactors via event bus instead of direct calls
+- **Enhanced PlayerRowView styling**: Updated to use SSTheme and design system components
+- **Added comprehensive make() functions**: All view models now have make() functions using other make() as defaults
 
 ### ✅ Completed: Comprehensive UI Redesign
 - **NewGame Screen**: Complete retro-inspired redesign using the DesignSystem
@@ -52,6 +82,10 @@ The SuperSoccer project has completed major architectural milestones and compreh
   - Clean view architecture with computed properties
 - **TeamSelect**: Team selection interface with thumbnail views
 - **Team**: Basic team overview showing roster and team information
+  - PlayerRowView with enhanced SSTheme styling
+  - Team header display with stats
+  - Event bus communication pattern
+  - Comprehensive unit test coverage
 - **Data Layer**: Complete 3-layer architecture with transformers
 - **Navigation**: Coordinator pattern with BaseFeatureCoordinator and child management
 - **Tab Navigation**: Complete tab-based navigation system for in-game features
@@ -65,23 +99,31 @@ The SuperSoccer project has completed major architectural milestones and compreh
   - Theme system with proper light/dark mode support
   - SSThemeProvider for automatic color scheme detection and centralized theme management
   - Environment-based theme distribution architecture
+- **Testing Infrastructure**: Comprehensive unit testing for Team feature
+  - Protocol-based mock implementations
+  - Swift Testing framework integration
+  - Async testing patterns with confirmation blocks
+  - Memory management testing
+  - Event bus and delegate testing patterns
 
-#### 🔄 Current Focus: Feature Expansion
-- **Apply Retro Theme**: Extend retro styling to remaining screens (TeamSelect, Team, etc.)
-- **Component Library**: Expand design system with additional themed components
-- **Unit Testing**: Comprehensive test coverage for all redesigned components
+#### 🔄 Current Focus: Expand Unit Testing Coverage
+- **Other Feature Tests**: Apply Team testing patterns to MainMenu, NewGame, TeamSelect features
+- **UI Component Tests**: Test all design system components
+- **Navigation Tests**: Test coordinators and navigation flows
+- **Integration Tests**: Test complete feature workflows
 
 ## Next Immediate Steps
 
-### 1. Extend UI Consistency
-- **TeamSelect Screen**: Apply retro theming to team selection interface
-- **Team Screen**: Redesign team overview with consistent styling
-- **Additional Components**: Create more reusable design system components as needed
+### 1. Extend Unit Testing to Other Features
+- **MainMenuInteractorTests**: Apply Team testing patterns to MainMenu feature
+- **NewGameInteractorTests**: Comprehensive testing for NewGame business logic
+- **TeamSelectInteractorTests**: Complete testing for TeamSelect functionality
+- **FeatureCoordinatorTests**: Test all feature coordinators following Team pattern
 
-### 2. Complete Unit Testing Coverage
-- **UI Component Tests**: Test all design system components
-- **Feature Tests**: Test redesigned views and their interactions
-- **Theme Tests**: Test theme application and dark mode switching
+### 2. Complete UI Testing Coverage
+- **Design System Tests**: Test all theme components and styling
+- **View Model Tests**: Test presentation logic and make() functions
+- **Integration Tests**: Test complete redesigned feature flows
 
 ### 3. Implement Core Game Features
 - **League Feature**: League standings, schedule, and match results
@@ -89,6 +131,20 @@ The SuperSoccer project has completed major architectural milestones and compreh
 - **Player Management**: Enhanced player details and statistics
 
 ## Current Technical Decisions
+
+### Testing Architecture
+- **Swift Testing Framework**: Using @Test attributes and modern testing patterns
+- **Mock Pattern**: Comprehensive mock implementations with tracking properties
+- **Async Testing**: Using confirmation blocks and withCheckedContinuation patterns
+- **Memory Management Testing**: Verifying no retain cycles or memory leaks
+- **Protocol-Based Testing**: All dependencies use protocols with mock implementations
+
+### Team Feature Patterns (Template for Other Features)
+- **Event Bus Communication**: Views → Interactors via event bus, not direct calls
+- **Delegate Pattern**: Interactors → Coordinators via delegate protocol
+- **make() Functions**: Only used in previews and DEBUG tests, not production
+- **View Model Extraction**: View models declared at file scope, not nested in views
+- **Comprehensive Testing**: Every business logic class has complete unit test coverage
 
 ### UI/UX Architecture
 - **Centralized Theming**: SSThemeProvider applied at ViewFactory level for consistent theme management
@@ -113,6 +169,15 @@ The SuperSoccer project has completed major architectural milestones and compreh
 
 ## Active Development Patterns
 
+### Testing Development Flow (Established Template)
+1. Create comprehensive InteractorTests covering all business logic
+2. Create FeatureCoordinatorTests covering navigation and lifecycle
+3. Create Mock delegates with tracking properties and callbacks
+4. Use Swift Testing framework with @Test attributes
+5. Follow async testing patterns with confirmation blocks
+6. Test memory management and cleanup
+7. Verify protocol-based dependency injection
+
 ### UI Development Flow
 1. Apply SSThemeProvider at ViewFactory level for feature screens
 2. Use @Environment(\.ssTheme) in components to access theme
@@ -124,7 +189,7 @@ The SuperSoccer project has completed major architectural milestones and compreh
 1. Create FeatureCoordinator with Result enum
 2. Implement Interactor with protocol and mock
 3. Build Views with ViewModels for presentation state
-4. Add comprehensive unit tests
+4. Add comprehensive unit tests following Team feature pattern
 5. Integrate with navigation system
 
 ### Data Operations Flow
@@ -140,15 +205,24 @@ The SuperSoccer project has completed major architectural milestones and compreh
 3. **Mock Implementations**: Every protocol has a mock version in #if DEBUG blocks
 4. **Test Organization**: Test directories mirror source structure
 5. **Integration Testing**: Test complete feature flows and data operations
+6. **Swift Testing Framework**: Use modern @Test attributes and confirmation patterns
 
 ## Current Challenges and Considerations
 
+### Testing Expansion Priorities
+- **Feature Parity**: All features need same testing coverage as Team feature
+- **Mock Consistency**: Ensure all mock implementations follow same patterns
+- **Test Coverage**: Verify comprehensive coverage across all business logic
+
 ### UI Consistency Priorities
-- **Remaining Screens**: TeamSelect, Team, and other screens need retro theming
+- **Remaining Screens**: TeamSelect, Team header improvements, and other screens need retro theming
 - **Component Expansion**: May need additional design system components for complex layouts
 - **Animation System**: Consider adding consistent animations and transitions
 
 ### Design Decisions Resolved
+- **Testing Patterns**: Team feature testing patterns established as template
+- **Event Bus vs Direct Calls**: Event bus pattern confirmed for view-interactor communication
+- **Mock Delegate Pattern**: Comprehensive tracking and callback pattern established
 - **Theme Architecture**: Centralized theme application through ViewFactory established
 - **Component Reusability**: Environment-based theme distribution pattern confirmed
 - **Visual Direction**: Retro aesthetic with cyan accents and proper dark mode support established
@@ -159,6 +233,13 @@ The SuperSoccer project has completed major architectural milestones and compreh
 - **League Structure**: Number of teams, seasons, and competition format
 
 ## Project Insights and Learnings
+
+### Testing Evolution
+- **Swift Testing Framework**: Modern testing patterns with @Test attributes work excellently
+- **Mock Pattern Consistency**: Tracking properties and callback patterns provide reliable testing
+- **Async Testing**: Confirmation blocks handle event bus and delegate testing effectively
+- **Memory Management**: Explicit memory leak testing prevents retain cycles
+- **Protocol-Based Design**: Makes testing much easier with proper mock implementations
 
 ### UI/UX Evolution
 - **Centralized Theming**: ViewFactory-level theme application provides clean separation of concerns
@@ -171,6 +252,7 @@ The SuperSoccer project has completed major architectural milestones and compreh
 - **Clear Boundaries**: Strict model separation prevents architectural violations
 - **Testability**: Protocol-based design makes testing much easier
 - **Tab Navigation**: Centralized tab management improves navigation consistency
+- **Event Bus Pattern**: Provides clean separation between views and business logic
 
 ### SwiftUI Patterns
 - **ViewModel Usage**: ViewModels work well for presentation state but should not contain business logic
@@ -179,12 +261,17 @@ The SuperSoccer project has completed major architectural milestones and compreh
 - **Tab Integration**: TabContainerView provides clean separation between tab UI and navigation logic
 
 ### Development Workflow
-- **Feature-First**: Building complete features before moving to next one works well
-- **Test-Driven**: Having mock implementations from the start improves development speed
+- **Feature-First**: Building complete features with full testing before moving to next works well
+- **Test-Driven**: Having comprehensive unit tests improves development speed and quality
 - **Documentation**: Keeping architecture docs updated is crucial for complex projects
-- **Testing**: Comprehensive unit testing ensures code quality and maintainability
+- **Pattern Consistency**: Establishing patterns in one feature makes other features easier
 
 ## Important Files to Monitor
+
+### Testing Reference Files (Templates for Other Features)
+- `SuperSoccerTests/Features/Team/TeamInteractorTests.swift` - Comprehensive interactor testing template
+- `SuperSoccerTests/Features/Team/TeamFeatureCoordinatorTests.swift` - Complete coordinator testing template
+- Mock delegate pattern examples throughout Team tests
 
 ### UI Architecture Files
 - `SuperSoccer/Sources/Navigation/ViewFactory.swift` - Centralized theme application
@@ -198,18 +285,10 @@ The SuperSoccer project has completed major architectural milestones and compreh
 - `SuperSoccer/Sources/DataModels/Transforms/SwiftData/ClientToSwiftDataTransformer.swift`
 - `SuperSoccer/Sources/DataModels/Transforms/SwiftData/SwiftDataToClientTransformer.swift`
 - `SuperSoccer/Sources/Navigation/BaseFeatureCoordinator.swift`
-- `SuperSoccer/Sources/Navigation/TabNavigationCoordinator.swift`
-- `SuperSoccer/Sources/Features/InGame/InGameCoordinator.swift`
 
-### Testing Files
-- `SuperSoccerTests/DataManager/SwiftData/SwiftDataManagerTests.swift`
-- `SuperSoccerTests/DataModels/Transforms/SwiftData/ClientToSwiftDataTransformerTests.swift`
-- `SuperSoccerTests/DataModels/Transforms/SwiftData/SwiftDataToClientTransformerTests.swift`
-- `SuperSoccerTests/Navigation/NavigationCoordinatorTests.swift`
-- `SuperSoccerTests/Features/` - All feature test directories
-
-### Configuration Files
-- `.clinerules` - Project development rules and patterns
-- `SuperSoccer/Sources/DataModels/NEW_ARCHITECTURE_SUMMARY.md` - Architecture documentation
+### Team Feature Files (Reference Implementation)
+- `SuperSoccer/Sources/Features/Team/TeamInteractor.swift` - Event bus pattern implementation
+- `SuperSoccer/Sources/Features/Team/PlayerRowView.swift` - SSTheme integration example
+- `SuperSoccer/Sources/Features/Team/TeamView.swift` - Clean view structure example
 
 This active context represents the current state of development and should be updated as work progresses and new decisions are made.

@@ -26,7 +26,7 @@ struct TeamView: View {
         .toolbarBackground(theme.colors.background, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .onAppear {
-            interactor.loadTeamData()
+            interactor.eventBus.send(.loadTeamData)
         }
     }
     
@@ -35,20 +35,16 @@ struct TeamView: View {
             SSTitle.title3("Players")
             
             LazyVStack(spacing: theme.spacing.small) {
-                ForEach(interactor.viewModel.playerRows, id: \.id) { playerRowViewModel in
+                ForEach(interactor.viewModel.playerRows, id: \.playerId) { playerRowViewModel in
                     PlayerRowView(
                         viewModel: playerRowViewModel,
                         onTap: {
-                            // interactor.playerRowTapped(playerRowViewModel.playerId)
+                            interactor.eventBus.send(.playerRowTapped(playerId: playerRowViewModel.playerId))
                         }
                     )
                 }
             }
         }
-    }
-    
-    static func make(interactor: any TeamInteractorProtocol) -> TeamView {
-        return TeamView(interactor: interactor)
     }
 }
 

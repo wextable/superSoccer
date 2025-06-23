@@ -8,17 +8,25 @@
 import Foundation
 import Combine
 
+typealias TeamEventBus = PassthroughSubject<TeamEvent, Never>
+
+enum TeamEvent: BusEvent {
+    case loadTeamData
+    case playerRowTapped(playerId: String)
+}
+
 protocol TeamInteractorDelegate: AnyObject {
     func playerRowTapped(_ playerId: String)
 }
 
 protocol TeamInteractorProtocol: AnyObject {
     var viewModel: TeamViewModel { get }
-    func loadTeamData()
+    var eventBus: TeamEventBus { get }
 }
 
 class TeamInteractor: TeamInteractorProtocol {
     @Published var viewModel: TeamViewModel
+    let eventBus = TeamEventBus()
     
     private let userTeamId: String
     private let dataManager: DataManagerProtocol
@@ -35,15 +43,40 @@ class TeamInteractor: TeamInteractorProtocol {
         self.viewModel = TeamViewModel(
             coachName: "",
             teamName: "",
-            header: TeamHeaderViewModel.make(),
+            header: TeamHeaderViewModel(
+                teamName: "",
+                teamLogo: "",
+                starRating: 0.0,
+                leagueStanding: "",
+                teamRecord: "",
+                coachName: ""
+            ),
             playerRows: []
         )
         
-        setupDataSubscriptions()
+        setupSubscriptions()
         loadTeamData()
     }
     
-    func loadTeamData() {
+    private func setupSubscriptions() {
+        setupEventSubscriptions()
+        setupDataSubscriptions()
+    }
+    
+    private func setupEventSubscriptions() {
+        eventBus
+            .sink { [weak self] event in
+                switch event {
+                case .loadTeamData:
+                    self?.loadTeamData()
+                case .playerRowTapped(let playerId):
+                    self?.handlePlayerRowTapped(playerId)
+                }
+            }
+            .store(in: &cancellables)
+    }
+    
+    private func loadTeamData() {
         // Load team, coach, and player data
         let teams = dataManager.fetchTeams()
         let coaches = dataManager.fetchCoaches()
@@ -56,8 +89,7 @@ class TeamInteractor: TeamInteractorProtocol {
         
         let teamPlayers = players.filter { team.playerIds.contains($0.id) }
         let playerRows = teamPlayers.map { player in
-            PlayerRowView.PlayerRowViewModel(
-                id: player.id,
+            PlayerRowViewModel(
                 playerId: player.id,
                 playerName: "\(player.firstName) \(player.lastName)",
                 position: player.position
@@ -111,7 +143,7 @@ class TeamInteractor: TeamInteractorProtocol {
         )
     }
     
-    func playerRowTapped(_ playerId: String) {
+    private func handlePlayerRowTapped(_ playerId: String) {
         delegate?.playerRowTapped(playerId)
     }
     
@@ -129,25 +161,10 @@ class TeamInteractor: TeamInteractorProtocol {
 #if DEBUG
 class MockTeamInteractor: TeamInteractorProtocol {
     @Published var viewModel: TeamViewModel
+    let eventBus = TeamEventBus()
     
     init() {
-        self.viewModel = TeamViewModel(
-            coachName: "Mock Coach",
-            teamName: "Mock Team",
-            header: TeamHeaderViewModel.make(),
-            playerRows: [
-                PlayerRowView.PlayerRowViewModel(
-                    id: "1",
-                    playerId: "1",
-                    playerName: "Mock Player",
-                    position: "Forward"
-                )
-            ]
-        )
-    }
-    
-    func loadTeamData() {
-        // Mock implementation
+        self.viewModel = .make()
     }
 }
 #endif

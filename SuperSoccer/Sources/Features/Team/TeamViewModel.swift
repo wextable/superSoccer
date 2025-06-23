@@ -20,7 +20,7 @@ struct TeamViewModel {
     let coachName: String
     let teamName: String
     let header: TeamHeaderViewModel
-    let playerRows: [PlayerRowView.PlayerRowViewModel]
+    let playerRows: [PlayerRowViewModel]
 }
 
 #if DEBUG
@@ -33,13 +33,33 @@ extension TeamHeaderViewModel {
         teamRecord: String = "15W-3L-4D",
         coachName: String = "John Smith"
     ) -> TeamHeaderViewModel {
-        return TeamHeaderViewModel(
+        TeamHeaderViewModel(
             teamName: teamName,
             teamLogo: teamLogo,
             starRating: starRating,
             leagueStanding: leagueStanding,
             teamRecord: teamRecord,
             coachName: coachName
+        )
+    }
+}
+
+extension TeamViewModel {
+    static func make(
+        coachName: String = "Mock Coach",
+        teamName: String = "Mock Team",
+        header: TeamHeaderViewModel = .make(),
+        playerRows: [PlayerRowViewModel] = [
+            .make(playerName: "Mock Player 1", position: "GK"),
+            .make(playerName: "Mock Player 2", position: "CB"),
+            .make(playerName: "Mock Player 3", position: "ST")
+        ]
+    ) -> TeamViewModel {
+        TeamViewModel(
+            coachName: coachName,
+            teamName: teamName,
+            header: header,
+            playerRows: playerRows
         )
     }
 }

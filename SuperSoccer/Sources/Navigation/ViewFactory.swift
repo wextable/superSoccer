@@ -24,7 +24,7 @@ final class ViewFactory: ViewFactoryProtocol {
         case .teamSelect(let interactor):
             return AnyView(TeamSelectView(interactor: interactor))
         case .team(let interactor):
-            return AnyView(SSThemeProvider { TeamView.make(interactor: interactor) })
+            return AnyView(SSThemeProvider { TeamView(interactor: interactor) })
         case .tabContainer(let tabs):
             return AnyView(TabContainerView.make(tabs: tabs, viewFactory: self))
         }
@@ -47,7 +47,7 @@ class MockViewFactory: ViewFactoryProtocol {
         case .teamSelect(let interactor):
             return AnyView(TeamSelectView(interactor: interactor))
         case .team(let interactor):
-            return AnyView(SSThemeProvider { TeamView.make(interactor: interactor) })
+            return AnyView(SSThemeProvider { TeamView(interactor: interactor) })
         case .tabContainer(let tabs):
             return AnyView(TabContainerView.make(tabs: tabs, viewFactory: self))
         }

@@ -9,48 +9,41 @@ import SwiftUI
 
 struct TeamView: View {
     let interactor: any TeamInteractorProtocol
+    @Environment(\.ssTheme) private var theme
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            // Coach Section
-            VStack(alignment: .leading) {
-                Text("Coach")
-                    .font(.headline)
-                Text(interactor.viewModel.coachName)
-                    .font(.title2)
-            }
-            
-            // Team Section
-            VStack(alignment: .leading) {
-                Text("Team")
-                    .font(.headline)
-                Text(interactor.viewModel.teamName)
-                    .font(.title2)
-            }
-            
-            // Players Section
-            VStack(alignment: .leading) {
-                Text("Players")
-                    .font(.headline)
+        ScrollView {
+            VStack(alignment: .leading, spacing: theme.spacing.large) {
+                TeamHeaderView(viewModel: interactor.viewModel.header)
                 
-                LazyVStack {
-                    ForEach(interactor.viewModel.playerRows, id: \.id) { playerRowViewModel in
-                        PlayerRowView(
-                            viewModel: playerRowViewModel,
-                            onTap: {
-                            //    interactor.playerRowTapped(playerRowViewModel.playerId)
-                            }
-                        )
-                    }
-                }
+                playersSection
+                
+                Spacer()
             }
-            
-            Spacer()
+            .padding(theme.spacing.large)
         }
-        .padding()
-        .navigationTitle("My Team")
+        .background(theme.colors.background)
+        .toolbarBackground(theme.colors.background, for: .navigationBar)
+        .toolbarColorScheme(.dark, for: .navigationBar)
         .onAppear {
             interactor.loadTeamData()
+        }
+    }
+    
+    private var playersSection: some View {
+        VStack(alignment: .leading, spacing: theme.spacing.medium) {
+            SSTitle.title3("Players")
+            
+            LazyVStack(spacing: theme.spacing.small) {
+                ForEach(interactor.viewModel.playerRows, id: \.id) { playerRowViewModel in
+                    PlayerRowView(
+                        viewModel: playerRowViewModel,
+                        onTap: {
+                            // interactor.playerRowTapped(playerRowViewModel.playerId)
+                        }
+                    )
+                }
+            }
         }
     }
     
@@ -58,3 +51,15 @@ struct TeamView: View {
         return TeamView(interactor: interactor)
     }
 }
+
+#if DEBUG
+struct TeamView_Previews: PreviewProvider {
+    static var previews: some View {
+        NavigationView {
+            SSThemeProvider {
+                TeamView(interactor: MockTeamInteractor())
+            }
+        }
+    }
+}
+#endif

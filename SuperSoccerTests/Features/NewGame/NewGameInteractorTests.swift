@@ -69,8 +69,8 @@ struct NewGameInteractorTests {
         #expect(interactor.viewModel.coachFirstName == "John")
         #expect(interactor.viewModel.coachLastName == "Doe")
         #expect(interactor.viewModel.submitEnabled == true)
-        #expect(interactor.viewModel.teamSelectorModel.title == "Test")
-        #expect(interactor.viewModel.teamSelectorModel.buttonTitle == "City")
+        #expect(interactor.viewModel.teamSelectorTitle == "Test")
+        #expect(interactor.viewModel.teamSelectorButtonTitle == "City")
     }
     
     // MARK: - Binding Tests
@@ -269,7 +269,7 @@ struct NewGameInteractorTests {
         #expect(interactor.viewModel.coachFirstName == "Jurgen")
         #expect(interactor.viewModel.coachLastName == "Klopp")
         #expect(interactor.viewModel.submitEnabled == true)
-        #expect(interactor.viewModel.teamSelectorModel.title == "Liverpool")
-        #expect(interactor.viewModel.teamSelectorModel.buttonTitle == "FC")
+        #expect(interactor.viewModel.teamSelectorTitle == "Liverpool FC")
+        #expect(interactor.viewModel.teamSelectorButtonTitle == "Change")
     }
 }

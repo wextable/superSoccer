@@ -60,7 +60,7 @@ struct ViewFactoryTests {
         let mockInteractor = MockNewGameInteractor()
         
         // Act
-        let view = factory.makeView(for: .newGame(interactor: mockInteractor))
+        let view = factory.makeView(for: .newGame(presenter: mockInteractor))
         
         // Assert
         #expect(view != nil)
@@ -144,7 +144,7 @@ struct ViewFactoryTests {
         let mainMenuView = factory.makeView(for: .mainMenu(interactor: mockMainMenuInteractor))
         #expect(mainMenuView is AnyView)
         
-        let newGameView = factory.makeView(for: .newGame(interactor: mockNewGameInteractor))
+        let newGameView = factory.makeView(for: .newGame(presenter: mockNewGameInteractor))
         #expect(newGameView is AnyView)
         
         let teamSelectView = factory.makeView(for: .teamSelect(interactor: mockTeamSelectInteractor))
@@ -170,7 +170,7 @@ struct ViewFactoryTests {
         // Act
         let splashView = factory.makeView(for: .splash)
         let mainMenuView = factory.makeView(for: .mainMenu(interactor: mockMainMenuInteractor))
-        let newGameView = factory.makeView(for: .newGame(interactor: mockNewGameInteractor))
+        let newGameView = factory.makeView(for: .newGame(presenter: mockNewGameInteractor))
         
         // Assert
         #expect(splashView != nil)
@@ -293,7 +293,7 @@ struct ViewFactoryTests {
         // Act
         _ = mockFactory.makeView(for: .splash)
         _ = mockFactory.makeView(for: .mainMenu(interactor: mockInteractor))
-        _ = mockFactory.makeView(for: .newGame(interactor: MockNewGameInteractor()))
+        _ = mockFactory.makeView(for: .newGame(presenter: MockNewGameInteractor()))
         
         // Assert
         #expect(mockFactory.screensMade.count == 3)
@@ -317,7 +317,7 @@ struct ViewFactoryTests {
         // Act
         let splashView = mockFactory.makeView(for: .splash)
         let mainMenuView = mockFactory.makeView(for: .mainMenu(interactor: mockMainMenuInteractor))
-        let newGameView = mockFactory.makeView(for: .newGame(interactor: mockNewGameInteractor))
+        let newGameView = mockFactory.makeView(for: .newGame(presenter: mockNewGameInteractor))
         let teamSelectView = mockFactory.makeView(for: .teamSelect(interactor: mockTeamSelectInteractor))
         let teamView = mockFactory.makeView(for: .team(interactor: mockTeamInteractor))
         let tabContainerView = mockFactory.makeView(for: .tabContainer(tabs: tabs))

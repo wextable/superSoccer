@@ -22,7 +22,7 @@ struct NewGameViewModel {
 }
 
 struct NewGameView: View {
-    let interactor: any NewGameInteractorProtocol
+    let presenter: NewGameViewPresenter
     @Environment(\.ssTheme) private var theme
     
     var body: some View {
@@ -33,21 +33,21 @@ struct NewGameView: View {
             submitButton
         }
         .background(theme.colors.background)
-        .navigationTitle(interactor.viewModel.title)
+        .navigationTitle(presenter.viewModel.title)
         .toolbarBackground(theme.colors.background, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
     }
     
     private var formContent: some View {
         VStack(alignment: .leading, spacing: theme.spacing.large) {
-            SSTitle.title(interactor.viewModel.coachLabelText)
+            SSTitle.title(presenter.viewModel.coachLabelText)
             
             coachNameFields
             
             TeamSelectorView(
-                title: interactor.viewModel.teamSelectorTitle,
-                buttonTitle: interactor.viewModel.teamSelectorButtonTitle,
-                action: interactor.viewModel.teamSelectorAction
+                title: presenter.viewModel.teamSelectorTitle,
+                buttonTitle: presenter.viewModel.teamSelectorButtonTitle,
+                action: presenter.viewModel.teamSelectorAction
             )
             
             Spacer()
@@ -57,19 +57,19 @@ struct NewGameView: View {
     
     private var coachNameFields: some View {
         VStack(spacing: theme.spacing.medium) {
-            TextField(interactor.viewModel.coachFirstNameLabel, text: interactor.bindFirstName())
+            TextField(presenter.viewModel.coachFirstNameLabel, text: presenter.bindFirstName())
                 .textFieldStyle(SSTextFieldStyle())
             
-            TextField(interactor.viewModel.coachLastNameLabel, text: interactor.bindLastName())
+            TextField(presenter.viewModel.coachLastNameLabel, text: presenter.bindLastName())
                 .textFieldStyle(SSTextFieldStyle())
         }
     }
     
     private var submitButton: some View {
-        SSPrimaryButton.make(title: interactor.viewModel.buttonText) {
-            interactor.eventBus.send(.submitTapped)
+        SSPrimaryButton.make(title: presenter.viewModel.buttonText) {
+            presenter.eventBus.send(.submitTapped)
         }
-        .disabled(!interactor.viewModel.submitEnabled)
+        .disabled(!presenter.viewModel.submitEnabled)
         .padding(theme.spacing.large)
     }
 }

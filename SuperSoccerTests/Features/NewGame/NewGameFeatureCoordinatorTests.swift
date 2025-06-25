@@ -65,7 +65,7 @@ struct NewGameFeatureCoordinatorTests {
         let coordinator = container.makeNewGameCoordinator()
         
         // Act
-        coordinator.interactorDidRequestTeamSelection()
+        coordinator.businessLogicDidRequestTeamSelection()
         
         // Assert - We can't directly access child coordinators as they're private
         // But we can test that the method executes without error
@@ -80,7 +80,7 @@ struct NewGameFeatureCoordinatorTests {
         let coordinator = container.makeNewGameCoordinator()
         
         // Act - We can't directly test private methods, but we can test the delegate methods
-        coordinator.interactorDidRequestTeamSelection()
+        coordinator.businessLogicDidRequestTeamSelection()
         
         // Assert
         #expect(coordinator != nil)
@@ -102,7 +102,7 @@ struct NewGameFeatureCoordinatorTests {
         
         // Act
         let mockResult = CreateNewCareerResult.make()
-        coordinator.interactorDidCreateGame(with: mockResult)
+        coordinator.businessLogicDidCreateGame(with: mockResult)
         
         // Assert
         #expect(receivedResult != nil)
@@ -126,7 +126,7 @@ struct NewGameFeatureCoordinatorTests {
         }
         
         // Act
-        coordinator.interactorDidCancel()
+        coordinator.businessLogicDidCancel()
         
         // Assert
         #expect(receivedResult != nil)
@@ -147,7 +147,7 @@ struct NewGameFeatureCoordinatorTests {
         let coordinator = container.makeNewGameCoordinator()
         
         // Act - Start team selection
-        coordinator.interactorDidRequestTeamSelection()
+        coordinator.businessLogicDidRequestTeamSelection()
         
         // Assert - We can't directly access child coordinators as they're private
         // But we can test that the method executes without error
@@ -169,12 +169,12 @@ struct NewGameFeatureCoordinatorTests {
         }
         
         // Act & Assert - Test team selection request
-        coordinator.interactorDidRequestTeamSelection()
+        coordinator.businessLogicDidRequestTeamSelection()
         #expect(finishCallCount == 0) // Should not finish
         
         // Act & Assert - Test game creation
         let mockResult = CreateNewCareerResult.make()
-        coordinator.interactorDidCreateGame(with: mockResult)
+        coordinator.businessLogicDidCreateGame(with: mockResult)
         #expect(finishCallCount == 1) // Should finish once
         
         // Reset for next test
@@ -184,7 +184,7 @@ struct NewGameFeatureCoordinatorTests {
         }
         
         // Act & Assert - Test cancellation
-        coordinator.interactorDidCancel()
+        coordinator.businessLogicDidCancel()
         #expect(finishCallCount == 1) // Should finish once
     }
     
@@ -235,9 +235,9 @@ struct NewGameFeatureCoordinatorTests {
         let coordinator = container.makeNewGameCoordinator()
         
         // Act - Multiple team selection requests
-        coordinator.interactorDidRequestTeamSelection()
-        coordinator.interactorDidRequestTeamSelection()
-        coordinator.interactorDidRequestTeamSelection()
+        coordinator.businessLogicDidRequestTeamSelection()
+        coordinator.businessLogicDidRequestTeamSelection()
+        coordinator.businessLogicDidRequestTeamSelection()
         
         // Assert - Should handle gracefully without crashing
         #expect(coordinator != nil)
@@ -256,8 +256,8 @@ struct NewGameFeatureCoordinatorTests {
         }
         
         // Act - Finish multiple times
-        coordinator.interactorDidCancel()
-        coordinator.interactorDidCancel()
+        coordinator.businessLogicDidCancel()
+        coordinator.businessLogicDidCancel()
         
         // Assert - Should handle gracefully
         #expect(finishCallCount >= 1) // At least one finish call should occur

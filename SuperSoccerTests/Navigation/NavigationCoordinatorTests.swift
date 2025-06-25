@@ -71,7 +71,7 @@ struct NavigationCoordinatorTests {
         let router = NavigationRouter()
         let coordinator = NavigationCoordinator(router: router)
         let mockInteractor = MockNewGameInteractor()
-        let screen = NavigationRouter.Screen.newGame(interactor: mockInteractor)
+        let screen = NavigationRouter.Screen.newGame(presenter: mockInteractor)
         
         // Act
         coordinator.replaceStackWith(screen)
@@ -189,7 +189,7 @@ struct NavigationCoordinatorTests {
         let mockTeamSelectInteractor = MockTeamSelectInteractor()
         
         let mainMenuScreen = NavigationRouter.Screen.mainMenu(interactor: mockMainMenuInteractor)
-        let newGameScreen = NavigationRouter.Screen.newGame(interactor: mockNewGameInteractor)
+        let newGameScreen = NavigationRouter.Screen.newGame(presenter: mockNewGameInteractor)
         let teamSelectScreen = NavigationRouter.Screen.teamSelect(interactor: mockTeamSelectInteractor)
         
         // Act - Simulate a complex navigation flow
@@ -221,7 +221,7 @@ struct NavigationCoordinatorTests {
         
         let splashScreen = NavigationRouter.Screen.splash
         let mainMenuScreen = NavigationRouter.Screen.mainMenu(interactor: mockMainMenuInteractor)
-        let newGameScreen = NavigationRouter.Screen.newGame(interactor: mockNewGameInteractor)
+        let newGameScreen = NavigationRouter.Screen.newGame(presenter: mockNewGameInteractor)
         let teamSelectScreen = NavigationRouter.Screen.teamSelect(interactor: mockTeamSelectInteractor)
         let teamScreen = NavigationRouter.Screen.team(interactor: mockTeamInteractor)
         let tabContainerScreen = NavigationRouter.Screen.tabContainer(tabs: [])

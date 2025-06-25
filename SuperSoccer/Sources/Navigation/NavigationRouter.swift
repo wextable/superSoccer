@@ -10,7 +10,7 @@ final class NavigationRouter: ObservableObject {
     enum Screen: Hashable, Identifiable {
         case splash
         case mainMenu(interactor: MainMenuInteractorProtocol)
-        case newGame(interactor: NewGameInteractorProtocol)
+        case newGame(presenter: NewGameViewPresenter)
         case teamSelect(interactor: TeamSelectInteractorProtocol)
         case team(interactor: TeamInteractorProtocol)
         case tabContainer(tabs: [TabConfiguration])
@@ -45,9 +45,9 @@ final class NavigationRouter: ObservableObject {
             case .mainMenu(let interactor):
                 hasher.combine("mainMenu")
                 hasher.combine(ObjectIdentifier(interactor))
-            case .newGame(let interactor):
+            case .newGame(let presenter):
                 hasher.combine("newGame")
-                hasher.combine(ObjectIdentifier(interactor))
+                hasher.combine(ObjectIdentifier(presenter))
             case .teamSelect(let interactor):
                 hasher.combine("teamSelect")
                 hasher.combine(ObjectIdentifier(interactor))

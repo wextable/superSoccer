@@ -19,8 +19,8 @@ final class ViewFactory: ViewFactoryProtocol {
             return AnyView(SplashView())
         case .mainMenu(let interactor):
             return AnyView(SSThemeProvider { MainMenuView(interactor: interactor) })
-        case .newGame(let interactor):
-            return AnyView(SSThemeProvider{ NewGameView(interactor: interactor) })
+        case .newGame(let presenter):
+            return AnyView(SSThemeProvider{ NewGameView(presenter: presenter) })
         case .teamSelect(let interactor):
             return AnyView(
                 NavigationStack {
@@ -50,8 +50,8 @@ class MockViewFactory: ViewFactoryProtocol {
             return AnyView(SplashView())
         case .mainMenu(let interactor):
             return AnyView(SSThemeProvider { MainMenuView(interactor: interactor) })
-        case .newGame(let interactor):
-            return AnyView(SSThemeProvider{ NewGameView(interactor: interactor) })
+        case .newGame(let presenter):
+            return AnyView(SSThemeProvider{ NewGameView(presenter: presenter) })
         case .teamSelect(let interactor):
             return AnyView(
                 NavigationStack {

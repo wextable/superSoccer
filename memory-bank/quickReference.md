@@ -2,20 +2,20 @@
 
 ## Key Commands & Patterns
 
-### Creating a New Feature
+### Creating a New Feature with InteractorFactory
 Follow this exact structure and pattern:
 
 #### 1. Create Feature Directory
 ```
 Features/[FeatureName]/
-├── [FeatureName]FeatureCoordinator.swift
-├── [FeatureName]Interactor.swift
+├── [FeatureName]FeatureCoordinator.swift (uses InteractorFactory)
+├── [FeatureName]Interactor.swift (created by factory)
 ├── [FeatureName]View.swift
 ├── [FeatureName]LocalDataSource.swift (if needed)
 └── Supporting files (ViewModels, etc.)
 ```
 
-#### 2. Feature Coordinator Template
+#### 2. Feature Coordinator Template with InteractorFactory
 ```swift
 enum [FeatureName]CoordinatorResult: CoordinatorResult {
     case completed(SomeData)
@@ -24,20 +24,18 @@ enum [FeatureName]CoordinatorResult: CoordinatorResult {
 
 class [FeatureName]FeatureCoordinator: BaseFeatureCoordinator<[FeatureName]CoordinatorResult> {
     private let navigationCoordinator: NavigationCoordinatorProtocol
-    private let dataManager: DataManagerProtocol
+    private let interactorFactory: InteractorFactoryProtocol
     
     init(navigationCoordinator: NavigationCoordinatorProtocol,
-         dataManager: DataManagerProtocol) {
+         interactorFactory: InteractorFactoryProtocol) {
         self.navigationCoordinator = navigationCoordinator
-        self.dataManager = dataManager
+        self.interactorFactory = interactorFactory
         super.init()
     }
     
     override func start() {
-        let interactor = [FeatureName]Interactor(
-            dataManager: dataManager,
-            delegate: self
-        )
+        let interactor = interactorFactory.make[FeatureName]Interactor()
+        interactor.delegate = self
         
         let screen = NavigationRouter.Screen.[featureName](interactor: interactor)
         Task { @MainActor in
@@ -53,17 +51,72 @@ extension [FeatureName]FeatureCoordinator: [FeatureName]InteractorDelegate {
 }
 
 #if DEBUG
-class Mock[FeatureName]FeatureCoordinator: [FeatureName]FeatureCoordinator {
-    var startCalled = false
+extension [FeatureName]FeatureCoordinator {
+    struct TestHooks {
+        let interactor: [FeatureName]InteractorProtocol
+        let navigationCoordinator: NavigationCoordinatorProtocol
+    }
     
-    override func start() {
-        startCalled = true
+    var testHooks: TestHooks {
+        TestHooks(
+            interactor: interactor,
+            navigationCoordinator: navigationCoordinator
+        )
     }
 }
 #endif
 ```
 
-#### 3. Interactor Template
+#### 3. Parameterized Coordinator Template (for context-specific features)
+```swift
+class [FeatureName]FeatureCoordinator: BaseFeatureCoordinator<[FeatureName]CoordinatorResult> {
+    private let contextId: String // Example parameter
+    private let navigationCoordinator: NavigationCoordinatorProtocol
+    private let interactorFactory: InteractorFactoryProtocol
+    
+    init(contextId: String,
+         navigationCoordinator: NavigationCoordinatorProtocol,
+         interactorFactory: InteractorFactoryProtocol) {
+        self.contextId = contextId
+        self.navigationCoordinator = navigationCoordinator
+        self.interactorFactory = interactorFactory
+        super.init()
+    }
+    
+    override func start() {
+        let interactor = interactorFactory.make[FeatureName]Interactor(contextId: contextId)
+        interactor.delegate = self
+        
+        let screen = NavigationRouter.Screen.[featureName](interactor: interactor)
+        Task { @MainActor in
+            self.navigationCoordinator.replaceStackWith(screen)
+        }
+    }
+}
+```
+
+#### 4. InteractorFactory Extension
+Add your new interactor to the factory protocol and implementations:
+
+```swift
+// In InteractorFactoryProtocol
+func make[FeatureName]Interactor() -> [FeatureName]InteractorProtocol
+// For parameterized: func make[FeatureName]Interactor(contextId: String) -> [FeatureName]InteractorProtocol
+
+// In InteractorFactory
+func make[FeatureName]Interactor() -> [FeatureName]InteractorProtocol {
+    return [FeatureName]Interactor(dataManager: dataManager)
+}
+
+// In MockInteractorFactory
+let mock[FeatureName]Interactor = Mock[FeatureName]Interactor()
+
+func make[FeatureName]Interactor() -> [FeatureName]InteractorProtocol {
+    return mock[FeatureName]Interactor
+}
+```
+
+#### 5. Interactor Template with Consistent Delegate Pattern
 ```swift
 typealias [FeatureName]EventBus = PassthroughSubject<[FeatureName]Event, Never>
 
@@ -79,22 +132,30 @@ protocol [FeatureName]InteractorDelegate: AnyObject {
 protocol [FeatureName]InteractorProtocol: AnyObject {
     var viewModel: [FeatureName]ViewModel { get }
     var eventBus: [FeatureName]EventBus { get }
+    var delegate: [FeatureName]InteractorDelegate? { get set } // Consistent pattern
 }
 
 class [FeatureName]Interactor: [FeatureName]InteractorProtocol {
     @Published var viewModel: [FeatureName]ViewModel
     let eventBus = [FeatureName]EventBus()
+    weak var delegate: [FeatureName]InteractorDelegate? // Consistent pattern
     
     private let dataManager: DataManagerProtocol
-    private weak var delegate: [FeatureName]InteractorDelegate?
     private var cancellables = Set<AnyCancellable>()
     
-    init(dataManager: DataManagerProtocol,
-         delegate: [FeatureName]InteractorDelegate) {
+    // Factory-compatible initialization (no delegate in constructor)
+    init(dataManager: DataManagerProtocol) {
         self.dataManager = dataManager
-        self.delegate = delegate
-        
         self.viewModel = [FeatureName]ViewModel(/* initial state */)
+        
+        setupSubscriptions()
+        loadData()
+    }
+    
+    // Parameterized factory initialization example
+    init(contextId: String, dataManager: DataManagerProtocol) {
+        self.dataManager = dataManager
+        self.viewModel = [FeatureName]ViewModel(/* initial state with contextId */)
         
         setupSubscriptions()
         loadData()
@@ -127,6 +188,7 @@ class [FeatureName]Interactor: [FeatureName]InteractorProtocol {
 class Mock[FeatureName]Interactor: [FeatureName]InteractorProtocol {
     @Published var viewModel: [FeatureName]ViewModel
     let eventBus = [FeatureName]EventBus()
+    weak var delegate: [FeatureName]InteractorDelegate? // Consistent pattern
     
     init() {
         self.viewModel = .make()
@@ -147,7 +209,7 @@ class Mock[FeatureName]InteractorDelegate: [FeatureName]InteractorDelegate {
 #endif
 ```
 
-#### 4. View Template
+#### 6. View Template (unchanged - uses factory-created interactor)
 ```swift
 struct [FeatureName]ViewModel {
     let title: String
@@ -188,9 +250,31 @@ extension [FeatureName]ViewModel {
 #endif
 ```
 
-### Adding Unit Tests (Following Team Template)
+#### 7. MockDependencyContainer Extension
+Add coordinator factory method to MockDependencyContainer:
 
-#### Test File Template
+```swift
+// In MockDependencyContainer
+func make[FeatureName]Coordinator() -> [FeatureName]FeatureCoordinator {
+    return [FeatureName]FeatureCoordinator(
+        navigationCoordinator: mockNavigationCoordinator,
+        interactorFactory: mockInteractorFactory
+    )
+}
+
+// For parameterized coordinators
+func make[FeatureName]Coordinator(contextId: String) -> [FeatureName]FeatureCoordinator {
+    return [FeatureName]FeatureCoordinator(
+        contextId: contextId,
+        navigationCoordinator: mockNavigationCoordinator,
+        interactorFactory: mockInteractorFactory
+    )
+}
+```
+
+### Adding Unit Tests with InteractorFactory (Following Team Template)
+
+#### Test File Template with MockDependencyContainer
 ```swift
 import Combine
 import Foundation
@@ -203,248 +287,291 @@ struct [FeatureName]InteractorTests {
     
     @Test("[FeatureName]Interactor initializes with correct dependencies")
     func testInitializationWithCorrectDependencies() {
-        // Arrange
-        let mockDataManager = MockDataManager()
-        let mockDelegate = Mock[FeatureName]InteractorDelegate()
-        
-        // Act
-        let interactor = [FeatureName]Interactor(
-            dataManager: mockDataManager,
-            delegate: mockDelegate
-        )
+        // Arrange & Act
+        let container = MockDependencyContainer()
+        let interactor = container.mockInteractorFactory.make[FeatureName]Interactor()
         
         // Assert
         #expect(interactor != nil)
+        #expect(interactor.viewModel != nil)
         #expect(interactor.eventBus != nil)
     }
     
-    // MARK: - Event Handling Tests
+    // MARK: - Event Bus Tests
     
-    @Test("[FeatureName]Interactor handles events correctly")
-    func testEventHandling() async {
+    @Test("[FeatureName]Interactor handles loadData event correctly")
+    func testHandleLoadDataEvent() async {
         // Arrange
-        let mockDataManager = MockDataManager()
-        let mockDelegate = Mock[FeatureName]InteractorDelegate()
-        let interactor = [FeatureName]Interactor(
-            dataManager: mockDataManager,
-            delegate: mockDelegate
-        )
+        let container = MockDependencyContainer()
+        let interactor = container.mockInteractorFactory.make[FeatureName]Interactor()
         
         // Act
-        interactor.eventBus.send(.actionPerformed("test"))
+        interactor.eventBus.send(.loadData)
         
-        // Wait for processing
-        await withCheckedContinuation { continuation in
-            DispatchQueue.main.async {
-                continuation.resume()
+        // Wait for async operations
+        try? await Task.sleep(for: .milliseconds(10))
+        
+        // Assert
+        #expect(interactor.viewModel.items.isEmpty == false)
+    }
+    
+    // MARK: - Delegate Tests
+    
+    @Test("[FeatureName]Interactor forwards delegate calls correctly")
+    func testDelegateForwarding() async {
+        // Arrange
+        let container = MockDependencyContainer()
+        let interactor = container.mockInteractorFactory.make[FeatureName]Interactor()
+        let mockDelegate = Mock[FeatureName]InteractorDelegate()
+        
+        var delegateCallReceived = false
+        await confirmation { confirmation in
+            mockDelegate.onCompleted = {
+                delegateCallReceived = true
+                confirmation()
             }
+            
+            // Act
+            interactor.delegate = mockDelegate
+            interactor.eventBus.send(.actionPerformed("test"))
         }
         
         // Assert
+        #expect(delegateCallReceived == true)
         #expect(mockDelegate.completedCalled == true)
-        #expect(mockDelegate.lastCompletedData == "test")
+    }
+}
+
+struct [FeatureName]FeatureCoordinatorTests {
+    
+    // MARK: - Initialization Tests
+    
+    @Test("[FeatureName]FeatureCoordinator initializes with correct dependencies")
+    @MainActor
+    func testInitializationWithCorrectDependencies() {
+        // Arrange & Act
+        let container = MockDependencyContainer()
+        let coordinator = container.make[FeatureName]Coordinator()
+        
+        // Assert
+        #expect(coordinator != nil)
     }
     
-    // MARK: - Data Loading Tests
-    
-    @Test("[FeatureName]Interactor loads data correctly")
-    func testLoadDataCorrectly() async {
-        // Arrange & Act & Assert pattern
-        // Follow Team testing examples
+    @Test("[FeatureName]FeatureCoordinator sets up interactor delegate correctly")
+    @MainActor
+    func testInteractorDelegateSetup() {
+        // Arrange
+        let container = MockDependencyContainer()
+        let coordinator = container.make[FeatureName]Coordinator()
+        
+        // Act
+        coordinator.start()
+        
+        // Assert
+        let interactor = coordinator.testHooks.interactor
+        #expect(interactor.delegate === coordinator)
     }
     
-    // MARK: - Memory Management Tests
+    // MARK: - InteractorFactory Integration Tests
     
-    @Test("[FeatureName]Interactor cleans up properly")
-    func testMemoryManagement() {
-        // Test for retain cycles and proper cleanup
+    @Test("[FeatureName]FeatureCoordinator integrates with InteractorFactory correctly")
+    @MainActor
+    func testInteractorFactoryIntegration() async {
+        // Arrange
+        let container = MockDependencyContainer()
+        let coordinator = container.make[FeatureName]Coordinator()
+        
+        // Act
+        coordinator.start()
+        
+        // Wait for async operations
+        try? await Task.sleep(for: .milliseconds(10))
+        
+        // Assert - Verify interactor was created via factory
+        #expect(coordinator.testHooks.interactor != nil)
+        #expect(coordinator.testHooks.interactor is Mock[FeatureName]Interactor)
     }
 }
 ```
 
-## UI Components & Design System
+### Testing Patterns with InteractorFactory
 
-### SSTheme Usage
+#### Basic Test Setup Pattern
 ```swift
-struct MyView: View {
+// Use MockDependencyContainer for all test setup
+let container = MockDependencyContainer()
+let coordinator = container.make[FeatureName]Coordinator()
+```
+
+#### Parameterized Test Setup Pattern
+```swift
+// For coordinators requiring parameters
+let container = MockDependencyContainer()
+let coordinator = container.make[FeatureName]Coordinator(contextId: "test-id")
+```
+
+#### Factory Integration Verification
+```swift
+// Verify factory-created interactors
+#expect(coordinator.testHooks.interactor is Mock[FeatureName]Interactor)
+#expect(coordinator.testHooks.interactor === container.mockInteractorFactory.mock[FeatureName]Interactor)
+```
+
+### Data Operations Templates
+
+#### Request/Result Pattern
+```swift
+struct [Operation]Request {
+    let inputData: String
+    let additionalParams: [String: Any]
+}
+
+struct [Operation]Result {
+    let outputData: [SomeModel]
+    let success: Bool
+    let errorMessage: String?
+}
+
+// In DataManagerProtocol
+func [operation](_ request: [Operation]Request) async throws -> [Operation]Result
+
+// In DataManager implementation  
+func [operation](_ request: [Operation]Request) async throws -> [Operation]Result {
+    // Use transformers and storage
+    let swiftDataModels = try await storage.[operation](request)
+    let clientModels = swiftDataToClientTransformer.transform[Models](swiftDataModels)
+    return [Operation]Result(outputData: clientModels, success: true)
+}
+```
+
+### Design System Usage Templates
+
+#### SSTheme Integration
+```swift
+struct SomeView: View {
     @Environment(\.ssTheme) private var theme
     
     var body: some View {
         VStack(spacing: theme.spacing.medium) {
-            // Colors
-            Text("Title")
-                .foregroundColor(theme.colors.primary)
-                .background(theme.colors.background)
+            SSTitle("Title Text")
+                .foregroundStyle(theme.colors.primaryText)
             
-            // Typography
-            SSTitle("Main Title")
-            SSLabel("Subtitle", style: .body)
-            
-            // Buttons
-            SSPrimaryButton("Primary Action") { /* action */ }
-            SSSecondaryButton("Secondary") { /* action */ }
-            SSTextButton("Text Only") { /* action */ }
-            
-            // Form Elements
-            TextField("Input", text: $text)
-                .textFieldStyle(SSTextFieldStyle())
+            SSPrimaryButton("Action") {
+                // Action
+            }
         }
         .padding(theme.spacing.large)
-        .cornerRadius(theme.cornerRadius.medium)
+        .background(theme.colors.background)
     }
 }
 ```
 
-### Theme Provider Setup
+#### Button Usage
 ```swift
-// In ViewFactory or root view
-SSThemeProvider {
-    YourContentView()
+// Primary action button
+SSPrimaryButton("Continue") {
+    // Action
+}
+
+// Secondary button
+SSSecondaryButton("Cancel") {
+    // Action  
+}
+
+// Text button
+SSTextButton("Skip") {
+    // Action
 }
 ```
 
-### Navigation Patterns
+#### Text Components
 ```swift
-// Sheet presentation
-Task { @MainActor in
-    self.navigationCoordinator.presentSheet(screen)
-}
+// Titles for headers
+SSTitle("Screen Title")
 
-// Stack navigation
-Task { @MainActor in
-    self.navigationCoordinator.push(screen)
-}
+// Labels for content
+SSLabel("Description text")
+    .style(.body) // .caption, .body, .headline
 
-// Replace entire stack
-Task { @MainActor in
-    self.navigationCoordinator.replaceStackWith(screen)
-}
+// Text fields
+TextField("Placeholder", text: $text)
+    .textFieldStyle(SSTextFieldStyle())
 ```
 
-## Data Layer Patterns
+### Common Code Snippets
 
-### Request/Result Pattern
+#### EventBus Communication Pattern
 ```swift
-// Request
-struct CreateNewFeatureRequest {
-    let name: String
-    let configuration: FeatureConfig
+// In View
+Button("Action") {
+    interactor.eventBus.send(.someEvent(data))
 }
 
-// Result
-struct CreateNewFeatureResult {
-    let feature: Feature
-    let success: Bool
-}
-
-// Usage in DataManager
-func createFeature(_ request: CreateNewFeatureRequest) async throws -> CreateNewFeatureResult {
-    // Implementation
-}
-```
-
-### Transformer Pattern
-```swift
-// Client to SwiftData
-let sdModel = try ClientToSwiftDataTransformer.transform(clientModel)
-
-// SwiftData to Client
-let clientModel = SwiftDataToClientTransformer.transform(sdModel)
-```
-
-### Publisher Subscriptions
-```swift
 // In Interactor
-dataManager.teamPublisher
-    .combineLatest(dataManager.playerPublisher)
-    .sink { [weak self] teams, players in
-        self?.updateViewModel(teams: teams, players: players)
-    }
-    .store(in: &cancellables)
-```
-
-## Common Code Snippets
-
-### Async Testing Pattern
-```swift
-await withCheckedContinuation { continuation in
-    DispatchQueue.main.async {
-        continuation.resume()
-    }
-}
-```
-
-### Mock with Callbacks
-```swift
-class MockService: ServiceProtocol {
-    var methodCalled = false
-    var lastParameter: String?
-    var onMethodCalled: (() -> Void)?
-    
-    func method(parameter: String) {
-        methodCalled = true
-        lastParameter = parameter
-        onMethodCalled?()
-    }
-}
-```
-
-### Event Bus Subscription
-```swift
 eventBus
     .sink { [weak self] event in
         switch event {
-        case .action1:
-            self?.handleAction1()
-        case .action2(let data):
-            self?.handleAction2(data)
+        case .someEvent(let data):
+            self?.handleEvent(data)
         }
     }
     .store(in: &cancellables)
 ```
 
-### Child Coordinator Management
+#### Reactive UI Updates
 ```swift
-let childCoordinator = TeamSelectFeatureCoordinator(/* params */)
-startChild(childCoordinator) { [weak self] result in
-    switch result {
-    case .teamSelected(let team):
-        self?.handleTeamSelected(team)
-    case .cancelled:
-        self?.handleCancellation()
-    }
+// In Interactor - publish changes
+self.viewModel = UpdatedViewModel(newData)
+
+// In View - automatic updates
+@StateObject private var viewModel = interactor.viewModel
+
+var body: some View {
+    // UI updates automatically when viewModel changes
+    Text(viewModel.title)
 }
 ```
 
-## File Templates
-
-### Quick Feature Creation Checklist
-1. ✅ Create coordinator with Result enum
-2. ✅ Create interactor with protocol and delegate
-3. ✅ Create view with SSTheme integration
-4. ✅ Add to NavigationRouter.Screen enum
-5. ✅ Create mock implementations in #if DEBUG
-6. ✅ Add comprehensive unit tests
-7. ✅ Update ViewFactory if needed
-8. ✅ Add to parent coordinator navigation
-
-### Required Imports
+#### Navigation Router Screen Addition
 ```swift
-// Feature Coordinator
-import Foundation
+// In NavigationRouter.Screen enum
+case [featureName](interactor: any [FeatureName]InteractorProtocol)
 
-// Interactor
-import Foundation
-import Combine
-
-// View
-import SwiftUI
-
-// Tests
-import Combine
-import Foundation
-@testable import SuperSoccer
-import Testing
+// In NavigationRouter screen creation
+case .[featureName](let interactor):
+    AnyView([FeatureName]View(interactor: interactor))
 ```
 
-This quick reference provides copy-paste ready templates and patterns that match the established SuperSoccer architecture and coding standards. 
+### Build & Test Commands
+
+#### Build Project
+```bash
+xcodebuild build -scheme SuperSoccer -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.3.1'
+```
+
+#### Run All Tests
+```bash
+xcodebuild test -scheme SuperSoccer -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.3.1'
+```
+
+#### Run Specific Test Class
+```bash
+xcodebuild test -scheme SuperSoccer -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.3.1' -only-testing:SuperSoccerTests/[FeatureName]InteractorTests
+```
+
+#### Run Feature Tests Only
+```bash
+xcodebuild test -scheme SuperSoccer -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.3.1' -only-testing:SuperSoccerTests/Features
+```
+
+### Key Architecture Rules with InteractorFactory
+
+1. **Always use InteractorFactory for interactor creation** - Never instantiate interactors directly
+2. **Consistent delegate pattern** - All InteractorProtocols must have `var delegate: [Feature]InteractorDelegate? { get set }`
+3. **Factory parameter support** - Use parameterized factory methods for context-specific interactors
+4. **Test with MockDependencyContainer** - Use unified testing pattern: `container.make[Feature]Coordinator()`
+5. **Protocol-based design** - Every factory method returns a protocol, not concrete type
+6. **TestHooks for verification** - Use testHooks to verify internal state in tests
+7. **No delegate in constructors** - Factory-created interactors set delegate after creation
+
+This quick reference provides copy-paste ready templates following the established InteractorFactory architecture patterns used throughout SuperSoccer. 

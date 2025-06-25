@@ -1,9 +1,49 @@
 # Active Context
 
 ## Current Work Focus
-The SuperSoccer project has completed major architectural milestones, comprehensive UI redesign work, and comprehensive Team feature unit testing. **All core features now have complete SSTheme integration and dark mode support.** The core data layer, navigation system, feature coordinators, retro-themed UI, and Team feature testing infrastructure are fully implemented and working.
+The SuperSoccer project has completed major architectural milestones including **comprehensive InteractorFactory pattern implementation**, comprehensive UI redesign work, and comprehensive unit testing infrastructure. **All core features now use the InteractorFactory pattern for dependency injection** and have complete SSTheme integration and dark mode support. The core data layer, navigation system, feature coordinators, retro-themed UI, and comprehensive testing infrastructure are fully implemented and working.
 
 ## Recent Major Changes
+
+### ✅ Completed: InteractorFactory Pattern Implementation
+- **InteractorFactory Architecture**: Implemented comprehensive factory pattern for all features
+  - Created `InteractorFactoryProtocol` with factory methods for all interactors
+  - Production `InteractorFactory` implementation with DataManager dependency injection
+  - Complete `MockInteractorFactory` for testing with pre-configured mocks
+  - **Parameterized Factory Support**: Handles both simple and parameterized interactor creation
+    - Simple: `makeNewGameInteractor()`, `makeMainMenuInteractor()`, `makeTeamSelectInteractor()`
+    - Parameterized: `makeTeamInteractor(userTeamId: String)` for context-specific initialization
+- **Feature Coordinator Updates**: All coordinators now use InteractorFactory instead of direct instantiation
+  - `NewGameFeatureCoordinator`: ✅ Updated to use `interactorFactory.makeNewGameInteractor()`
+  - `MainMenuFeatureCoordinator`: ✅ Updated to use `interactorFactory.makeMainMenuInteractor()`
+  - `TeamSelectFeatureCoordinator`: ✅ Updated to use `interactorFactory.makeTeamSelectInteractor()`
+  - `TeamFeatureCoordinator`: ✅ Updated to use `interactorFactory.makeTeamInteractor(userTeamId:)`
+- **Protocol Consistency**: All InteractorProtocols now specify consistent `delegate` property
+  - `var delegate: [Feature]InteractorDelegate? { get set }` pattern across all protocols
+  - Simplified coordinator-interactor communication through common delegate pattern
+- **Testing Infrastructure Improvements**: MockDependencyContainer pattern for all tests
+  - `MockDependencyContainer` provides unified testing interface
+  - Helper methods: `makeTeamCoordinator(userTeamId:)`, `makeMainMenuCoordinator()`, etc.
+  - Simplified test setup: `let container = MockDependencyContainer(); let coordinator = container.makeTeamCoordinator(userTeamId:)`
+  - Eliminated manual mock object creation in favor of factory-provided mocks
+
+### ✅ Completed: Complete Unit Test Infrastructure with Factory Pattern
+- **TeamFeatureCoordinatorTests**: Updated to use MockDependencyContainer pattern
+  - All 11 tests passing with new factory-based dependency injection
+  - Simplified test setup using `container.makeTeamCoordinator(userTeamId: "team1")`
+  - Enhanced test coverage for InteractorFactory integration
+  - Proper verification of parameterized interactor creation
+- **MainMenuFeatureCoordinatorTests**: Updated to use MockDependencyContainer pattern
+  - Simplified mock setup and dependency injection through factory
+  - All tests passing with new architecture
+- **TeamSelectFeatureCoordinatorTests**: Updated to use MockDependencyContainer pattern
+  - Factory-based coordinator creation and mock management
+  - Consistent testing patterns across all feature coordinators
+- **Testing Pattern Established**: Template for all future feature tests
+  - `MockDependencyContainer` provides all required mocks and coordinators
+  - Consistent setup pattern: `let container = MockDependencyContainer()`
+  - Type-safe factory methods for coordinator creation
+  - Automatic mock interactor injection and configuration
 
 ### ✅ Completed: TeamSelectView Theming (Final Screen)
 - **Complete SSTheme Integration**: TeamSelectView now fully themed with design system
@@ -37,12 +77,12 @@ The SuperSoccer project has completed major architectural milestones, comprehens
   - Delegate tests ensuring interaction delegate forwarding
   - Data reactivity tests verifying reactive updates when data changes
   - Memory management tests ensuring no memory leaks
-- **TeamFeatureCoordinatorTests**: Complete coordinator testing
-  - Initialization tests verifying proper coordinator setup
+- **TeamFeatureCoordinatorTests**: Complete coordinator testing with InteractorFactory
+  - Initialization tests verifying proper coordinator setup with factory
   - Start tests confirming navigation to team screen
   - Player interaction tests validating user action handling
   - Navigation integration tests confirming proper coordinator usage
-  - Data manager integration tests verifying dependency injection
+  - InteractorFactory integration tests verifying factory-based interactor creation
   - Lifecycle tests covering complete coordinator flows
   - Memory management tests ensuring proper cleanup
 - **MockTeamInteractorDelegate**: Comprehensive mock implementation
@@ -97,239 +137,110 @@ The SuperSoccer project has completed major architectural milestones, comprehens
 ### Current Implementation Status
 
 #### ✅ Completed Features
-- **MainMenu**: Career management entry point with retro-themed UI and SSPrimaryButton styling
-- **NewGame**: Coach profile creation and team selection with comprehensive retro design
-  - Custom text field styling with cyan borders
-  - Integrated team selector with proper state management
-  - Clean view architecture with computed properties
-- **TeamSelect**: Team selection interface with complete SSTheme integration
-  - NavigationStack wrapper for proper sheet navigation
-  - SSTheme integration with environment-based theming
-  - Enhanced TeamThumbnailView with SSTitle typography
-  - Navigation bar with "Select team" title and proper toolbar styling
-  - Complete dark mode support and theme responsiveness
-- **Team**: Basic team overview showing roster and team information
-  - PlayerRowView with enhanced SSTheme styling
-  - Team header display with stats
-  - Event bus communication pattern
-  - Comprehensive unit test coverage
+- **InteractorFactory Pattern**: Type-safe dependency injection for all features
+  - Production factory with DataManager integration
+  - Mock factory for comprehensive testing support
+  - Parameterized factory methods for context-specific interactors
+  - Consistent delegate protocol pattern across all interactors
+- **MainMenu**: Career management entry point with retro-themed UI and InteractorFactory integration
+- **NewGame**: Coach profile creation and team selection with comprehensive retro design and factory pattern
+- **TeamSelect**: Team selection interface with complete SSTheme integration and InteractorFactory
+- **Team**: Basic team overview with InteractorFactory parameterized creation (`userTeamId` support)
 - **Data Layer**: Complete 3-layer architecture with transformers
 - **Navigation**: Coordinator pattern with BaseFeatureCoordinator and child management
 - **Tab Navigation**: Complete tab-based navigation system for in-game features
 - **InGame Flow**: Full career creation to in-game team management flow
 - **Design System**: Complete SuperSoccer Design System with retro-inspired theming
-  - Starbyte Super Soccer inspired color palette
-  - Typography system with SF Mono headers
-  - Button components (Primary, Secondary, Text)
-  - Text components (Titles, Labels with hierarchy)
-  - Form components (SSTextFieldStyle for consistent input styling)
-  - Theme system with proper light/dark mode support
-  - SSThemeProvider for automatic color scheme detection and centralized theme management
-  - Environment-based theme distribution architecture
-  - **All Features Themed**: Complete SSTheme integration across all screens
-- **Testing Infrastructure**: Comprehensive unit testing for Team feature
-  - Protocol-based mock implementations
-  - Swift Testing framework integration
-  - Async testing patterns with confirmation blocks
-  - Memory management testing
-  - Event bus and delegate testing patterns
+- **Testing Infrastructure**: Comprehensive unit testing with InteractorFactory pattern
+  - MockDependencyContainer for unified test setup
+  - Factory-based mock creation and management
+  - Consistent testing patterns across all features
+  - Protocol-based mock implementations with complete coverage
 
-#### 🔄 Current Focus: Expand Unit Testing Coverage
-- **TeamSelectInteractorTests**: Apply Team testing patterns to complete TeamSelect unit testing
-  - Selection logic testing for team picker functionality
-  - Event bus testing for team selection events
-  - Delegate forwarding tests for coordinator communication
-  - Data loading tests for team list presentation
-  - Memory management and lifecycle testing
-- **Other Feature Tests**: Apply Team testing patterns to MainMenu and NewGame features
+#### 🔄 Current Focus: Expand Unit Testing Coverage with InteractorFactory Pattern
+- **Apply InteractorFactory Testing Pattern**: Extend MockDependencyContainer pattern to all features
+- **Complete Feature Test Coverage**: Apply established testing patterns to remaining features
 - **UI Component Tests**: Test all design system components
-- **Navigation Tests**: Test coordinators and navigation flows
-- **Integration Tests**: Test complete feature workflows
+- **Navigation Tests**: Test coordinators and navigation flows with factory integration
+- **Integration Tests**: Test complete feature workflows with InteractorFactory
 
 ## Next Immediate Steps
 
-### 1. Complete TeamSelectInteractorTests
-- **TeamSelectInteractorTests Enhancement**: Current tests exist but are minimal (1.2KB vs Team's 9KB)
-  - Add comprehensive event bus testing for team selection
-  - Add data loading and view model creation tests
-  - Add delegate interaction testing
-  - Add memory management and lifecycle testing
-  - Follow established Team testing patterns for consistency
+### 1. Extend InteractorFactory Testing Pattern
+- **Apply MockDependencyContainer Pattern**: Use established testing pattern for all feature tests
+- **Enhance Existing Tests**: Update any remaining tests to use factory-based dependency injection
+- **Verify Test Coverage**: Ensure all features have comprehensive testing with factory pattern
 
-### 2. Extend Unit Testing to Remaining Features
-- **MainMenuInteractorTests**: Apply Team testing patterns to MainMenu feature
+### 2. Complete Remaining Feature Testing
+- **MainMenuInteractorTests**: Apply established testing patterns with factory integration
 - **NewGameInteractorTests**: Comprehensive testing for NewGame business logic
-- **FeatureCoordinatorTests**: Test all feature coordinators following Team pattern
+- **Integration Tests**: Test complete feature workflows with InteractorFactory pattern
 
-### 3. Complete UI Testing Coverage
-- **Design System Tests**: Test all theme components and styling
-- **View Model Tests**: Test presentation logic and make() functions
-- **Integration Tests**: Test complete redesigned feature flows
-
-### 4. Implement Core Game Features
-- **League Feature**: League standings, schedule, and match results
-- **Match Simulation**: Basic match simulation engine
-- **Player Management**: Enhanced player details and statistics
+### 3. Implement Core Game Features with Factory Pattern
+- **League Feature**: League standings, schedule, and match results with InteractorFactory
+- **Match Simulation**: Basic match simulation engine with factory-based dependency injection
+- **Player Management**: Enhanced player details and statistics using factory pattern
 
 ## Current Technical Decisions
 
-### Testing Architecture
-- **Swift Testing Framework**: Using @Test attributes and modern testing patterns
-- **Mock Pattern**: Comprehensive mock implementations with tracking properties
-- **Async Testing**: Using confirmation blocks and withCheckedContinuation patterns
-- **Memory Management Testing**: Verifying no retain cycles or memory leaks
-- **Protocol-Based Testing**: All dependencies use protocols with mock implementations
+### InteractorFactory Architecture
+- **Type-Safe Dependency Injection**: Protocol-based factory pattern for all interactor creation
+- **Parameterized Support**: Factory methods support both simple and parameterized interactor creation
+- **Consistent Patterns**: All features follow same factory integration pattern
+- **Testing Integration**: MockDependencyContainer provides unified testing interface
+- **Scalable Design**: Easy to extend for new features and interactor types
 
-### Team Feature Patterns (Template for Other Features)
-- **Event Bus Communication**: Views → Interactors via event bus, not direct calls
-- **Delegate Pattern**: Interactors → Coordinators via delegate protocol
-- **make() Functions**: Only used in previews and DEBUG tests, not production
-- **View Model Extraction**: View models declared at file scope, not nested in views
-- **Comprehensive Testing**: Every business logic class has complete unit test coverage
-
-### UI/UX Architecture
-- **Centralized Theming**: SSThemeProvider applied at ViewFactory level for consistent theme management
-- **Environment-Based Distribution**: Theme distributed through SwiftUI Environment to all components
-- **Component Reusability**: Shared components read theme from environment, ensuring consistency
-- **Clean View Structure**: Views broken into computed properties for maintainability
+### Testing Architecture with Factory Pattern
+- **MockDependencyContainer**: Centralized mock creation and coordinator factory methods
+- **Unified Test Setup**: Consistent `container.make[Feature]Coordinator()` pattern
+- **Factory-Based Mocks**: All mock interactors created through MockInteractorFactory
+- **Type Safety**: Compile-time verification of dependencies and factory methods
+- **Test Isolation**: Each test gets fresh mock instances through factory
 
 ### Architecture Patterns in Use
+- **InteractorFactory Pattern**: Type-safe dependency injection for all features
 - **Clean Architecture**: 3-layer data architecture with strict boundaries
-- **Coordinator Pattern**: Feature-based navigation with result types
-- **Dependency Injection**: Protocol-based with mock implementations
-- **Event-Driven**: EventBus for feature communication
-- **Request/Result**: Structured operations for complex data flows
-- **Tab Navigation**: Centralized tab management with coordinator integration
+- **Coordinator Pattern**: Feature-based navigation with result types and factory integration
+- **Protocol-Based Dependency Injection**: All dependencies use factory-provided instances
+- **Event-Driven**: EventBus for feature communication with factory-created interactors
 
-### Key Implementation Preferences
-- **Immutable Client Models**: All Client models use `let` properties
-- **ID-Based Relationships**: String IDs instead of object references in Client models
-- **Protocol Abstractions**: Every service has a protocol with mock implementation
-- **SwiftUI + Combine**: Reactive UI with publisher-based data flow
-- **Comprehensive Testing**: All business logic must have unit test coverage
+## Key Implementation Files
+- **InteractorFactory**: `SuperSoccer/Sources/Dependency/InteractorFactory.swift`
+  - InteractorFactoryProtocol, InteractorFactory, MockInteractorFactory
+- **DependencyContainer**: `SuperSoccer/Sources/Dependency/DependencyContainer.swift`
+  - MockDependencyContainer with coordinator factory methods
+- **Feature Coordinators**: All updated to use InteractorFactory pattern
+  - TeamFeatureCoordinator with parameterized factory support
+  - Other coordinators with simple factory integration
+- **Test Files**: All feature coordinator tests updated to use MockDependencyContainer pattern
 
-## Active Development Patterns
+## Important Code Patterns
 
-### Testing Development Flow (Established Template)
-1. Create comprehensive InteractorTests covering all business logic
-2. Create FeatureCoordinatorTests covering navigation and lifecycle
-3. Create Mock delegates with tracking properties and callbacks
-4. Use Swift Testing framework with @Test attributes
-5. Follow async testing patterns with confirmation blocks
-6. Test memory management and cleanup
-7. Verify protocol-based dependency injection
+### InteractorFactory Usage Pattern
+```swift
+// Production (in FeatureCoordinator)
+init(navigationCoordinator: NavigationCoordinatorProtocol,
+     interactorFactory: InteractorFactoryProtocol) {
+    let interactor = interactorFactory.makeTeamInteractor(userTeamId: userTeamId)
+    interactor.delegate = self
+}
 
-### UI Development Flow
-1. Apply SSThemeProvider at ViewFactory level for feature screens
-2. Use @Environment(\.ssTheme) in components to access theme
-3. Break complex views into computed properties for readability
-4. Leverage existing design system components (SSPrimaryButton, SSTextFieldStyle, etc.)
-5. Ensure proper dark mode support through theme system
+// Testing (in Tests)
+let container = MockDependencyContainer()
+let coordinator = container.makeTeamCoordinator(userTeamId: "team1")
+```
 
-### Feature Development Flow
-1. Create FeatureCoordinator with Result enum
-2. Implement Interactor with protocol and mock
-3. Build Views with ViewModels for presentation state
-4. Add comprehensive unit tests following Team feature pattern
-5. Integrate with navigation system
+### Factory Interface Pattern
+```swift
+protocol InteractorFactoryProtocol {
+    // Simple interactors
+    func makeNewGameInteractor() -> NewGameInteractorProtocol
+    func makeMainMenuInteractor() -> MainMenuInteractorProtocol
+    func makeTeamSelectInteractor() -> TeamSelectInteractorProtocol
+    
+    // Parameterized interactors
+    func makeTeamInteractor(userTeamId: String) -> TeamInteractorProtocol
+}
+```
 
-### Data Operations Flow
-1. Define Request/Result models for complex operations
-2. Implement transformation logic in appropriate transformer
-3. Add DataManager methods using transformers
-4. Create reactive publishers for UI updates
-5. Test with mock implementations
-
-### Testing Strategy
-1. **Protocol-Based Testing**: All dependencies use protocols with mock implementations
-2. **Unit Test Coverage**: Every class with business logic must have unit tests
-3. **Mock Implementations**: Every protocol has a mock version in #if DEBUG blocks
-4. **Test Organization**: Test directories mirror source structure
-5. **Integration Testing**: Test complete feature flows and data operations
-6. **Swift Testing Framework**: Use modern @Test attributes and confirmation patterns
-
-## Current Challenges and Considerations
-
-### Testing Expansion Priorities
-- **Feature Parity**: All features need same testing coverage as Team feature
-- **Mock Consistency**: Ensure all mock implementations follow same patterns
-- **Test Coverage**: Verify comprehensive coverage across all business logic
-
-### UI Consistency Priorities
-- **Remaining Screens**: TeamSelect, Team header improvements, and other screens need retro theming
-- **Component Expansion**: May need additional design system components for complex layouts
-- **Animation System**: Consider adding consistent animations and transitions
-
-### Design Decisions Resolved
-- **Testing Patterns**: Team feature testing patterns established as template
-- **Event Bus vs Direct Calls**: Event bus pattern confirmed for view-interactor communication
-- **Mock Delegate Pattern**: Comprehensive tracking and callback pattern established
-- **Theme Architecture**: Centralized theme application through ViewFactory established
-- **Component Reusability**: Environment-based theme distribution pattern confirmed
-- **Visual Direction**: Retro aesthetic with cyan accents and proper dark mode support established
-
-### Design Decisions Pending
-- **Match Simulation Engine**: How detailed should the simulation be?
-- **Player Statistics**: What statistics to track and display?
-- **League Structure**: Number of teams, seasons, and competition format
-
-## Project Insights and Learnings
-
-### Testing Evolution
-- **Swift Testing Framework**: Modern testing patterns with @Test attributes work excellently
-- **Mock Pattern Consistency**: Tracking properties and callback patterns provide reliable testing
-- **Async Testing**: Confirmation blocks handle event bus and delegate testing effectively
-- **Memory Management**: Explicit memory leak testing prevents retain cycles
-- **Protocol-Based Design**: Makes testing much easier with proper mock implementations
-
-### UI/UX Evolution
-- **Centralized Theming**: ViewFactory-level theme application provides clean separation of concerns
-- **Environment Distribution**: SwiftUI Environment system works excellently for theme distribution
-- **Component Architecture**: Extracting reusable components to DesignSystem improves maintainability
-- **View Structure**: Breaking views into computed properties significantly improves readability
-
-### Architecture Evolution
-- **Simplification**: Moving from complex RequestProcessor to simple DataManager + Transformers improved maintainability
-- **Clear Boundaries**: Strict model separation prevents architectural violations
-- **Testability**: Protocol-based design makes testing much easier
-- **Tab Navigation**: Centralized tab management improves navigation consistency
-- **Event Bus Pattern**: Provides clean separation between views and business logic
-
-### SwiftUI Patterns
-- **ViewModel Usage**: ViewModels work well for presentation state but should not contain business logic
-- **Coordinator Integration**: SwiftUI views work well with coordinator pattern when properly abstracted
-- **Reactive Updates**: Combine publishers provide clean data flow to UI
-- **Tab Integration**: TabContainerView provides clean separation between tab UI and navigation logic
-
-### Development Workflow
-- **Feature-First**: Building complete features with full testing before moving to next works well
-- **Test-Driven**: Having comprehensive unit tests improves development speed and quality
-- **Documentation**: Keeping architecture docs updated is crucial for complex projects
-- **Pattern Consistency**: Establishing patterns in one feature makes other features easier
-
-## Important Files to Monitor
-
-### Testing Reference Files (Templates for Other Features)
-- `SuperSoccerTests/Features/Team/TeamInteractorTests.swift` - Comprehensive interactor testing template
-- `SuperSoccerTests/Features/Team/TeamFeatureCoordinatorTests.swift` - Complete coordinator testing template
-- Mock delegate pattern examples throughout Team tests
-
-### UI Architecture Files
-- `SuperSoccer/Sources/Navigation/ViewFactory.swift` - Centralized theme application
-- `SuperSoccer/Sources/DesignSystem/Components/Form/SSTextFieldStyle.swift` - Reusable text field styling
-- `SuperSoccer/Sources/Features/TeamSelect/TeamSelectorView.swift` - Themed team selector component
-- `SuperSoccer/Sources/Features/MainMenu/MainMenuView.swift` - Redesigned main menu
-- `SuperSoccer/Sources/Features/NewGame/NewGameView.swift` - Comprehensive redesign example
-
-### Core Architecture Files
-- `SuperSoccer/Sources/DataManager/SwiftData/SwiftDataManager.swift`
-- `SuperSoccer/Sources/DataModels/Transforms/SwiftData/ClientToSwiftDataTransformer.swift`
-- `SuperSoccer/Sources/DataModels/Transforms/SwiftData/SwiftDataToClientTransformer.swift`
-- `SuperSoccer/Sources/Navigation/BaseFeatureCoordinator.swift`
-
-### Team Feature Files (Reference Implementation)
-- `SuperSoccer/Sources/Features/Team/TeamInteractor.swift` - Event bus pattern implementation
-- `SuperSoccer/Sources/Features/Team/PlayerRowView.swift` - SSTheme integration example
-- `SuperSoccer/Sources/Features/Team/TeamView.swift` - Clean view structure example
-
-This active context represents the current state of development and should be updated as work progresses and new decisions are made.
+This architecture provides type-safe, testable, and scalable dependency injection for all features while maintaining clean separation of concerns and comprehensive testing support.

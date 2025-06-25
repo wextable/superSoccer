@@ -1,11 +1,49 @@
 # System Patterns
 
 ## Architecture Overview
-SuperSoccer follows a clean, layered architecture with strict separation of concerns and dependency inversion principles.
+SuperSoccer follows a clean, layered architecture with strict separation of concerns, dependency inversion principles, and type-safe dependency injection through the InteractorFactory pattern.
 
 ## Core Architectural Patterns
 
-### 1. Clean Data Architecture (3-Layer)
+### 1. InteractorFactory Pattern
+```
+InteractorFactoryProtocol → InteractorFactory (Production) / MockInteractorFactory (Testing)
+                         ↓
+               Feature Coordinators → Interactors
+```
+
+**Structure:**
+- **InteractorFactoryProtocol**: Defines factory methods for all interactor creation
+- **InteractorFactory**: Production implementation with DataManager dependency injection
+- **MockInteractorFactory**: Testing implementation with pre-configured mock interactors
+- **Parameterized Support**: Factory methods support both simple and parameterized interactor creation
+
+**Example:**
+```swift
+protocol InteractorFactoryProtocol {
+    // Simple interactors (no additional parameters)
+    func makeNewGameInteractor() -> NewGameInteractorProtocol
+    func makeMainMenuInteractor() -> MainMenuInteractorProtocol
+    func makeTeamSelectInteractor() -> TeamSelectInteractorProtocol
+    
+    // Parameterized interactors (context-specific parameters)
+    func makeTeamInteractor(userTeamId: String) -> TeamInteractorProtocol
+}
+
+class InteractorFactory: InteractorFactoryProtocol {
+    private let dataManager: DataManagerProtocol
+    
+    init(dataManager: DataManagerProtocol) {
+        self.dataManager = dataManager
+    }
+    
+    func makeTeamInteractor(userTeamId: String) -> TeamInteractorProtocol {
+        return TeamInteractor(userTeamId: userTeamId, dataManager: dataManager)
+    }
+}
+```
+
+### 2. Clean Data Architecture (3-Layer)
 ```
 SwiftDataStorage (Persistence) → DataManager (Orchestration) → Transformers (Translation)
 ```
@@ -17,43 +55,45 @@ SwiftDataStorage (Persistence) → DataManager (Orchestration) → Transformers 
 
 **Key Principle**: SwiftData models never leave storage layer, Client models never enter storage layer
 
-### 2. Coordinator Pattern
+### 3. Coordinator Pattern with Factory Integration
 ```
-RootCoordinator → FeatureCoordinators → BaseFeatureCoordinator<Result>
+RootCoordinator → FeatureCoordinators (with InteractorFactory) → BaseFeatureCoordinator<r>
 ```
 
 **Structure:**
-- **BaseFeatureCoordinator<Result>**: Generic base with automatic child management
+- **BaseFeatureCoordinator<r>**: Generic base with automatic child management
 - **Feature-Specific Results**: Each coordinator defines its own Result enum
 - **Navigation Delegation**: NavigationCoordinator handles actual navigation operations
+- **InteractorFactory Integration**: All coordinators use factory for interactor creation
 - **Child Management**: `startChild()` for automatic lifecycle management
 
-### 3. Feature Architecture Pattern
+### 4. Feature Architecture Pattern
 ```
 Features/[FeatureName]/
-├── [FeatureName]FeatureCoordinator.swift
-├── [FeatureName]Interactor.swift
+├── [FeatureName]FeatureCoordinator.swift (uses InteractorFactory)
+├── [FeatureName]Interactor.swift (created by factory)
 ├── [FeatureName]View.swift
 ├── [FeatureName]LocalDataSource.swift (if needed)
 └── Supporting files (ViewModels, etc.)
 ```
 
 **Responsibilities:**
-- **Coordinator**: Navigation flow and feature lifecycle
-- **Interactor**: Business logic and data coordination
+- **Coordinator**: Navigation flow, feature lifecycle, and interactor creation via factory
+- **Interactor**: Business logic and data coordination (factory-created)
 - **View**: Presentation layer with ViewModels for state
 - **LocalDataSource**: Feature-specific data operations
 
-### 4. Dependency Injection Pattern
+### 5. Dependency Injection Pattern with Factory
 ```
-DependencyContainer.shared → Protocol-based dependencies → Mock implementations
+DependencyContainer.shared → InteractorFactory → Protocol-based dependencies → Mock implementations
 ```
 
 **Key Elements:**
+- **InteractorFactory**: Type-safe factory for all interactor creation
 - **Protocol Abstractions**: All dependencies are protocol-based
 - **Mock Implementations**: Every protocol has a Mock version in #if DEBUG blocks
-- **Constructor Injection**: Dependencies injected through initializers
-- **Testability**: Easy swapping for unit tests
+- **Constructor Injection**: Dependencies injected through factory-created instances
+- **Testability**: Easy swapping for unit tests via MockInteractorFactory
 
 ## Data Flow Patterns
 
@@ -75,9 +115,9 @@ Bidirectional model conversion:
 Client Models ↔ Transformers ↔ SwiftData Models
 ```
 
-## Navigation Patterns
+## Navigation Patterns with InteractorFactory
 
-### Coordinator Result Pattern
+### Coordinator Result Pattern with Factory Integration
 ```swift
 enum TeamSelectCoordinatorResult: CoordinatorResult {
     case teamSelected(Team)
@@ -86,20 +126,18 @@ enum TeamSelectCoordinatorResult: CoordinatorResult {
 
 class TeamSelectFeatureCoordinator: BaseFeatureCoordinator<TeamSelectCoordinatorResult> {
     private let navigationCoordinator: NavigationCoordinatorProtocol
-    private let dataManager: DataManagerProtocol
+    private let interactorFactory: InteractorFactoryProtocol
     
     init(navigationCoordinator: NavigationCoordinatorProtocol,
-         dataManager: DataManagerProtocol) {
+         interactorFactory: InteractorFactoryProtocol) {
         self.navigationCoordinator = navigationCoordinator
-        self.dataManager = dataManager
+        self.interactorFactory = interactorFactory
         super.init()
     }
     
     override func start() {
-        let interactor = TeamSelectInteractor(
-            dataManager: dataManager,
-            delegate: self
-        )
+        let interactor = interactorFactory.makeTeamSelectInteractor()
+        interactor.delegate = self
         
         let screen = NavigationRouter.Screen.teamSelect(interactor: interactor)
         Task { @MainActor in
@@ -115,12 +153,40 @@ extension TeamSelectFeatureCoordinator: TeamSelectInteractorDelegate {
 }
 ```
 
-### Child Coordinator Management
+### Parameterized Interactor Pattern
 ```swift
-// Starting a child coordinator with automatic cleanup
+class TeamFeatureCoordinator: BaseFeatureCoordinator<TeamCoordinatorResult> {
+    private let userTeamId: String
+    private let navigationCoordinator: NavigationCoordinatorProtocol
+    private let interactorFactory: InteractorFactoryProtocol
+    
+    init(userTeamId: String,
+         navigationCoordinator: NavigationCoordinatorProtocol,
+         interactorFactory: InteractorFactoryProtocol) {
+        self.userTeamId = userTeamId
+        self.navigationCoordinator = navigationCoordinator
+        self.interactorFactory = interactorFactory
+        super.init()
+    }
+    
+    override func start() {
+        let interactor = interactorFactory.makeTeamInteractor(userTeamId: userTeamId)
+        interactor.delegate = self
+        
+        let screen = NavigationRouter.Screen.team(interactor: interactor)
+        Task { @MainActor in
+            self.navigationCoordinator.replaceStackWith(screen)
+        }
+    }
+}
+```
+
+### Child Coordinator Management with Factory
+```swift
+// Starting a child coordinator with factory-based interactor creation
 let childCoordinator = TeamSelectFeatureCoordinator(
     navigationCoordinator: navigationCoordinator,
-    dataManager: dataManager
+    interactorFactory: interactorFactory
 )
 
 startChild(childCoordinator) { [weak self] result in
@@ -136,8 +202,8 @@ startChild(childCoordinator) { [weak self] result in
 
 ## Event-Driven Patterns
 
-### EventBus Pattern
-Feature-specific event communication:
+### EventBus Pattern with Factory-Created Interactors
+Feature-specific event communication for factory-created interactors:
 ```swift
 typealias TeamSelectEventBus = PassthroughSubject<TeamSelectEvent, Never>
 
@@ -148,6 +214,12 @@ enum TeamSelectEvent: BusEvent {
 
 class TeamSelectInteractor: TeamSelectInteractorProtocol {
     let eventBus = TeamSelectEventBus()
+    
+    // Created by InteractorFactory with proper dependency injection
+    init(dataManager: DataManagerProtocol) {
+        self.dataManager = dataManager
+        setupSubscriptions()
+    }
     
     private func setupSubscriptions() {
         eventBus
@@ -163,25 +235,95 @@ class TeamSelectInteractor: TeamSelectInteractorProtocol {
     }
 }
 
-// Usage in View
+// Usage in View with factory-created interactor
 Button("Select Team") {
     interactor.eventBus.send(.teamSelected(teamId: "team1"))
 }
 ```
 
-### Delegate Pattern
-Coordinator communication:
+### Delegate Pattern with Factory Integration
+Coordinator communication using factory-created interactors:
 ```swift
 protocol TeamSelectInteractorDelegate: AnyObject {
     func teamSelected(_ team: Team)
 }
 
-class TeamSelectInteractor {
-    private weak var delegate: TeamSelectInteractorDelegate?
+class TeamSelectInteractor: TeamSelectInteractorProtocol {
+    weak var delegate: TeamSelectInteractorDelegate?
+    
+    // Factory ensures proper initialization with dependencies
+    init(dataManager: DataManagerProtocol) {
+        self.dataManager = dataManager
+    }
     
     private func handleTeamSelected(_ teamId: String) {
         let team = dataManager.fetchTeam(id: teamId)
         delegate?.teamSelected(team)
+    }
+}
+```
+
+## Testing Patterns with InteractorFactory
+
+### MockDependencyContainer Pattern
+Unified testing interface using factory pattern:
+```swift
+class MockDependencyContainer {
+    let mockInteractorFactory = MockInteractorFactory()
+    let mockNavigationCoordinator = MockNavigationCoordinator()
+    
+    // Factory methods for coordinator creation in tests
+    func makeTeamCoordinator(userTeamId: String) -> TeamFeatureCoordinator {
+        return TeamFeatureCoordinator(
+            userTeamId: userTeamId,
+            navigationCoordinator: mockNavigationCoordinator,
+            interactorFactory: mockInteractorFactory
+        )
+    }
+    
+    func makeMainMenuCoordinator() -> MainMenuFeatureCoordinator {
+        return MainMenuFeatureCoordinator(
+            navigationCoordinator: mockNavigationCoordinator,
+            interactorFactory: mockInteractorFactory
+        )
+    }
+}
+```
+
+### Test Pattern Usage
+```swift
+@Test("TeamFeatureCoordinator integrates with InteractorFactory correctly")
+@MainActor
+func testInteractorFactoryIntegration() async {
+    // Arrange - Use factory pattern for consistent test setup
+    let container = MockDependencyContainer()
+    let coordinator = container.makeTeamCoordinator(userTeamId: "team1")
+    
+    // Act
+    coordinator.start()
+    
+    // Wait for async operations
+    try? await Task.sleep(for: .milliseconds(10))
+    
+    // Assert - Verify factory integration
+    #expect(coordinator.testHooks.interactor != nil)
+    #expect(coordinator.testHooks.interactor is MockTeamInteractor)
+}
+```
+
+### MockInteractorFactory Pattern
+```swift
+class MockInteractorFactory: InteractorFactoryProtocol {
+    let mockNewGameInteractor = MockNewGameInteractor()
+    let mockMainMenuInteractor = MockMainMenuInteractor()
+    let mockTeamSelectInteractor = MockTeamSelectInteractor()
+    
+    func makeNewGameInteractor() -> NewGameInteractorProtocol {
+        return mockNewGameInteractor
+    }
+    
+    func makeTeamInteractor(userTeamId: String) -> TeamInteractorProtocol {
+        return MockTeamInteractor()
     }
 }
 ```
@@ -198,107 +340,42 @@ class TeamSelectInteractor {
 - Direct object relationships for persistence
 - Prefixed with `SD` (SDTeam, SDPlayer, etc.)
 
-### Transformation Bundle Pattern
-For complex entity creation:
+## Interactor Protocol Pattern
+Consistent delegate property across all interactor protocols:
 ```swift
-struct CareerCreationBundle {
-    let career: SDCareer
-    let league: SDLeague
-    let season: SDSeason
-    let teams: [SDTeam]
-    let players: [SDPlayer]
-    let coaches: [SDCoach]
+protocol TeamInteractorProtocol: AnyObject {
+    var viewModel: TeamViewModel { get }
+    var eventBus: TeamEventBus { get }
+    var delegate: TeamInteractorDelegate? { get set } // Consistent pattern
+}
+
+protocol NewGameInteractorProtocol: AnyObject {
+    var viewModel: NewGameViewModel { get }
+    var eventBus: NewGameEventBus { get }
+    var delegate: NewGameInteractorDelegate? { get set } // Consistent pattern
 }
 ```
 
-## Testing Patterns
+## Key Benefits of InteractorFactory Pattern
 
-### Mock Pattern
-```swift
-#if DEBUG
-class MockDataManager: DataManagerProtocol {
-    var mockTeams: [Team] = []
-    var mockPlayers: [Player] = []
-    var mockCoaches: [Coach] = []
-    
-    // Tracking properties for tests
-    var createNewCareerCalled = false
-    var lastCareerRequest: CreateNewCareerRequest?
-    
-    func createNewCareer(_ request: CreateNewCareerRequest) async throws -> CreateNewCareerResult {
-        createNewCareerCalled = true
-        lastCareerRequest = request
-        return CreateNewCareerResult(career: .make(), success: true)
-    }
-    
-    func fetchTeams() -> [Team] {
-        return mockTeams
-    }
-    
-    func fetchPlayers() -> [Player] {
-        return mockPlayers
-    }
-    
-    func fetchCoaches() -> [Coach] {
-        return mockCoaches
-    }
-}
-#endif
-```
+### Type Safety
+- Compile-time verification of dependencies
+- Factory methods ensure correct interactor creation
+- Protocol-based contracts prevent runtime errors
 
-### Protocol Abstraction Pattern
-Every service has a protocol for testability:
-```swift
-protocol DataManagerProtocol {
-    func createNewCareer(_ request: CreateNewCareerRequest) async throws -> CreateNewCareerResult
-    func fetchTeams() -> [Team]
-    func fetchPlayers() -> [Player]
-    func fetchCoaches() -> [Coach]
-    
-    // Publishers for reactive UI updates
-    var teamPublisher: AnyPublisher<[Team], Never> { get }
-    var playerPublisher: AnyPublisher<[Player], Never> { get }
-    var coachPublisher: AnyPublisher<[Coach], Never> { get }
-}
+### Testability
+- MockInteractorFactory provides consistent test doubles
+- Easy to swap implementations for testing
+- Clear separation between production and test dependencies
 
-// Implementation with real SwiftData
-class SwiftDataManager: DataManagerProtocol {
-    private let storage: SwiftDataStorage
-    private let clientToSwiftDataTransformer: ClientToSwiftDataTransformer
-    private let swiftDataToClientTransformer: SwiftDataToClientTransformer
-    
-    // Implementation details...
-}
-```
+### Scalability
+- Easy to add new interactors by extending factory protocol
+- Parameterized factory methods support context-specific creation
+- Consistent patterns across all features
 
-## Key Design Principles
-
-1. **Single Responsibility**: Each class has one clear purpose
-2. **Dependency Inversion**: Depend on abstractions, not concretions
-3. **Open/Closed**: Easy to extend without modifying existing code
-4. **Interface Segregation**: Clean, focused interfaces
-5. **Don't Repeat Yourself**: Centralized transformation and business logic
-
-## Critical Implementation Rules
-
-### Model Boundaries
-- Client models must never cross into SwiftData layer
-- SwiftData models must never escape storage layer
-- Transformers are the only bridge between model types
-
-### Navigation Flow
-- All navigation goes through NavigationCoordinator
-- Views never perform navigation directly
-- Coordinators manage feature lifecycle and results
-
-### Dependency Management
-- All dependencies injected through constructors
-- No singleton access except DependencyContainer.shared
-- Protocol-based design for all services
-
-### Error Handling
-- Use proper Swift error handling with throws/async throws
-- Handle errors at appropriate layers
-- Provide meaningful error messages
+### Maintainability
+- Centralized interactor creation logic
+- Clear dependency relationships
+- Simplified coordinator construction and testing
 
 This pattern system ensures maintainable, testable, and scalable architecture for the SuperSoccer application.

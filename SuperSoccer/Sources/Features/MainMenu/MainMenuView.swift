@@ -35,12 +35,12 @@ struct MainMenuViewModel {
 }
 
 struct MainMenuView: View {
-    let interactor: any MainMenuInteractorProtocol
+    let presenter: MainMenuViewPresenter  // Changed from MainMenuInteractorProtocol
     @Environment(\.ssTheme) private var theme
     
     var body: some View {
         VStack(alignment: .leading, spacing: theme.spacing.large) {
-            ForEach(interactor.viewModel.menuItemModels) { menuItemModel in
+            ForEach(presenter.viewModel.menuItemModels) { menuItemModel in
                 SSPrimaryButton.make(title: menuItemModel.title, action: menuItemModel.action)
             }
             Spacer()
@@ -48,7 +48,7 @@ struct MainMenuView: View {
         .padding(theme.spacing.large)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(theme.colors.background)
-        .navigationTitle(interactor.viewModel.title)
+        .navigationTitle(presenter.viewModel.title)
         .toolbarBackground(theme.colors.background, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
     }

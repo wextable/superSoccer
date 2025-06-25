@@ -8,28 +8,31 @@ import Foundation
 import Combine
 import Observation
 
-typealias MainMenuEventBus = PassthroughSubject<MainMenuEvent, Never>
+// MARK: - Protocol Separation (following NewGame pattern)
 
-enum MainMenuEvent: BusEvent {
-    case newGameSelected
+protocol MainMenuBusinessLogicDelegate: AnyObject {
+    func businessLogicDidSelectNewGame()
 }
 
-protocol MainMenuInteractorDelegate: AnyObject {
-    func interactorDidSelectNewGame()
+protocol MainMenuBusinessLogic: AnyObject {
+    var delegate: MainMenuBusinessLogicDelegate? { get set }
 }
 
-protocol MainMenuInteractorProtocol: AnyObject {
+protocol MainMenuViewPresenter: AnyObject {
     var viewModel: MainMenuViewModel { get }
-    var eventBus: MainMenuEventBus { get }
-    var delegate: MainMenuInteractorDelegate? { get set }
+    func newGameTapped()
 }
-    
+
+protocol MainMenuInteractorProtocol: MainMenuBusinessLogic & MainMenuViewPresenter {}
+
+// MARK: - Implementation
+
 @Observable
 final class MainMenuInteractor: MainMenuInteractorProtocol {
     private let dataManager: DataManagerProtocol
-    let eventBus = MainMenuEventBus()
+    
+    weak var delegate: MainMenuBusinessLogicDelegate?
     var viewModel: MainMenuViewModel = .init(title: "Main menu", menuItemModels: [])
-    weak var delegate: MainMenuInteractorDelegate?
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -40,7 +43,7 @@ final class MainMenuInteractor: MainMenuInteractorProtocol {
             title: "Main menu",
             menuItemModels: [
                 .init(title: "New game") {
-                    self.eventBus.send(.newGameSelected)
+                    self.newGameTapped()
                 }
             ]
         )
@@ -50,26 +53,16 @@ final class MainMenuInteractor: MainMenuInteractorProtocol {
     
     private func setupSubscriptions() {
         subscribeToDataSource()
-        subscribeToEvents()
     }
     
     private func subscribeToDataSource() {
         // TODO: see if we have any saved games, if so add a load game button
     }
     
-    private func subscribeToEvents() {
-        eventBus
-            .sink { [weak self] event in
-                switch event {
-                case .newGameSelected:
-                    self?.handleNewGameSelected()
-                }
-            }
-            .store(in: &cancellables)
-    }
+    // MARK: - MainMenuViewPresenter
     
-    private func handleNewGameSelected() {
-        delegate?.interactorDidSelectNewGame()
+    func newGameTapped() {
+        delegate?.businessLogicDidSelectNewGame()
     }
 }
 
@@ -87,7 +80,7 @@ extension MainMenuInteractor {
 }
 
 class MockMainMenuInteractor: MainMenuInteractorProtocol {
-    weak var delegate: MainMenuInteractorDelegate?
+    weak var delegate: MainMenuBusinessLogicDelegate?
     var viewModel: MainMenuViewModel {
         MainMenuViewModel(
             title: "Main menu",
@@ -96,14 +89,22 @@ class MockMainMenuInteractor: MainMenuInteractorProtocol {
             ])
     }
     
-    var eventBus: MainMenuEventBus = MainMenuEventBus()
+    // Test tracking properties
+    var newGameTappedCalled = false
+    var onNewGameTapped: (() -> Void)?
+    
+    func newGameTapped() {
+        newGameTappedCalled = true
+        onNewGameTapped?()
+        delegate?.businessLogicDidSelectNewGame()
+    }
 }
 
-class MockMainMenuInteractorDelegate: MainMenuInteractorDelegate {
+class MockMainMenuInteractorDelegate: MainMenuBusinessLogicDelegate {
     var didSelectNewGameCalled = false
     var onDidSelectNewGame: (() -> Void)?
     
-    func interactorDidSelectNewGame() {
+    func businessLogicDidSelectNewGame() {
         didSelectNewGameCalled = true
         onDidSelectNewGame?()
     }

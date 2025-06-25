@@ -29,7 +29,7 @@ class MainMenuFeatureCoordinator: BaseFeatureCoordinator<MainMenuCoordinatorResu
     
     override func start() {
         Task { @MainActor in
-            self.navigationCoordinator.replaceStackWith(.mainMenu(interactor: interactor))
+            self.navigationCoordinator.replaceStackWith(.mainMenu(presenter: interactor))
         }
     }
     
@@ -52,9 +52,9 @@ class MainMenuFeatureCoordinator: BaseFeatureCoordinator<MainMenuCoordinatorResu
         }
     }
 }
-                                               
-extension MainMenuFeatureCoordinator: MainMenuInteractorDelegate {
-    func interactorDidSelectNewGame() {
+
+extension MainMenuFeatureCoordinator: MainMenuBusinessLogicDelegate {
+    func businessLogicDidSelectNewGame() {
         Task { @MainActor in
             handleNewGameSelected()
         }

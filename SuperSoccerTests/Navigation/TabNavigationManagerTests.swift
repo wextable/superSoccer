@@ -32,7 +32,7 @@ struct TabNavigationManagerTests {
         // Arrange
         let manager = TabNavigationManager.shared
         let mockInteractor = MockMainMenuInteractor()
-        let screen = NavigationRouter.Screen.mainMenu(interactor: mockInteractor)
+        let screen = NavigationRouter.Screen.mainMenu(presenter: mockInteractor)
         let tab: TabType = .team
         
         // Clear any existing state
@@ -53,7 +53,7 @@ struct TabNavigationManagerTests {
         // Arrange
         let manager = TabNavigationManager.shared
         let mockInteractor = MockMainMenuInteractor()
-        let screen = NavigationRouter.Screen.mainMenu(interactor: mockInteractor)
+        let screen = NavigationRouter.Screen.mainMenu(presenter: mockInteractor)
         let tab: TabType = .team
         
         // Clear any existing state
@@ -78,7 +78,7 @@ struct TabNavigationManagerTests {
         // Arrange
         let manager = TabNavigationManager.shared
         let mockInteractor = MockMainMenuInteractor()
-        let screen = NavigationRouter.Screen.mainMenu(interactor: mockInteractor)
+        let screen = NavigationRouter.Screen.mainMenu(presenter: mockInteractor)
         let tab: TabType = .team
         
         // Clear any existing state
@@ -102,7 +102,7 @@ struct TabNavigationManagerTests {
         // Arrange
         let manager = TabNavigationManager.shared
         let mockInteractor = MockMainMenuInteractor()
-        let screen = NavigationRouter.Screen.mainMenu(interactor: mockInteractor)
+        let screen = NavigationRouter.Screen.mainMenu(presenter: mockInteractor)
         let tab: TabType = .team
         
         // Clear any existing state
@@ -131,7 +131,7 @@ struct TabNavigationManagerTests {
         // Arrange
         let manager = TabNavigationManager.shared
         let mockInteractor = MockMainMenuInteractor()
-        let screen = NavigationRouter.Screen.mainMenu(interactor: mockInteractor)
+        let screen = NavigationRouter.Screen.mainMenu(presenter: mockInteractor)
         let tab: TabType = .team
         
         // Clear any existing state
@@ -157,7 +157,7 @@ struct TabNavigationManagerTests {
         // Arrange
         let manager = TabNavigationManager.shared
         let mockInteractor = MockMainMenuInteractor()
-        let screen = NavigationRouter.Screen.mainMenu(interactor: mockInteractor)
+        let screen = NavigationRouter.Screen.mainMenu(presenter: mockInteractor)
         let tab: TabType = .team
         
         // Clear any existing state
@@ -185,7 +185,7 @@ struct TabNavigationManagerTests {
         // Arrange
         let manager = TabNavigationManager.shared
         let mockInteractor = MockMainMenuInteractor()
-        let screen = NavigationRouter.Screen.mainMenu(interactor: mockInteractor)
+        let screen = NavigationRouter.Screen.mainMenu(presenter: mockInteractor)
         let tab: TabType = .team
         
         // Clear any existing state
@@ -231,7 +231,7 @@ struct TabNavigationManagerTests {
         // Arrange
         let manager = TabNavigationManager.shared
         let mockInteractor = MockMainMenuInteractor()
-        let screen = NavigationRouter.Screen.mainMenu(interactor: mockInteractor)
+        let screen = NavigationRouter.Screen.mainMenu(presenter: mockInteractor)
         let tab: TabType = .team
         
         // Add some data
@@ -260,7 +260,7 @@ struct TabNavigationManagerTests {
         manager.clearAllTabs()
         
         // Act & Assert - Test different screen types
-        let mainMenuScreen = NavigationRouter.Screen.mainMenu(interactor: mockMainMenuInteractor)
+        let mainMenuScreen = NavigationRouter.Screen.mainMenu(presenter: mockMainMenuInteractor)
         manager.navigate(to: mainMenuScreen, in: tab)
         #expect(manager.tabScreenStacks[tab]?.first == mainMenuScreen)
         

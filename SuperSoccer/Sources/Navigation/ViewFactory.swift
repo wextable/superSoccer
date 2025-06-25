@@ -17,8 +17,8 @@ final class ViewFactory: ViewFactoryProtocol {
         switch screen {
         case .splash:
             return AnyView(SplashView())
-        case .mainMenu(let interactor):
-            return AnyView(SSThemeProvider { MainMenuView(interactor: interactor) })
+        case .mainMenu(let presenter):
+            return AnyView(SSThemeProvider { MainMenuView(presenter: presenter) })
         case .newGame(let presenter):
             return AnyView(SSThemeProvider{ NewGameView(presenter: presenter) })
         case .teamSelect(let interactor):
@@ -48,8 +48,8 @@ class MockViewFactory: ViewFactoryProtocol {
         switch screen {
         case .splash:
             return AnyView(SplashView())
-        case .mainMenu(let interactor):
-            return AnyView(SSThemeProvider { MainMenuView(interactor: interactor) })
+        case .mainMenu(let presenter):
+            return AnyView(SSThemeProvider { MainMenuView(presenter: presenter) })
         case .newGame(let presenter):
             return AnyView(SSThemeProvider{ NewGameView(presenter: presenter) })
         case .teamSelect(let interactor):

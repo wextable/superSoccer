@@ -35,7 +35,7 @@ struct NavigationCoordinatorTests {
         let router = NavigationRouter()
         let coordinator = NavigationCoordinator(router: router)
         let mockInteractor = MockMainMenuInteractor()
-        let screen = NavigationRouter.Screen.mainMenu(interactor: mockInteractor)
+        let screen = NavigationRouter.Screen.mainMenu(presenter: mockInteractor)
         
         // Act
         coordinator.navigateToScreen(screen)
@@ -53,7 +53,7 @@ struct NavigationCoordinatorTests {
         let router = NavigationRouter()
         let coordinator = NavigationCoordinator(router: router)
         let mockInteractor = MockMainMenuInteractor()
-        let screen = NavigationRouter.Screen.mainMenu(interactor: mockInteractor)
+        let screen = NavigationRouter.Screen.mainMenu(presenter: mockInteractor)
         
         // Act
         coordinator.replaceStackWith(screen)
@@ -89,7 +89,7 @@ struct NavigationCoordinatorTests {
         let router = NavigationRouter()
         let coordinator = NavigationCoordinator(router: router)
         let mockInteractor = MockMainMenuInteractor()
-        let screen = NavigationRouter.Screen.mainMenu(interactor: mockInteractor)
+        let screen = NavigationRouter.Screen.mainMenu(presenter: mockInteractor)
         
         // Add some screens first
         coordinator.navigateToScreen(screen)
@@ -110,7 +110,7 @@ struct NavigationCoordinatorTests {
         let router = NavigationRouter()
         let coordinator = NavigationCoordinator(router: router)
         let mockInteractor = MockMainMenuInteractor()
-        let screen = NavigationRouter.Screen.mainMenu(interactor: mockInteractor)
+        let screen = NavigationRouter.Screen.mainMenu(presenter: mockInteractor)
         
         // Add some screens first
         coordinator.navigateToScreen(screen)
@@ -188,7 +188,7 @@ struct NavigationCoordinatorTests {
         let mockNewGameInteractor = MockNewGameInteractor()
         let mockTeamSelectInteractor = MockTeamSelectInteractor()
         
-        let mainMenuScreen = NavigationRouter.Screen.mainMenu(interactor: mockMainMenuInteractor)
+        let mainMenuScreen = NavigationRouter.Screen.mainMenu(presenter: mockMainMenuInteractor)
         let newGameScreen = NavigationRouter.Screen.newGame(presenter: mockNewGameInteractor)
         let teamSelectScreen = NavigationRouter.Screen.teamSelect(interactor: mockTeamSelectInteractor)
         
@@ -220,7 +220,7 @@ struct NavigationCoordinatorTests {
         let mockTeamInteractor = MockTeamInteractor()
         
         let splashScreen = NavigationRouter.Screen.splash
-        let mainMenuScreen = NavigationRouter.Screen.mainMenu(interactor: mockMainMenuInteractor)
+        let mainMenuScreen = NavigationRouter.Screen.mainMenu(presenter: mockMainMenuInteractor)
         let newGameScreen = NavigationRouter.Screen.newGame(presenter: mockNewGameInteractor)
         let teamSelectScreen = NavigationRouter.Screen.teamSelect(interactor: mockTeamSelectInteractor)
         let teamScreen = NavigationRouter.Screen.team(interactor: mockTeamInteractor)
@@ -261,7 +261,7 @@ struct NavigationCoordinatorTests {
         let router = NavigationRouter()
         let coordinator = NavigationCoordinator(router: router)
         let mockInteractor = MockMainMenuInteractor()
-        let screen = NavigationRouter.Screen.mainMenu(interactor: mockInteractor)
+        let screen = NavigationRouter.Screen.mainMenu(presenter: mockInteractor)
         
         // Act - Make rapid navigation calls
         for _ in 0..<10 {
@@ -280,7 +280,7 @@ struct NavigationCoordinatorTests {
         let router = NavigationRouter()
         let coordinator = NavigationCoordinator(router: router)
         let mockInteractor = MockMainMenuInteractor()
-        let screen = NavigationRouter.Screen.mainMenu(interactor: mockInteractor)
+        let screen = NavigationRouter.Screen.mainMenu(presenter: mockInteractor)
         
         // Add some screens
         for _ in 0..<5 {

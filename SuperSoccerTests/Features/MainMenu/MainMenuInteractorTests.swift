@@ -12,32 +12,20 @@ import Testing
 
 struct MainMenuInteractorTests {
     
-    // MARK: - Initialization Tests
+    // MARK: - Helper Methods
     
-    @Test("MainMenuInteractor initializes with correct dependencies via factory")
-    @MainActor
-    func testInitializationWithFactoryDependencies() {
-        // Arrange
-        let container = MockDependencyContainer()
-        
-        // Act
-        let interactor = container.interactorFactory.makeMainMenuInteractor()
-        let mockDelegate = MockMainMenuInteractorDelegate()
-        interactor.delegate = mockDelegate
-        
-        // Assert
-        #expect(interactor != nil)
-        #expect(interactor.eventBus != nil)
+    private func createMocks() -> MockDataManager {
+        return MockDataManager()
     }
+        
+    // MARK: - Initialization Tests
     
     @Test("MainMenuInteractor initializes with correct view model")
     @MainActor
-    func testInitializationWithCorrectViewModel() {
-        // Arrange
-        let container = MockDependencyContainer()
-        
-        // Act
-        let interactor = container.interactorFactory.makeMainMenuInteractor()
+    func testInitialViewModel() {
+        // Arrange & Act
+        let mockDataManager = createMocks()
+        let interactor = MainMenuInteractor(dataManager: mockDataManager)
         
         // Assert
         #expect(interactor.viewModel.title == "Main menu")
@@ -45,79 +33,21 @@ struct MainMenuInteractorTests {
         #expect(interactor.viewModel.menuItemModels.first?.title == "New game")
     }
     
-    @Test("MainMenuInteractor initializes with event bus")
+    // MARK: - Function Interface Tests
+    
+    @Test("MainMenuInteractor handles newGameTapped function call")
     @MainActor
-    func testInitializationWithEventBus() {
+    func testNewGameTappedFunctionCall() {
         // Arrange
-        let container = MockDependencyContainer()
+        let mockDataManager = createMocks()
+        let interactor = MainMenuInteractor(dataManager: mockDataManager)
+        let mockDelegate = MockMainMenuInteractorDelegate()
+        interactor.delegate = mockDelegate
         
         // Act
-        let interactor = container.interactorFactory.makeMainMenuInteractor()
+        interactor.newGameTapped()
         
         // Assert
-        #expect(interactor.eventBus != nil)
-    }
-    
-    // MARK: - Event Handling Tests
-    
-    @Test("MainMenuInteractor handles new game event correctly")
-    @MainActor
-    func testNewGameEventHandling() {
-        // Arrange
-        let container = MockDependencyContainer()
-        let interactor = container.interactorFactory.makeMainMenuInteractor()
-        let mockDelegate = MockMainMenuInteractorDelegate()
-        interactor.delegate = mockDelegate
-        
-        // Act
-        interactor.eventBus.send(.newGameSelected)
-        
-        // Assert - This should happen immediately since Combine sink is synchronous
-        #expect(mockDelegate.didSelectNewGameCalled == true)
-    }
-    
-    @Test("MainMenuInteractor menu item action triggers event")
-    func testMenuItemActionTriggersEvent() async {
-        // Arrange
-        let container = MockDependencyContainer()
-        let interactor = await container.interactorFactory.makeMainMenuInteractor()
-        
-        // Act & Assert
-        await confirmation { confirm in
-            let cancellable = interactor.eventBus
-                .sink { event in
-                    #expect(event == .newGameSelected)
-                    confirm()
-                }
-            
-            // Trigger the action
-            interactor.viewModel.menuItemModels.first?.action()
-            
-            // Store cancellable to prevent deallocation
-            _ = cancellable
-        }
-    }
-    
-    @Test("MainMenuInteractor delegate method calls are forwarded correctly")
-    func testDelegateMethodForwarding() async {
-        // Arrange
-        let container = MockDependencyContainer()
-        let interactor = await container.interactorFactory.makeMainMenuInteractor()
-        let mockDelegate = MockMainMenuInteractorDelegate()
-        interactor.delegate = mockDelegate
-        
-        // Act & Assert
-        await confirmation { confirm in
-            // Set up observation BEFORE sending the event
-            mockDelegate.onDidSelectNewGame = {
-                confirm()
-            }
-            
-            // Now send the event
-            interactor.eventBus.send(.newGameSelected)
-        }
-        
-        // Final assertion
         #expect(mockDelegate.didSelectNewGameCalled == true)
     }
     
@@ -127,8 +57,8 @@ struct MainMenuInteractorTests {
     @MainActor
     func testMenuStructure() {
         // Arrange
-        let container = MockDependencyContainer()
-        let interactor = container.interactorFactory.makeMainMenuInteractor()
+        let mockDataManager = createMocks()
+        let interactor = MainMenuInteractor(dataManager: mockDataManager)
         
         // Act
         let menuItems = interactor.viewModel.menuItemModels
@@ -139,80 +69,94 @@ struct MainMenuInteractorTests {
         #expect(menuItems.first?.action != nil)
     }
     
-    @Test("MainMenuInteractor menu action executes event bus communication")
-    func testMenuActionEventBusCommunication() async {
+    @Test("MainMenuInteractor menu action calls newGameTapped")
+    @MainActor
+    func testMenuActionCallsNewGameTapped() {
         // Arrange
-        let container = MockDependencyContainer()
-        let interactor = await container.interactorFactory.makeMainMenuInteractor()
-        var eventsReceived: [MainMenuEvent] = []
+        let mockDataManager = createMocks()
+        let interactor = MainMenuInteractor(dataManager: mockDataManager)
+        let mockDelegate = MockMainMenuInteractorDelegate()
+        interactor.delegate = mockDelegate
         
-        // Act & Assert
-        await confirmation { confirm in
-            let cancellable = interactor.eventBus
-                .sink { event in
-                    eventsReceived.append(event)
-                    confirm()
-                }
-            
-            // Execute menu action
-            interactor.viewModel.menuItemModels.first?.action()
-            
-            // Store cancellable to prevent deallocation
-            _ = cancellable
-        }
+        // Act
+        interactor.viewModel.menuItemModels.first?.action()
         
         // Assert
-        #expect(eventsReceived.count == 1)
-        #expect(eventsReceived.first == .newGameSelected)
+        #expect(mockDelegate.didSelectNewGameCalled == true)
     }
     
-    // MARK: - Event Bus Tests
+    // MARK: - Delegate Communication Tests
     
-    @Test("MainMenuInteractor event bus publishes events correctly")
-    func testEventBusPublishesEvents() async {
+    @Test("MainMenuInteractor calls delegate on new game tapped")
+    @MainActor
+    func testNewGameTappedDelegate() {
         // Arrange
-        let container = MockDependencyContainer()
-        let interactor = await container.interactorFactory.makeMainMenuInteractor()
-        var receivedEvents: [MainMenuEvent] = []
-        
-        // Act & Assert
-        await confirmation(expectedCount: 2) { confirm in
-            let cancellable = interactor.eventBus
-                .sink { event in
-                    receivedEvents.append(event)
-                    confirm()
-                }
-            
-            // Send events
-            interactor.eventBus.send(.newGameSelected)
-            interactor.eventBus.send(.newGameSelected)
-            
-            // Store cancellable to prevent deallocation
-            _ = cancellable
+        let mockDataManager = createMocks()
+        let interactor = MainMenuInteractor(dataManager: mockDataManager)
+        let mockDelegate = MockMainMenuInteractorDelegate()
+        interactor.delegate = mockDelegate
+
+        // Act
+        interactor.newGameTapped()
+
+        // Assert
+        #expect(mockDelegate.didSelectNewGameCalled == true)
+    }
+
+    @Test("MainMenuInteractor handles reliable delegate communication")
+    func testReliableDelegateCallbacks() async {
+        // Arrange
+        let mockDataManager = createMocks()
+        let interactor = MainMenuInteractor(dataManager: mockDataManager)
+        let mockDelegate = MockMainMenuInteractorDelegate()
+        interactor.delegate = mockDelegate
+
+        // Act & Wait for completion using withCheckedContinuation
+        await withCheckedContinuation { continuation in
+            mockDelegate.onDidSelectNewGame = {
+                continuation.resume()
+            }
+            interactor.newGameTapped()
         }
         
         // Assert
-        #expect(receivedEvents.count == 2)
-        #expect(receivedEvents.allSatisfy { $0 == .newGameSelected })
+        #expect(mockDelegate.didSelectNewGameCalled == true)
+    }
+    
+    // MARK: - Delegate Communication Tests
+    
+    @Test("MainMenuInteractor delegate methods are forwarded correctly")
+    @MainActor
+    func testDelegateMethodForwarding() {
+        // Arrange
+        let mockDataManager = createMocks()
+        let interactor = MainMenuInteractor(dataManager: mockDataManager)
+        let mockDelegate = MockMainMenuInteractorDelegate()
+        interactor.delegate = mockDelegate
+        
+        // Act
+        interactor.newGameTapped()
+        
+        // Assert
+        #expect(mockDelegate.didSelectNewGameCalled == true)
     }
     
     @Test("MainMenuInteractor handles multiple delegate calls correctly")
     @MainActor
     func testMultipleDelegateCalls() {
         // Arrange
-        let container = MockDependencyContainer()
-        let interactor = container.interactorFactory.makeMainMenuInteractor()
+        let mockDataManager = createMocks()
+        let interactor = MainMenuInteractor(dataManager: mockDataManager)
         let mockDelegate = MockMainMenuInteractorDelegate()
         interactor.delegate = mockDelegate
         
         // Act
-        interactor.eventBus.send(.newGameSelected)
-        interactor.eventBus.send(.newGameSelected)
-        interactor.eventBus.send(.newGameSelected)
+        interactor.newGameTapped()
+        interactor.newGameTapped()
         
         // Assert
         #expect(mockDelegate.didSelectNewGameCalled == true)
-        // Note: The delegate is called multiple times, but the boolean remains true
+        // Note: Multiple calls maintain the boolean state
     }
     
     // MARK: - Memory Management Tests
@@ -221,8 +165,8 @@ struct MainMenuInteractorTests {
     @MainActor
     func testCancellablesManagement() {
         // Arrange & Act
-        let container = MockDependencyContainer()
-        var interactor: MainMenuInteractorProtocol? = container.interactorFactory.makeMainMenuInteractor()
+        let mockDataManager = createMocks()
+        var interactor: MainMenuInteractor? = MainMenuInteractor(dataManager: mockDataManager)
         
         // Verify interactor is created
         #expect(interactor != nil)
@@ -238,8 +182,8 @@ struct MainMenuInteractorTests {
     @MainActor
     func testDelegateLifecycle() {
         // Arrange
-        let container = MockDependencyContainer()
-        let interactor = container.interactorFactory.makeMainMenuInteractor()
+        let mockDataManager = createMocks()
+        let interactor = MainMenuInteractor(dataManager: mockDataManager)
         var mockDelegate: MockMainMenuInteractorDelegate? = MockMainMenuInteractorDelegate()
         interactor.delegate = mockDelegate
         

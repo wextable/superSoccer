@@ -36,7 +36,7 @@ struct TabNavigationCoordinatorTests {
         let mockParentCoordinator = MockNavigationCoordinator()
         let coordinator = TabNavigationCoordinator(tab: .team, parentNavigationCoordinator: mockParentCoordinator)
         let mockInteractor = MockMainMenuInteractor()
-        let screen = NavigationRouter.Screen.mainMenu(interactor: mockInteractor)
+        let screen = NavigationRouter.Screen.mainMenu(presenter: mockInteractor)
         
         // Act
         coordinator.navigateToScreen(screen)
@@ -52,7 +52,7 @@ struct TabNavigationCoordinatorTests {
         let mockParentCoordinator = MockNavigationCoordinator()
         let coordinator = TabNavigationCoordinator(tab: .team, parentNavigationCoordinator: mockParentCoordinator)
         let mockInteractor = MockMainMenuInteractor()
-        let screen = NavigationRouter.Screen.mainMenu(interactor: mockInteractor)
+        let screen = NavigationRouter.Screen.mainMenu(presenter: mockInteractor)
         
         // Act
         coordinator.replaceStackWith(screen)
@@ -129,7 +129,7 @@ struct TabNavigationCoordinatorTests {
         // Arrange
         let mockParentCoordinator = MockNavigationCoordinator()
         let mockInteractor = MockMainMenuInteractor()
-        let screen = NavigationRouter.Screen.mainMenu(interactor: mockInteractor)
+        let screen = NavigationRouter.Screen.mainMenu(presenter: mockInteractor)
         
         // Act & Assert - Test with team tab
         let teamCoordinator = TabNavigationCoordinator(tab: .team, parentNavigationCoordinator: mockParentCoordinator)
@@ -151,7 +151,7 @@ struct TabNavigationCoordinatorTests {
         let mockParentCoordinator = MockNavigationCoordinator()
         let coordinator = TabNavigationCoordinator(tab: .team, parentNavigationCoordinator: mockParentCoordinator)
         let mockInteractor = MockMainMenuInteractor()
-        let screen = NavigationRouter.Screen.mainMenu(interactor: mockInteractor)
+        let screen = NavigationRouter.Screen.mainMenu(presenter: mockInteractor)
         
         // Act - Simulate a complex navigation flow
         coordinator.navigateToScreen(screen)
@@ -175,7 +175,7 @@ struct TabNavigationCoordinatorTests {
         // Arrange
         let mockCoordinator = MockTabNavigationCoordinator()
         let mockInteractor = MockMainMenuInteractor()
-        let screen = NavigationRouter.Screen.mainMenu(interactor: mockInteractor)
+        let screen = NavigationRouter.Screen.mainMenu(presenter: mockInteractor)
         
         // Act
         mockCoordinator.navigateToScreen(screen)

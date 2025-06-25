@@ -46,7 +46,7 @@ struct ViewFactoryTests {
         let mockInteractor = MockMainMenuInteractor()
         
         // Act
-        let view = factory.makeView(for: .mainMenu(interactor: mockInteractor))
+        let view = factory.makeView(for: .mainMenu(presenter: mockInteractor))
         
         // Assert
         #expect(view != nil)
@@ -141,7 +141,7 @@ struct ViewFactoryTests {
         let splashView = factory.makeView(for: .splash)
         #expect(splashView is AnyView)
         
-        let mainMenuView = factory.makeView(for: .mainMenu(interactor: mockMainMenuInteractor))
+        let mainMenuView = factory.makeView(for: .mainMenu(presenter: mockMainMenuInteractor))
         #expect(mainMenuView is AnyView)
         
         let newGameView = factory.makeView(for: .newGame(presenter: mockNewGameInteractor))
@@ -169,7 +169,7 @@ struct ViewFactoryTests {
         
         // Act
         let splashView = factory.makeView(for: .splash)
-        let mainMenuView = factory.makeView(for: .mainMenu(interactor: mockMainMenuInteractor))
+        let mainMenuView = factory.makeView(for: .mainMenu(presenter: mockMainMenuInteractor))
         let newGameView = factory.makeView(for: .newGame(presenter: mockNewGameInteractor))
         
         // Assert
@@ -187,8 +187,8 @@ struct ViewFactoryTests {
         let mockInteractor2 = MockMainMenuInteractor()
         
         // Act
-        let view1 = factory.makeView(for: .mainMenu(interactor: mockInteractor1))
-        let view2 = factory.makeView(for: .mainMenu(interactor: mockInteractor2))
+        let view1 = factory.makeView(for: .mainMenu(presenter: mockInteractor1))
+        let view2 = factory.makeView(for: .mainMenu(presenter: mockInteractor2))
         
         // Assert
         #expect(view1 != nil)
@@ -254,9 +254,9 @@ struct ViewFactoryTests {
         let mockInteractor = MockMainMenuInteractor()
         
         // Act - Create multiple views rapidly
-        let view1 = factory.makeView(for: .mainMenu(interactor: mockInteractor))
-        let view2 = factory.makeView(for: .mainMenu(interactor: mockInteractor))
-        let view3 = factory.makeView(for: .mainMenu(interactor: mockInteractor))
+        let view1 = factory.makeView(for: .mainMenu(presenter: mockInteractor))
+        let view2 = factory.makeView(for: .mainMenu(presenter: mockInteractor))
+        let view3 = factory.makeView(for: .mainMenu(presenter: mockInteractor))
         
         // Assert
         #expect(view1 != nil)
@@ -273,8 +273,8 @@ struct ViewFactoryTests {
         let interactor2 = MockMainMenuInteractor()
         
         // Act
-        let view1 = factory.makeView(for: .mainMenu(interactor: interactor1))
-        let view2 = factory.makeView(for: .mainMenu(interactor: interactor2))
+        let view1 = factory.makeView(for: .mainMenu(presenter: interactor1))
+        let view2 = factory.makeView(for: .mainMenu(presenter: interactor2))
         
         // Assert
         #expect(view1 != nil)
@@ -292,13 +292,13 @@ struct ViewFactoryTests {
         
         // Act
         _ = mockFactory.makeView(for: .splash)
-        _ = mockFactory.makeView(for: .mainMenu(interactor: mockInteractor))
+        _ = mockFactory.makeView(for: .mainMenu(presenter: mockInteractor))
         _ = mockFactory.makeView(for: .newGame(presenter: MockNewGameInteractor()))
         
         // Assert
         #expect(mockFactory.screensMade.count == 3)
         #expect(mockFactory.screensMade[0] == .splash)
-        #expect(mockFactory.screensMade[1] == .mainMenu(interactor: mockInteractor))
+        #expect(mockFactory.screensMade[1] == .mainMenu(presenter: mockInteractor))
     }
     
     @Test("MockViewFactory creates views for all screen types")
@@ -316,7 +316,7 @@ struct ViewFactoryTests {
         
         // Act
         let splashView = mockFactory.makeView(for: .splash)
-        let mainMenuView = mockFactory.makeView(for: .mainMenu(interactor: mockMainMenuInteractor))
+        let mainMenuView = mockFactory.makeView(for: .mainMenu(presenter: mockMainMenuInteractor))
         let newGameView = mockFactory.makeView(for: .newGame(presenter: mockNewGameInteractor))
         let teamSelectView = mockFactory.makeView(for: .teamSelect(interactor: mockTeamSelectInteractor))
         let teamView = mockFactory.makeView(for: .team(interactor: mockTeamInteractor))
@@ -344,7 +344,7 @@ struct ViewFactoryTests {
         let startTime = Date()
         
         for _ in 0..<100 {
-            _ = factory.makeView(for: .mainMenu(interactor: mockInteractor))
+            _ = factory.makeView(for: .mainMenu(presenter: mockInteractor))
         }
         
         let endTime = Date()

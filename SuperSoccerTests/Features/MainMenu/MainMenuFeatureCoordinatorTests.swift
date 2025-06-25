@@ -82,7 +82,7 @@ struct MainMenuFeatureCoordinatorTests {
         let coordinator = container.makeMainMenuCoordinator()
         
         // Act
-        coordinator.interactorDidSelectNewGame()
+        coordinator.businessLogicDidSelectNewGame()
         
         // Assert - We can't directly access childCoordinators as it's private
         // But we can test that the method executes without error

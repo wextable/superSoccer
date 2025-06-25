@@ -12,6 +12,8 @@ protocol DataManagerFactoryProtocol {
     func makeDataManager() -> DataManagerProtocol
 }
 
+// MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
+
 #if DEBUG
 class MockDataManagerFactory: DataManagerFactoryProtocol {
     func makeDataManager() -> DataManagerProtocol {

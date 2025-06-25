@@ -76,6 +76,8 @@ final class TeamSelectInteractor: TeamSelectInteractorProtocol {
     }
 }
 
+// MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
+
 #if DEBUG
 extension TeamSelectInteractor {
     var testHooks: TestHooks { TestHooks(target: self) }

@@ -22,6 +22,7 @@ protocol TeamInteractorDelegate: AnyObject {
 protocol TeamInteractorProtocol: AnyObject {
     var viewModel: TeamViewModel { get }
     var eventBus: TeamEventBus { get }
+    var delegate: TeamInteractorDelegate? { get set }
 }
 
 class TeamInteractor: TeamInteractorProtocol {
@@ -30,15 +31,13 @@ class TeamInteractor: TeamInteractorProtocol {
     
     private let userTeamId: String
     private let dataManager: DataManagerProtocol
-    private weak var delegate: TeamInteractorDelegate?
+    weak var delegate: TeamInteractorDelegate?
     private var cancellables = Set<AnyCancellable>()
     
     init(userTeamId: String,
-         dataManager: DataManagerProtocol,
-         delegate: TeamInteractorDelegate) {
+         dataManager: DataManagerProtocol) {
         self.userTeamId = userTeamId
         self.dataManager = dataManager
-        self.delegate = delegate
         
         self.viewModel = TeamViewModel(
             coachName: "",
@@ -158,10 +157,13 @@ class TeamInteractor: TeamInteractorProtocol {
     }
 }
 
+// MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
+
 #if DEBUG
 class MockTeamInteractor: TeamInteractorProtocol {
     @Published var viewModel: TeamViewModel
     let eventBus = TeamEventBus()
+    weak var delegate: TeamInteractorDelegate?
     
     init() {
         self.viewModel = .make()

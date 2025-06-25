@@ -65,7 +65,7 @@ class InGameCoordinator: BaseFeatureCoordinator<InGameCoordinatorResult> {
         let teamCoordinator = TeamFeatureCoordinator(
             userTeamId: careerResult.userTeamId,
             navigationCoordinator: teamTabNavigationCoordinator,
-            dataManager: dataManager
+            interactorFactory: DependencyContainer.shared.interactorFactory
         )
         
         startChild(teamCoordinator) { [weak self] result in
@@ -80,6 +80,8 @@ class InGameCoordinator: BaseFeatureCoordinator<InGameCoordinatorResult> {
         }
     }
 }
+
+// MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
 
 #if DEBUG
 class MockInGameCoordinator: InGameCoordinator {

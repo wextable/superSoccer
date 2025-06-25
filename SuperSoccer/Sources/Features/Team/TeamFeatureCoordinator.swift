@@ -15,26 +15,25 @@ enum TeamCoordinatorResult: CoordinatorResult {
 class TeamFeatureCoordinator: BaseFeatureCoordinator<TeamCoordinatorResult> {
     private let userTeamId: String
     private let navigationCoordinator: NavigationCoordinatorProtocol
-    private let dataManager: DataManagerProtocol
+    private let interactorFactory: InteractorFactoryProtocol
+    private var interactor: TeamInteractorProtocol?
     
     init(userTeamId: String,
          navigationCoordinator: NavigationCoordinatorProtocol,
-         dataManager: DataManagerProtocol) {
+         interactorFactory: InteractorFactoryProtocol) {
         self.userTeamId = userTeamId
         self.navigationCoordinator = navigationCoordinator
-        self.dataManager = dataManager
+        self.interactorFactory = interactorFactory
         super.init()
     }
     
     override func start() {
-        let teamInteractor = TeamInteractor(
-            userTeamId: userTeamId,
-            dataManager: dataManager,
-            delegate: self
-        )
-        
-        let teamScreen = NavigationRouter.Screen.team(interactor: teamInteractor)
         Task { @MainActor in
+            let teamInteractor = interactorFactory.makeTeamInteractor(userTeamId: userTeamId)
+            teamInteractor.delegate = self
+            self.interactor = teamInteractor
+            
+            let teamScreen = NavigationRouter.Screen.team(interactor: teamInteractor)
             self.navigationCoordinator.replaceStackWith(teamScreen)
         }        
     }
@@ -45,3 +44,28 @@ extension TeamFeatureCoordinator: TeamInteractorDelegate {
         finish(with: .playerSelected(playerId: playerId))
     }
 }
+
+// MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
+
+#if DEBUG
+extension TeamFeatureCoordinator {
+    var testHooks: TestHooks { TestHooks(target: self) }
+    
+    struct TestHooks {
+        let target: TeamFeatureCoordinator
+        
+        var childCoordinators: [any BaseFeatureCoordinatorType] { target.testChildCoordinators }
+        var navigationCoordinator: NavigationCoordinatorProtocol { target.navigationCoordinator }
+        var interactorFactory: InteractorFactoryProtocol { target.interactorFactory }
+        var userTeamId: String { target.userTeamId }
+        var interactor: TeamInteractorProtocol? { target.interactor }
+        
+        func simulateChildFinish<ChildResult: CoordinatorResult>(
+            _ childCoordinator: BaseFeatureCoordinator<ChildResult>,
+            with result: ChildResult
+        ) {
+            childCoordinator.finish(with: result)
+        }
+    }
+}
+#endif

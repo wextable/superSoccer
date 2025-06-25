@@ -14,15 +14,13 @@ enum MainMenuCoordinatorResult: CoordinatorResult {
 
 class MainMenuFeatureCoordinator: BaseFeatureCoordinator<MainMenuCoordinatorResult> {
     private let navigationCoordinator: NavigationCoordinatorProtocol
-    private let dataManager: DataManagerProtocol
     private let interactor: MainMenuInteractorProtocol
 
     init(navigationCoordinator: NavigationCoordinatorProtocol, 
-         dataManager: DataManagerProtocol) {
+         interactorFactory: InteractorFactoryProtocol) {
         self.navigationCoordinator = navigationCoordinator
-        self.dataManager = dataManager
         
-        interactor = MainMenuInteractor(dataManager: dataManager)
+        interactor = interactorFactory.makeMainMenuInteractor()
         
         super.init()
         
@@ -35,10 +33,11 @@ class MainMenuFeatureCoordinator: BaseFeatureCoordinator<MainMenuCoordinatorResu
         }
     }
     
+    @MainActor
     func handleNewGameSelected() {
         let newGameCoordinator = NewGameFeatureCoordinator(
             navigationCoordinator: navigationCoordinator,
-            dataManager: dataManager
+            interactorFactory: DependencyContainer.shared.interactorFactory
         )
         
         startChild(newGameCoordinator) { [weak self] result in
@@ -56,9 +55,13 @@ class MainMenuFeatureCoordinator: BaseFeatureCoordinator<MainMenuCoordinatorResu
                                                
 extension MainMenuFeatureCoordinator: MainMenuInteractorDelegate {
     func interactorDidSelectNewGame() {
-        handleNewGameSelected()
+        Task { @MainActor in
+            handleNewGameSelected()
+        }
     }
 }
+
+// MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
 
 #if DEBUG
 extension MainMenuFeatureCoordinator {
@@ -69,7 +72,6 @@ extension MainMenuFeatureCoordinator {
         
         var childCoordinators: [any BaseFeatureCoordinatorType] { target.testChildCoordinators }
         var navigationCoordinator: NavigationCoordinatorProtocol { target.navigationCoordinator }
-        var dataManager: DataManagerProtocol { target.dataManager }
         var interactor: MainMenuInteractorProtocol { target.interactor }
         
         func simulateChildFinish<ChildResult: CoordinatorResult>(

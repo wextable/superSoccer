@@ -32,6 +32,8 @@ protocol DataManagerProtocol {
     var coachPublisher: AnyPublisher<[Coach], Never> { get }
 }
 
+// MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
+
 #if DEBUG
 class MockDataManager: DataManagerProtocol {
     @Published var mockCareers: [Career] = []

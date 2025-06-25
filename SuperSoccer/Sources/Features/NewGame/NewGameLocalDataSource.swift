@@ -47,6 +47,8 @@ final class NewGameLocalDataSource: NewGameLocalDataSourceProtocol {
     }
 }
 
+// MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
+
 #if DEBUG
 class MockNewGameLocalDataSource: NewGameLocalDataSourceProtocol {
     private let dataSubject = CurrentValueSubject<NewGameLocalDataSource.Data, Never>(

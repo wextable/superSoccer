@@ -11,6 +11,8 @@ struct Coach: Identifiable, Hashable, Equatable {
     let lastName: String
 }
 
+// MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
+
 #if DEBUG
 extension Coach {
     static func make(

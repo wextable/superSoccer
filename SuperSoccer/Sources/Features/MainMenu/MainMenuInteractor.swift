@@ -59,7 +59,6 @@ final class MainMenuInteractor: MainMenuInteractorProtocol {
     
     private func subscribeToEvents() {
         eventBus
-//            .receive(on: DispatchQueue.main)
             .sink { [weak self] event in
                 switch event {
                 case .newGameSelected:
@@ -73,6 +72,8 @@ final class MainMenuInteractor: MainMenuInteractorProtocol {
         delegate?.interactorDidSelectNewGame()
     }
 }
+
+// MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
 
 #if DEBUG
 extension MainMenuInteractor {

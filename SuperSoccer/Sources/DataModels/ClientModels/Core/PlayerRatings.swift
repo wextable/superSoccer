@@ -26,6 +26,8 @@ struct PlayerRatings: Identifiable, Hashable, Equatable {
     let positioning: Int
 }
 
+// MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
+
 #if DEBUG
 extension PlayerRatings {
     static func make(

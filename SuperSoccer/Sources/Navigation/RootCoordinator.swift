@@ -34,7 +34,9 @@ class RootCoordinator: BaseFeatureCoordinator<RootCoordinatorResult> {
             guard let self else { return }
             self.splashTimer?.invalidate()
             self.splashTimer = nil
-            self.startMainMenuFlow()
+            Task { @MainActor in
+                self.startMainMenuFlow()
+            }
         }
     }
     
@@ -43,10 +45,11 @@ class RootCoordinator: BaseFeatureCoordinator<RootCoordinatorResult> {
         splashTimer = nil
     }
         
+    @MainActor
     private func startMainMenuFlow() {
         let mainMenuCoordinator = MainMenuFeatureCoordinator(
             navigationCoordinator: navigationCoordinator,
-            dataManager: dataManager
+            interactorFactory: DependencyContainer.shared.interactorFactory
         )
         
         // Start the coordinator first so it registers itself
@@ -68,12 +71,16 @@ class RootCoordinator: BaseFeatureCoordinator<RootCoordinatorResult> {
         startChild(inGameCoordinator) { [weak self] result in
             switch result {
             case .exitToMainMenu:
-                self?.startMainMenuFlow()
+                Task { @MainActor in
+                    self?.startMainMenuFlow()
+                }
             }
         }
     }
     
 }
+
+// MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
 
 #if DEBUG
 extension RootCoordinator {

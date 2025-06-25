@@ -15,15 +15,13 @@ enum TeamSelectCoordinatorResult: CoordinatorResult {
 
 class TeamSelectFeatureCoordinator: BaseFeatureCoordinator<TeamSelectCoordinatorResult> {
     private let navigationCoordinator: NavigationCoordinatorProtocol
-    private let dataManager: DataManagerProtocol
-    private let interactor: TeamSelectInteractor
+    private let interactor: TeamSelectInteractorProtocol
     
     init(navigationCoordinator: NavigationCoordinatorProtocol,
-         dataManager: DataManagerProtocol) {
+         interactorFactory: InteractorFactoryProtocol) {
         self.navigationCoordinator = navigationCoordinator
-        self.dataManager = dataManager
         
-        interactor = TeamSelectInteractor(dataManager: dataManager)
+        interactor = interactorFactory.makeTeamSelectInteractor()
         
         super.init()
         
@@ -48,6 +46,8 @@ extension TeamSelectFeatureCoordinator: TeamSelectInteractorDelegate {
     }
 }
 
+// MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
+
 #if DEBUG
 extension TeamSelectFeatureCoordinator {
     var testHooks: TestHooks { TestHooks(target: self) }
@@ -57,8 +57,7 @@ extension TeamSelectFeatureCoordinator {
         
         var childCoordinators: [any BaseFeatureCoordinatorType] { target.testChildCoordinators }
         var navigationCoordinator: NavigationCoordinatorProtocol { target.navigationCoordinator }
-        var dataManager: DataManagerProtocol { target.dataManager }
-        var interactor: TeamSelectInteractor { target.interactor }
+        var interactor: TeamSelectInteractorProtocol { target.interactor }
         
         func simulateChildFinish<ChildResult: CoordinatorResult>(
             _ childCoordinator: BaseFeatureCoordinator<ChildResult>,

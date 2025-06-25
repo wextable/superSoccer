@@ -30,6 +30,8 @@ struct TeamThumbnailView: View {
     TeamThumbnailView(viewModel: .make())
 }
 
+// MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
+
 #if DEBUG
 extension TeamThumbnailViewModel {
     static func make(

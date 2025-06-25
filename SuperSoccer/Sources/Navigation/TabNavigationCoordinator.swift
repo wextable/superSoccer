@@ -41,6 +41,8 @@ class TabNavigationCoordinator: NavigationCoordinatorProtocol {
     }
 }
 
+// MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
+
 #if DEBUG
 class MockTabNavigationCoordinator: NavigationCoordinatorProtocol {
     var screenNavigatedTo: NavigationRouter.Screen?

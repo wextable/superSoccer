@@ -16,15 +16,9 @@ struct NewGameFeatureCoordinatorTests {
     @Test("NewGameFeatureCoordinator initializes with correct dependencies")
     @MainActor
     func testInitializationWithCorrectDependencies() {
-        // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        
-        // Act
-        let coordinator = NewGameFeatureCoordinator(
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        // Arrange & Act
+        let container = MockDependencyContainer()
+        let coordinator = container.makeNewGameCoordinator()
         
         // Assert
         #expect(coordinator != nil)
@@ -33,19 +27,13 @@ struct NewGameFeatureCoordinatorTests {
     @Test("NewGameFeatureCoordinator sets up interactor delegate correctly")
     @MainActor
     func testInteractorDelegateSetup() {
-        // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        
-        // Act
-        let coordinator = NewGameFeatureCoordinator(
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        // Arrange & Act
+        let container = MockDependencyContainer()
+        let coordinator = container.makeNewGameCoordinator()
         
         // Assert - The interactor should have the coordinator as its delegate
-        // We can't directly access the private interactor, but we can test the behavior
-        #expect(coordinator != nil)
+        // We can verify this via the mock interactor
+        #expect(container.mockInteractorFactory.mockNewGameInteractor.delegate === coordinator)
     }
     
     // MARK: - Start Tests
@@ -54,12 +42,8 @@ struct NewGameFeatureCoordinatorTests {
     @MainActor
     func testStartNavigatesToNewGame() async {
         // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        let coordinator = NewGameFeatureCoordinator(
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        let container = MockDependencyContainer()
+        let coordinator = container.makeNewGameCoordinator()
         
         // Act
         coordinator.start()
@@ -68,7 +52,7 @@ struct NewGameFeatureCoordinatorTests {
         try? await Task.sleep(for: .milliseconds(10))
         
         // Assert
-        #expect(mockNavigationCoordinator.screenNavigatedTo != nil)
+        #expect(container.mockNavigationCoordinator.screenNavigatedTo != nil)
     }
     
     // MARK: - Team Selection Tests
@@ -77,12 +61,8 @@ struct NewGameFeatureCoordinatorTests {
     @MainActor
     func testHandleTeamSelectionRequest() {
         // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        let coordinator = NewGameFeatureCoordinator(
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        let container = MockDependencyContainer()
+        let coordinator = container.makeNewGameCoordinator()
         
         // Act
         coordinator.interactorDidRequestTeamSelection()
@@ -96,12 +76,8 @@ struct NewGameFeatureCoordinatorTests {
     @MainActor
     func testHandleTeamSelectionResult() {
         // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        let coordinator = NewGameFeatureCoordinator(
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        let container = MockDependencyContainer()
+        let coordinator = container.makeNewGameCoordinator()
         
         // Act - We can't directly test private methods, but we can test the delegate methods
         coordinator.interactorDidRequestTeamSelection()
@@ -116,12 +92,8 @@ struct NewGameFeatureCoordinatorTests {
     @MainActor
     func testHandleGameCreation() {
         // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        let coordinator = NewGameFeatureCoordinator(
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        let container = MockDependencyContainer()
+        let coordinator = container.makeNewGameCoordinator()
         var receivedResult: NewGameCoordinatorResult?
         
         coordinator.onFinish = { result in
@@ -145,12 +117,8 @@ struct NewGameFeatureCoordinatorTests {
     @MainActor
     func testHandleCancellation() {
         // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        let coordinator = NewGameFeatureCoordinator(
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        let container = MockDependencyContainer()
+        let coordinator = container.makeNewGameCoordinator()
         var receivedResult: NewGameCoordinatorResult?
         
         coordinator.onFinish = { result in
@@ -175,12 +143,8 @@ struct NewGameFeatureCoordinatorTests {
     @MainActor
     func testTeamSelectionCoordinatorLifecycle() {
         // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        let coordinator = NewGameFeatureCoordinator(
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        let container = MockDependencyContainer()
+        let coordinator = container.makeNewGameCoordinator()
         
         // Act - Start team selection
         coordinator.interactorDidRequestTeamSelection()
@@ -196,12 +160,8 @@ struct NewGameFeatureCoordinatorTests {
     @MainActor
     func testInteractorDelegateMethods() {
         // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        let coordinator = NewGameFeatureCoordinator(
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        let container = MockDependencyContainer()
+        let coordinator = container.makeNewGameCoordinator()
         var finishCallCount = 0
         
         coordinator.onFinish = { _ in
@@ -234,12 +194,8 @@ struct NewGameFeatureCoordinatorTests {
     @MainActor
     func testFinishesWithCorrectResultTypes() {
         // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        let coordinator = NewGameFeatureCoordinator(
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        let container = MockDependencyContainer()
+        let coordinator = container.makeNewGameCoordinator()
         var receivedResults: [NewGameCoordinatorResult] = []
         
         coordinator.onFinish = { result in
@@ -275,12 +231,8 @@ struct NewGameFeatureCoordinatorTests {
     @MainActor
     func testMultipleTeamSelectionRequests() {
         // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        let coordinator = NewGameFeatureCoordinator(
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        let container = MockDependencyContainer()
+        let coordinator = container.makeNewGameCoordinator()
         
         // Act - Multiple team selection requests
         coordinator.interactorDidRequestTeamSelection()
@@ -295,12 +247,8 @@ struct NewGameFeatureCoordinatorTests {
     @MainActor
     func testFinishAfterAlreadyFinished() {
         // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        let coordinator = NewGameFeatureCoordinator(
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        let container = MockDependencyContainer()
+        let coordinator = container.makeNewGameCoordinator()
         var finishCallCount = 0
         
         coordinator.onFinish = { _ in

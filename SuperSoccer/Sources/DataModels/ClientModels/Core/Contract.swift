@@ -19,6 +19,8 @@ struct Contract: Identifiable, Hashable, Equatable {
     let teamId: String
 }
 
+// MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
+
 #if DEBUG
 extension Contract {
     static func make(

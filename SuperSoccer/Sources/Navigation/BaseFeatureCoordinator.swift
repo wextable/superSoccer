@@ -19,6 +19,11 @@ class BaseFeatureCoordinator<Result: CoordinatorResult>: BaseFeatureCoordinatorT
     weak var parentCoordinator: (any BaseFeatureCoordinatorType)?
     private var childCoordinators: [any BaseFeatureCoordinatorType] = []
     
+    // Test-only callback for child coordinator changes
+    #if DEBUG
+    var testOnChildCoordinatorAdded: ((any BaseFeatureCoordinatorType) -> Void)?
+    #endif
+    
     // The magic closure that handles results and cleanup
     var onFinish: ((Result) -> Void)?
     
@@ -36,6 +41,11 @@ class BaseFeatureCoordinator<Result: CoordinatorResult>: BaseFeatureCoordinatorT
                 self?.removeChild(child)
             }
         }
+        
+        #if DEBUG
+        testOnChildCoordinatorAdded?(childCoordinator)
+        #endif
+        
         childCoordinator.start()
     }
     

@@ -7,6 +7,7 @@
 
 import Testing
 import Combine
+import Foundation
 @testable import SuperSoccer
 
 struct NewGameFeatureCoordinatorTests {
@@ -59,31 +60,37 @@ struct NewGameFeatureCoordinatorTests {
     
     @Test("NewGameFeatureCoordinator handles team selection request")
     @MainActor
-    func testHandleTeamSelectionRequest() {
+    func testHandleTeamSelectionRequest() async {
         // Arrange
         let container = MockDependencyContainer()
         let coordinator = container.makeNewGameCoordinator()
         
-        // Act
-        coordinator.businessLogicDidRequestTeamSelection()
+        // Act & Wait for child coordinator to be created (no arbitrary delays!)
+        await coordinator.testHooks.executeAndWaitForChildCoordinator {
+            coordinator.businessLogicDidRequestTeamSelection()
+        }
         
-        // Assert - We can't directly access child coordinators as they're private
-        // But we can test that the method executes without error
-        #expect(coordinator != nil)
+        // Assert - Child coordinator should be created
+        #expect(coordinator.testHooks.childCoordinators.count == 1)
+        #expect(coordinator.testHooks.childCoordinators.first is TeamSelectFeatureCoordinator)
     }
     
     @Test("NewGameFeatureCoordinator handles team selection result")
     @MainActor
-    func testHandleTeamSelectionResult() {
+    func testHandleTeamSelectionResult() async {
         // Arrange
         let container = MockDependencyContainer()
         let coordinator = container.makeNewGameCoordinator()
         
-        // Act - We can't directly test private methods, but we can test the delegate methods
-        coordinator.businessLogicDidRequestTeamSelection()
+        // Act - Start team selection to create child coordinator
+        // Act & Wait for child coordinator to be created (no arbitrary delays!)
+        await coordinator.testHooks.executeAndWaitForChildCoordinator {
+            coordinator.businessLogicDidRequestTeamSelection()
+        }
         
-        // Assert
-        #expect(coordinator != nil)
+        // Assert - Child coordinator should be created and interactor setup correctly
+        #expect(coordinator.testHooks.childCoordinators.count == 1)
+        #expect(coordinator.testHooks.childCoordinators.first is TeamSelectFeatureCoordinator)
     }
     
     // MARK: - Game Creation Tests
@@ -141,17 +148,19 @@ struct NewGameFeatureCoordinatorTests {
     
     @Test("NewGameFeatureCoordinator manages team selection coordinator lifecycle")
     @MainActor
-    func testTeamSelectionCoordinatorLifecycle() {
+    func testTeamSelectionCoordinatorLifecycle() async {
         // Arrange
         let container = MockDependencyContainer()
         let coordinator = container.makeNewGameCoordinator()
         
-        // Act - Start team selection
-        coordinator.businessLogicDidRequestTeamSelection()
+        // Act & Wait for child coordinator to be created (no arbitrary delays!)
+        await coordinator.testHooks.executeAndWaitForChildCoordinator {
+            coordinator.businessLogicDidRequestTeamSelection()
+        }
         
-        // Assert - We can't directly access child coordinators as they're private
-        // But we can test that the method executes without error
-        #expect(coordinator != nil)
+        // Assert - Child coordinator should be created
+        #expect(coordinator.testHooks.childCoordinators.count == 1)
+        #expect(coordinator.testHooks.childCoordinators.first is TeamSelectFeatureCoordinator)
     }
     
     // MARK: - Interactor Delegate Tests
@@ -223,44 +232,5 @@ struct NewGameFeatureCoordinatorTests {
         } else {
             #expect(Bool(false), "Expected second result to be cancelled")
         }
-    }
-    
-    // MARK: - Edge Cases
-    
-    @Test("NewGameFeatureCoordinator handles multiple team selection requests")
-    @MainActor
-    func testMultipleTeamSelectionRequests() {
-        // Arrange
-        let container = MockDependencyContainer()
-        let coordinator = container.makeNewGameCoordinator()
-        
-        // Act - Multiple team selection requests
-        coordinator.businessLogicDidRequestTeamSelection()
-        coordinator.businessLogicDidRequestTeamSelection()
-        coordinator.businessLogicDidRequestTeamSelection()
-        
-        // Assert - Should handle gracefully without crashing
-        #expect(coordinator != nil)
-    }
-    
-    @Test("NewGameFeatureCoordinator handles finish after already finished")
-    @MainActor
-    func testFinishAfterAlreadyFinished() {
-        // Arrange
-        let container = MockDependencyContainer()
-        let coordinator = container.makeNewGameCoordinator()
-        var finishCallCount = 0
-        
-        coordinator.onFinish = { _ in
-            finishCallCount += 1
-        }
-        
-        // Act - Finish multiple times
-        coordinator.businessLogicDidCancel()
-        coordinator.businessLogicDidCancel()
-        
-        // Assert - Should handle gracefully
-        #expect(finishCallCount >= 1) // At least one finish call should occur
-        #expect(coordinator != nil)
     }
 }

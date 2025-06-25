@@ -7,6 +7,7 @@
 
 import Testing
 import Combine
+import Foundation
 @testable import SuperSoccer
 
 struct MainMenuFeatureCoordinatorTests {
@@ -67,26 +68,28 @@ struct MainMenuFeatureCoordinatorTests {
         // Act
         coordinator.handleNewGameSelected()
         
-        // Assert - We can't directly access childCoordinators as it's private
-        // But we can test that the method executes without error
-        #expect(coordinator != nil)
+        // Assert - Child coordinator should be created
+        #expect(coordinator.testHooks.childCoordinators.count == 1)
+        #expect(coordinator.testHooks.childCoordinators.first is NewGameFeatureCoordinator)
     }
     
     // MARK: - Interactor Delegate Tests
     
     @Test("MainMenuFeatureCoordinator responds to interactor new game selection")
     @MainActor
-    func testInteractorNewGameSelection() {
+    func testInteractorNewGameSelection() async {
         // Arrange
         let container = MockDependencyContainer()
         let coordinator = container.makeMainMenuCoordinator()
         
-        // Act
-        coordinator.businessLogicDidSelectNewGame()
+        // Act & Wait for child coordinator to be created (no arbitrary delays!)
+        await coordinator.testHooks.executeAndWaitForChildCoordinator {
+            coordinator.businessLogicDidSelectNewGame()
+        }
         
-        // Assert - We can't directly access childCoordinators as it's private
-        // But we can test that the method executes without error
-        #expect(coordinator != nil)
+        // Assert - Child coordinator should be created
+        #expect(coordinator.testHooks.childCoordinators.count == 1)
+        #expect(coordinator.testHooks.childCoordinators.first is NewGameFeatureCoordinator)
     }
     
     // MARK: - Child Coordinator Management Tests

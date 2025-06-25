@@ -119,6 +119,25 @@ extension NewGameFeatureCoordinator {
         ) {
             childCoordinator.finish(with: result)
         }
+        
+        // New async helper for waiting for child coordinators
+        func waitForChildCoordinator() async {
+            await withCheckedContinuation { continuation in
+                target.testOnChildCoordinatorAdded = { _ in
+                    continuation.resume()
+                }
+            }
+        }
+        
+        // Helper to execute an action and wait for child coordinator
+        func executeAndWaitForChildCoordinator(_ action: @escaping () -> Void) async {
+            await withCheckedContinuation { continuation in
+                target.testOnChildCoordinatorAdded = { _ in
+                    continuation.resume()
+                }
+                action()
+            }
+        }
     }
 }
 

@@ -15,6 +15,8 @@ struct CreateNewCareerRequest: Hashable, Equatable {
     let seasonYear: Int
 }
 
+// MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
+
 #if DEBUG
 extension CreateNewCareerRequest {
     static func make(

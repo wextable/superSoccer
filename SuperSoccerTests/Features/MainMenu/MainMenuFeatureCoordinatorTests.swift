@@ -16,15 +16,9 @@ struct MainMenuFeatureCoordinatorTests {
     @Test("MainMenuFeatureCoordinator initializes with correct dependencies")
     @MainActor
     func testInitializationWithCorrectDependencies() {
-        // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        
-        // Act
-        let coordinator = MainMenuFeatureCoordinator(
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        // Arrange & Act
+        let container = MockDependencyContainer()
+        let coordinator = container.makeMainMenuCoordinator()
         
         // Assert
         #expect(coordinator != nil)
@@ -33,19 +27,13 @@ struct MainMenuFeatureCoordinatorTests {
     @Test("MainMenuFeatureCoordinator sets up interactor delegate correctly")
     @MainActor
     func testInteractorDelegateSetup() {
-        // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        
-        // Act
-        let coordinator = MainMenuFeatureCoordinator(
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        // Arrange & Act
+        let container = MockDependencyContainer()
+        let coordinator = container.makeMainMenuCoordinator()
         
         // Assert - The interactor should have the coordinator as its delegate
-        // We can't directly access the private interactor, but we can test the behavior
-        #expect(coordinator != nil)
+        // We can verify this via the mock interactor
+        #expect(container.mockInteractorFactory.mockMainMenuInteractor.delegate === coordinator)
     }
     
     // MARK: - Start Tests
@@ -54,12 +42,8 @@ struct MainMenuFeatureCoordinatorTests {
     @MainActor
     func testStartNavigatesToMainMenu() async {
         // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        let coordinator = MainMenuFeatureCoordinator(
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        let container = MockDependencyContainer()
+        let coordinator = container.makeMainMenuCoordinator()
         
         // Act
         coordinator.start()
@@ -68,7 +52,7 @@ struct MainMenuFeatureCoordinatorTests {
         try? await Task.sleep(for: .milliseconds(10))
         
         // Assert
-        #expect(mockNavigationCoordinator.replaceStackWithCalled == true)
+        #expect(container.mockNavigationCoordinator.replaceStackWithCalled == true)
     }
     
     // MARK: - New Game Selection Tests
@@ -77,12 +61,8 @@ struct MainMenuFeatureCoordinatorTests {
     @MainActor
     func testHandleNewGameSelection() {
         // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        let coordinator = MainMenuFeatureCoordinator(
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        let container = MockDependencyContainer()
+        let coordinator = container.makeMainMenuCoordinator()
         
         // Act
         coordinator.handleNewGameSelected()
@@ -98,12 +78,8 @@ struct MainMenuFeatureCoordinatorTests {
     @MainActor
     func testInteractorNewGameSelection() {
         // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        let coordinator = MainMenuFeatureCoordinator(
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        let container = MockDependencyContainer()
+        let coordinator = container.makeMainMenuCoordinator()
         
         // Act
         coordinator.interactorDidSelectNewGame()
@@ -119,12 +95,8 @@ struct MainMenuFeatureCoordinatorTests {
     @MainActor
     func testChildCoordinatorLifecycle() throws {
         // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        let coordinator = MainMenuFeatureCoordinator(
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        let container = MockDependencyContainer()
+        let coordinator = container.makeMainMenuCoordinator()
         var receivedResult: MainMenuCoordinatorResult?
         
         coordinator.onFinish = { result in
@@ -158,12 +130,8 @@ struct MainMenuFeatureCoordinatorTests {
     @MainActor
     func testChildCoordinatorCancellation() throws {
         // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        let coordinator = MainMenuFeatureCoordinator(
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        let container = MockDependencyContainer()
+        let coordinator = container.makeMainMenuCoordinator()
         var finishCalled = false
         
         coordinator.onFinish = { _ in
@@ -191,12 +159,8 @@ struct MainMenuFeatureCoordinatorTests {
     @MainActor
     func testFinishesWithCorrectResultWhenGameCreated() {
         // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        let coordinator = MainMenuFeatureCoordinator(
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        let container = MockDependencyContainer()
+        let coordinator = container.makeMainMenuCoordinator()
         var receivedResult: MainMenuCoordinatorResult?
         
         coordinator.onFinish = { result in

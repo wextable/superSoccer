@@ -97,6 +97,8 @@ struct TeamHeaderView: View {
     }
 }
 
+// MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
+
 #if DEBUG
 struct TeamHeaderView_Previews: PreviewProvider {
     static var previews: some View {

@@ -48,6 +48,8 @@ struct TeamView: View {
     }
 }
 
+// MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
+
 #if DEBUG
 struct TeamView_Previews: PreviewProvider {
     static var previews: some View {

@@ -23,6 +23,8 @@ struct TeamViewModel {
     let playerRows: [PlayerRowViewModel]
 }
 
+// MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
+
 #if DEBUG
 extension TeamHeaderViewModel {
     static func make(

@@ -162,6 +162,8 @@ final class NewGameInteractor: NewGameInteractorProtocol {
     }
 }
 
+// MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
+
 #if DEBUG
 extension NewGameInteractor {
     var testHooks: TestHooks { TestHooks(target: self) }

@@ -16,15 +16,9 @@ struct TeamSelectFeatureCoordinatorTests {
     @Test("TeamSelectFeatureCoordinator initializes with correct dependencies")
     @MainActor
     func testInitializationWithCorrectDependencies() {
-        // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        
-        // Act
-        let coordinator = TeamSelectFeatureCoordinator(
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        // Arrange & Act
+        let container = MockDependencyContainer()
+        let coordinator = container.makeTeamSelectCoordinator()
         
         // Assert
         #expect(coordinator != nil)
@@ -36,12 +30,8 @@ struct TeamSelectFeatureCoordinatorTests {
     @MainActor
     func testStartPresentsTeamSelectSheet() async {
         // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        let coordinator = TeamSelectFeatureCoordinator(
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        let container = MockDependencyContainer()
+        let coordinator = container.makeTeamSelectCoordinator()
         
         // Act
         coordinator.start()
@@ -50,7 +40,7 @@ struct TeamSelectFeatureCoordinatorTests {
         try? await Task.sleep(for: .milliseconds(10))
         
         // Assert
-        #expect(mockNavigationCoordinator.screenToPresent != nil)
+        #expect(container.mockNavigationCoordinator.screenToPresent != nil)
     }
     
     // MARK: - Team Selection Tests
@@ -59,12 +49,8 @@ struct TeamSelectFeatureCoordinatorTests {
     @MainActor
     func testHandleTeamSelection() {
         // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        let coordinator = TeamSelectFeatureCoordinator(
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        let container = MockDependencyContainer()
+        let coordinator = container.makeTeamSelectCoordinator()
         var receivedResult: TeamSelectCoordinatorResult?
         
         coordinator.onFinish = { result in
@@ -89,12 +75,8 @@ struct TeamSelectFeatureCoordinatorTests {
     @MainActor
     func testHandleCancellation() {
         // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        let coordinator = TeamSelectFeatureCoordinator(
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        let container = MockDependencyContainer()
+        let coordinator = container.makeTeamSelectCoordinator()
         var receivedResult: TeamSelectCoordinatorResult?
         
         coordinator.onFinish = { result in
@@ -119,12 +101,8 @@ struct TeamSelectFeatureCoordinatorTests {
     @MainActor
     func testInteractorDelegateMethods() {
         // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        let coordinator = TeamSelectFeatureCoordinator(
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        let container = MockDependencyContainer()
+        let coordinator = container.makeTeamSelectCoordinator()
         var finishCallCount = 0
         
         coordinator.onFinish = { _ in
@@ -153,12 +131,8 @@ struct TeamSelectFeatureCoordinatorTests {
     @MainActor
     func testFinishesWithCorrectResultTypes() {
         // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        let coordinator = TeamSelectFeatureCoordinator(
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        let container = MockDependencyContainer()
+        let coordinator = container.makeTeamSelectCoordinator()
         var receivedResults: [TeamSelectCoordinatorResult] = []
         
         coordinator.onFinish = { result in
@@ -194,12 +168,8 @@ struct TeamSelectFeatureCoordinatorTests {
     @MainActor
     func testMultipleTeamSelections() {
         // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        let coordinator = TeamSelectFeatureCoordinator(
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        let container = MockDependencyContainer()
+        let coordinator = container.makeTeamSelectCoordinator()
         var finishCallCount = 0
         
         coordinator.onFinish = { _ in
@@ -221,12 +191,8 @@ struct TeamSelectFeatureCoordinatorTests {
     @MainActor
     func testFinishAfterAlreadyFinished() {
         // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        let coordinator = TeamSelectFeatureCoordinator(
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        let container = MockDependencyContainer()
+        let coordinator = container.makeTeamSelectCoordinator()
         var finishCallCount = 0
         
         coordinator.onFinish = { _ in
@@ -246,12 +212,8 @@ struct TeamSelectFeatureCoordinatorTests {
     @MainActor
     func testMixedDelegateCalls() {
         // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        let coordinator = TeamSelectFeatureCoordinator(
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        let container = MockDependencyContainer()
+        let coordinator = container.makeTeamSelectCoordinator()
         var receivedResults: [TeamSelectCoordinatorResult] = []
         
         coordinator.onFinish = { result in
@@ -274,12 +236,8 @@ struct TeamSelectFeatureCoordinatorTests {
     @MainActor
     func testNavigationCoordinatorIntegration() async {
         // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        let coordinator = TeamSelectFeatureCoordinator(
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        let container = MockDependencyContainer()
+        let coordinator = container.makeTeamSelectCoordinator()
         
         // Act
         coordinator.start()
@@ -288,13 +246,37 @@ struct TeamSelectFeatureCoordinatorTests {
         try? await Task.sleep(for: .milliseconds(10))
         
         // Assert
-        #expect(mockNavigationCoordinator.screenToPresent != nil)
+        #expect(container.mockNavigationCoordinator.screenToPresent != nil)
         
         // Verify the screen type is correct
-        if case .teamSelect = mockNavigationCoordinator.screenToPresent {
+        if case .teamSelect = container.mockNavigationCoordinator.screenToPresent {
             // Expected screen type
         } else {
             #expect(Bool(false), "Expected teamSelect screen to be presented")
         }
+    }
+    
+    // MARK: - InteractorFactory Integration Tests
+    
+    @Test("TeamSelectFeatureCoordinator integrates with InteractorFactory correctly")
+    @MainActor
+    func testInteractorFactoryIntegration() async {
+        // Arrange
+        let container = MockDependencyContainer()
+        let coordinator = container.makeTeamSelectCoordinator()
+        
+        // Act
+        coordinator.start()
+        
+        // Wait for async operations
+        try? await Task.sleep(for: .milliseconds(10))
+        
+        // Assert - Verify interactor was created via factory
+        #expect(coordinator.testHooks.interactor === container.mockInteractorFactory.mockTeamSelectInteractor)
+        #expect(coordinator.testHooks.interactor != nil)
+        
+        // Verify the interactor is a mock instance
+        let interactor = coordinator.testHooks.interactor
+        #expect(interactor is MockTeamSelectInteractor)
     }
 }

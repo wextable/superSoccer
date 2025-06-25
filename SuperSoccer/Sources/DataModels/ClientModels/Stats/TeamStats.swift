@@ -40,6 +40,8 @@ struct TeamMatchStats: Identifiable, Hashable, Equatable {
     let shotsOnTarget: Int
 }
 
+// MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
+
 #if DEBUG
 extension TeamCareerStats {
     static func make(

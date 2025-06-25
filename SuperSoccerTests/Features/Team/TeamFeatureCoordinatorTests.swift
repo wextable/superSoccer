@@ -16,16 +16,9 @@ struct TeamFeatureCoordinatorTests {
     @Test("TeamFeatureCoordinator initializes with correct dependencies")
     @MainActor
     func testInitializationWithCorrectDependencies() {
-        // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        
-        // Act
-        let coordinator = TeamFeatureCoordinator(
-            userTeamId: "team1",
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        // Arrange & Act
+        let container = MockDependencyContainer()
+        let coordinator = container.makeTeamCoordinator(userTeamId: "team1")
         
         // Assert
         #expect(coordinator != nil)
@@ -33,21 +26,21 @@ struct TeamFeatureCoordinatorTests {
     
     @Test("TeamFeatureCoordinator sets up interactor delegate correctly")
     @MainActor
-    func testInteractorDelegateSetup() {
+    func testInteractorDelegateSetup() async {
         // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
+        let container = MockDependencyContainer()
+        let coordinator = container.makeTeamCoordinator(userTeamId: "team1")
         
-        // Act
-        let coordinator = TeamFeatureCoordinator(
-            userTeamId: "team1",
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        // Act - Start coordinator which sets up the interactor
+        coordinator.start()
         
-        // Assert - The interactor should have the coordinator as its delegate
-        // We can't directly access the private interactor, but we can test the behavior
-        #expect(coordinator != nil)
+        // Wait for async initialization
+        try? await Task.sleep(for: .milliseconds(10))
+        
+        // Assert - Verify delegate is set through TestHooks
+        let interactor = coordinator.testHooks.interactor
+        #expect(interactor != nil)
+        #expect(interactor?.delegate === coordinator)
     }
     
     // MARK: - Start Tests
@@ -56,13 +49,8 @@ struct TeamFeatureCoordinatorTests {
     @MainActor
     func testStartNavigatesToTeamScreen() async {
         // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        let coordinator = TeamFeatureCoordinator(
-            userTeamId: "team1",
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        let container = MockDependencyContainer()
+        let coordinator = container.makeTeamCoordinator(userTeamId: "team1")
         
         // Act
         coordinator.start()
@@ -71,7 +59,7 @@ struct TeamFeatureCoordinatorTests {
         try? await Task.sleep(for: .milliseconds(10))
         
         // Assert
-        #expect(mockNavigationCoordinator.replaceStackWithCalled == true)
+        #expect(container.mockNavigationCoordinator.replaceStackWithCalled == true)
     }
     
     // MARK: - Player Row Tapped Tests
@@ -80,20 +68,24 @@ struct TeamFeatureCoordinatorTests {
     @MainActor
     func testHandlePlayerRowTapped() {
         // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        let coordinator = TeamFeatureCoordinator(
-            userTeamId: "team1",
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        let container = MockDependencyContainer()
+        let coordinator = container.makeTeamCoordinator(userTeamId: "team1")
+        var receivedResult: TeamCoordinatorResult?
+        
+        coordinator.onFinish = { result in
+            receivedResult = result
+        }
         
         // Act
         coordinator.playerRowTapped("player1")
         
-        // Assert - We can't directly test private implementation details
-        // But we can verify the method executes without error
-        #expect(coordinator != nil)
+        // Assert - Verify coordinator finishes with correct result
+        #expect(receivedResult != nil)
+        if case .playerSelected(let playerId) = receivedResult {
+            #expect(playerId == "player1")
+        } else {
+            #expect(Bool(false), "Expected playerSelected result")
+        }
     }
     
     // MARK: - Interactor Delegate Tests
@@ -102,43 +94,45 @@ struct TeamFeatureCoordinatorTests {
     @MainActor
     func testInteractorPlayerRowTapped() {
         // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        let coordinator = TeamFeatureCoordinator(
-            userTeamId: "team1",
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        let container = MockDependencyContainer()
+        let coordinator = container.makeTeamCoordinator(userTeamId: "team1")
+        var receivedResult: TeamCoordinatorResult?
+        
+        coordinator.onFinish = { result in
+            receivedResult = result
+        }
         
         // Act
-        coordinator.playerRowTapped("player1")
+        coordinator.playerRowTapped("player-123")
         
-        // Assert - We can't directly test private implementation details
-        // But we can verify the method executes without error
-        #expect(coordinator != nil)
+        // Assert - Verify coordinator handles delegate method correctly
+        #expect(receivedResult != nil)
+        if case .playerSelected(let playerId) = receivedResult {
+            #expect(playerId == "player-123")
+        } else {
+            #expect(Bool(false), "Expected playerSelected result")
+        }
     }
     
     // MARK: - Coordination Tests
     
     @Test("TeamFeatureCoordinator coordinates team feature correctly")
     @MainActor
-    func testCoordinatesTeamFeatureCorrectly() {
+    func testCoordinatesTeamFeatureCorrectly() async {
         // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        let coordinator = TeamFeatureCoordinator(
-            userTeamId: "team1",
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        let container = MockDependencyContainer()
+        let coordinator = container.makeTeamCoordinator(userTeamId: "team1")
         
         // Act
         coordinator.start()
         
+        // Wait for async operations
+        try? await Task.sleep(for: .milliseconds(10))
+        
         // Assert - Verify coordinator manages the feature lifecycle
         #expect(coordinator != nil)
-        // Additional assertions would require access to private implementation details
-        // or observable side effects through mock objects
+        #expect(container.mockNavigationCoordinator.replaceStackWithCalled == true)
+        #expect(coordinator.testHooks.interactor != nil)
     }
     
     // MARK: - User Team ID Tests
@@ -147,22 +141,15 @@ struct TeamFeatureCoordinatorTests {
     @MainActor
     func testUsesCorrectUserTeamId() {
         // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
         let expectedTeamId = "user-team-123"
+        let container = MockDependencyContainer()
         
         // Act
-        let coordinator = TeamFeatureCoordinator(
-            userTeamId: expectedTeamId,
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        let coordinator = container.makeTeamCoordinator(userTeamId: expectedTeamId)
         
-        // Assert
+        // Assert - Verify the team ID is stored correctly
         #expect(coordinator != nil)
-        // The team ID is passed to the interactor internally
-        // We can't directly verify this without accessing private properties
-        // But the test ensures the constructor accepts the parameter correctly
+        #expect(coordinator.testHooks.userTeamId == expectedTeamId)
     }
     
     // MARK: - Navigation Integration Tests
@@ -171,13 +158,8 @@ struct TeamFeatureCoordinatorTests {
     @MainActor
     func testNavigationIntegration() async {
         // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        let coordinator = TeamFeatureCoordinator(
-            userTeamId: "team1",
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        let container = MockDependencyContainer()
+        let coordinator = container.makeTeamCoordinator(userTeamId: "team1")
         
         // Act
         coordinator.start()
@@ -186,39 +168,31 @@ struct TeamFeatureCoordinatorTests {
         try? await Task.sleep(for: .milliseconds(10))
         
         // Assert
-        #expect(mockNavigationCoordinator.replaceStackWithCalled == true)
-        // Verify that the coordinator properly integrates with the navigation system
+        #expect(container.mockNavigationCoordinator.replaceStackWithCalled == true)
+        #expect(coordinator.testHooks.navigationCoordinator != nil)
     }
     
-    // MARK: - Data Manager Integration Tests
+    // MARK: - InteractorFactory Integration Tests
     
-    @Test("TeamFeatureCoordinator integrates with data manager correctly")
+    @Test("TeamFeatureCoordinator integrates with InteractorFactory correctly")
     @MainActor
-    func testDataManagerIntegration() {
+    func testInteractorFactoryIntegration() async {
         // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        
-        // Setup some test data
-        let teamInfo = TeamInfo.make(id: "team1", city: "Test", teamName: "Team")
-        let team = Team.make(id: "team1", info: teamInfo, coachId: "coach1", playerIds: [])
-        let coach = Coach.make(id: "coach1", firstName: "Test", lastName: "Coach")
-        
-        mockDataManager.mockTeams = [team]
-        mockDataManager.mockCoaches = [coach]
-        mockDataManager.mockPlayers = []
+        let container = MockDependencyContainer()
+        let coordinator = container.makeTeamCoordinator(userTeamId: "team1")
         
         // Act
-        let coordinator = TeamFeatureCoordinator(
-            userTeamId: "team1",
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        coordinator.start()
         
-        // Assert
-        #expect(coordinator != nil)
-        // The data manager is passed to the interactor internally
-        // Integration is verified through the interactor's data loading behavior
+        // Wait for async operations
+        try? await Task.sleep(for: .milliseconds(10))
+        
+        // Assert - Verify interactor was created via factory  
+        #expect(coordinator.testHooks.interactor != nil)
+        
+        // Verify the interactor is a mock instance
+        let interactor = coordinator.testHooks.interactor
+        #expect(interactor is MockTeamInteractor)
     }
     
     // MARK: - Memory Management Tests
@@ -227,13 +201,8 @@ struct TeamFeatureCoordinatorTests {
     @MainActor
     func testMemoryManagement() {
         // Arrange & Act
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        var coordinator: TeamFeatureCoordinator? = TeamFeatureCoordinator(
-            userTeamId: "team1",
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        let container = MockDependencyContainer()
+        var coordinator: TeamFeatureCoordinator? = container.makeTeamCoordinator(userTeamId: "team1")
         
         // Verify coordinator is created
         #expect(coordinator != nil)
@@ -251,13 +220,13 @@ struct TeamFeatureCoordinatorTests {
     @MainActor
     func testHandlesLifecycleCorrectly() async {
         // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        let coordinator = TeamFeatureCoordinator(
-            userTeamId: "team1",
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
+        let container = MockDependencyContainer()
+        let coordinator = container.makeTeamCoordinator(userTeamId: "team1")
+        var receivedResult: TeamCoordinatorResult?
+        
+        coordinator.onFinish = { result in
+            receivedResult = result
+        }
         
         // Act - Start and simulate interaction
         coordinator.start()
@@ -269,7 +238,14 @@ struct TeamFeatureCoordinatorTests {
         coordinator.playerRowTapped("player1")
         
         // Assert - Coordinator should handle the full lifecycle
-        #expect(mockNavigationCoordinator.replaceStackWithCalled == true)
+        #expect(container.mockNavigationCoordinator.replaceStackWithCalled == true)
         #expect(coordinator != nil)
+        
+        // Verify result handling
+        if case .playerSelected(let playerId) = receivedResult {
+            #expect(playerId == "player1")
+        } else {
+            #expect(Bool(false), "Expected playerSelected result")
+        }
     }
 } 

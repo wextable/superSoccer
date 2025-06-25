@@ -15,15 +15,13 @@ enum NewGameCoordinatorResult: CoordinatorResult {
 
 class NewGameFeatureCoordinator: BaseFeatureCoordinator<NewGameCoordinatorResult> {
     private let navigationCoordinator: NavigationCoordinatorProtocol
-    private let dataManager: DataManagerProtocol
-    private let interactor: NewGameInteractor
+    private let interactor: NewGameInteractorProtocol
     
     init(navigationCoordinator: NavigationCoordinatorProtocol, 
-         dataManager: DataManagerProtocol) {
+         interactorFactory: InteractorFactoryProtocol) {
         self.navigationCoordinator = navigationCoordinator
-        self.dataManager = dataManager
         
-        interactor = NewGameInteractor(dataManager: dataManager)
+        interactor = interactorFactory.makeNewGameInteractor()
         
         super.init()
         
@@ -44,7 +42,7 @@ class NewGameFeatureCoordinator: BaseFeatureCoordinator<NewGameCoordinatorResult
     private func startTeamSelection() {
         let teamSelectCoordinator = TeamSelectFeatureCoordinator(
             navigationCoordinator: navigationCoordinator,
-            dataManager: dataManager
+            interactorFactory: DependencyContainer.shared.interactorFactory
         )
         
         startChild(teamSelectCoordinator) { [weak self] result in
@@ -98,6 +96,8 @@ extension NewGameFeatureCoordinator: NewGameInteractorDelegate {
     }
 }
 
+// MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
+
 #if DEBUG
 extension NewGameFeatureCoordinator {
     var testHooks: TestHooks { TestHooks(target: self) }
@@ -107,8 +107,7 @@ extension NewGameFeatureCoordinator {
         
         var childCoordinators: [any BaseFeatureCoordinatorType] { target.testChildCoordinators }
         var navigationCoordinator: NavigationCoordinatorProtocol { target.navigationCoordinator }
-        var dataManager: DataManagerProtocol { target.dataManager }
-        var interactor: NewGameInteractor { target.interactor }
+        var interactor: NewGameInteractorProtocol { target.interactor }
         
         func simulateChildFinish<ChildResult: CoordinatorResult>(
             _ childCoordinator: BaseFeatureCoordinator<ChildResult>,

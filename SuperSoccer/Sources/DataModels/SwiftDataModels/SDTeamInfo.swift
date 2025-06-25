@@ -25,6 +25,8 @@ final class SDTeamInfo {
     }
 }
 
+// MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
+
 #if DEBUG
 extension SDTeamInfo {
     static func make(

@@ -17,6 +17,8 @@ struct Match: Identifiable, Hashable, Equatable {
     let seasonId: String?
 }
 
+// MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
+
 #if DEBUG
 extension Match {
     static func make(

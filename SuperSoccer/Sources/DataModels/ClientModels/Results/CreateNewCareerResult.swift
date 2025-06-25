@@ -17,6 +17,8 @@ struct CreateNewCareerResult: Hashable, Equatable {
     let allPlayerIds: [String]
 }
 
+// MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
+
 #if DEBUG
 extension CreateNewCareerResult {
     static func make(

@@ -23,9 +23,9 @@ struct TeamInteractorTests {
         // Act
         let interactor = TeamInteractor(
             userTeamId: "team1",
-            dataManager: mockDataManager,
-            delegate: mockDelegate
+            dataManager: mockDataManager
         )
+        interactor.delegate = mockDelegate
         
         // Assert
         #expect(interactor != nil)
@@ -41,9 +41,9 @@ struct TeamInteractorTests {
         // Act
         let interactor = TeamInteractor(
             userTeamId: "team1",
-            dataManager: mockDataManager,
-            delegate: mockDelegate
+            dataManager: mockDataManager
         )
+        interactor.delegate = mockDelegate
         
         // Assert
         #expect(interactor.eventBus != nil)
@@ -69,9 +69,9 @@ struct TeamInteractorTests {
         
         let interactor = TeamInteractor(
             userTeamId: "team1",
-            dataManager: mockDataManager,
-            delegate: mockDelegate
+            dataManager: mockDataManager
         )
+        interactor.delegate = mockDelegate
         
         // Act
         interactor.eventBus.send(.loadTeamData)
@@ -98,9 +98,9 @@ struct TeamInteractorTests {
         let mockDelegate = MockTeamInteractorDelegate()
         let interactor = TeamInteractor(
             userTeamId: "team1",
-            dataManager: mockDataManager,
-            delegate: mockDelegate
+            dataManager: mockDataManager
         )
+        interactor.delegate = mockDelegate
         
         // Act
         interactor.eventBus.send(.playerRowTapped(playerId: "player1"))
@@ -131,9 +131,9 @@ struct TeamInteractorTests {
         // Act
         let interactor = TeamInteractor(
             userTeamId: "team1",
-            dataManager: mockDataManager,
-            delegate: mockDelegate
+            dataManager: mockDataManager
         )
+        interactor.delegate = mockDelegate
         
         // Wait for processing
         await withCheckedContinuation { continuation in
@@ -170,9 +170,9 @@ struct TeamInteractorTests {
         // Act
         let interactor = TeamInteractor(
             userTeamId: "nonexistent-team",
-            dataManager: mockDataManager,
-            delegate: mockDelegate
+            dataManager: mockDataManager
         )
+        interactor.delegate = mockDelegate
         
         // Wait for processing
         await withCheckedContinuation { continuation in
@@ -206,9 +206,9 @@ struct TeamInteractorTests {
         // Act
         let interactor = TeamInteractor(
             userTeamId: "team1",
-            dataManager: mockDataManager,
-            delegate: mockDelegate
+            dataManager: mockDataManager
         )
+        interactor.delegate = mockDelegate
         
         // Wait for processing
         await withCheckedContinuation { continuation in
@@ -236,9 +236,9 @@ struct TeamInteractorTests {
         let mockDelegate = MockTeamInteractorDelegate()
         let interactor = TeamInteractor(
             userTeamId: "team1",
-            dataManager: mockDataManager,
-            delegate: mockDelegate
+            dataManager: mockDataManager
         )
+        interactor.delegate = mockDelegate
         var receivedEvents: [TeamEvent] = []
         
         // Act & Assert
@@ -281,9 +281,9 @@ struct TeamInteractorTests {
         let mockDelegate = MockTeamInteractorDelegate()
         let interactor = TeamInteractor(
             userTeamId: "team1",
-            dataManager: mockDataManager,
-            delegate: mockDelegate
+            dataManager: mockDataManager
         )
+        interactor.delegate = mockDelegate
         
         // Act & Assert
         await confirmation { confirm in
@@ -314,9 +314,9 @@ struct TeamInteractorTests {
         
         let interactor = TeamInteractor(
             userTeamId: "team1",
-            dataManager: mockDataManager,
-            delegate: mockDelegate
+            dataManager: mockDataManager
         )
+        interactor.delegate = mockDelegate
         
         // Wait for initial load
         await withCheckedContinuation { continuation in
@@ -358,9 +358,9 @@ struct TeamInteractorTests {
         let mockDelegate = MockTeamInteractorDelegate()
         var interactor: TeamInteractor? = TeamInteractor(
             userTeamId: "team1",
-            dataManager: mockDataManager,
-            delegate: mockDelegate
+            dataManager: mockDataManager
         )
+        interactor?.delegate = mockDelegate
         
         // Verify interactor is created
         #expect(interactor != nil)

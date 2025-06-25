@@ -63,6 +63,8 @@ final class NavigationCoordinator: NavigationCoordinatorProtocol {
     }
 }
 
+// MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
+
 #if DEBUG
 class MockNavigationCoordinator: NavigationCoordinatorProtocol {
     var screenNavigatedTo: NavigationRouter.Screen?

@@ -15,6 +15,8 @@ struct League: Identifiable, Hashable, Equatable {
     let teamIds: [String]
 }
 
+// MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
+
 #if DEBUG
 extension League {
     static func make(

@@ -56,6 +56,8 @@ class BaseFeatureCoordinator<Result: CoordinatorResult>: BaseFeatureCoordinatorT
     }
 }
 
+// MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
+
 #if DEBUG
 extension BaseFeatureCoordinator {
     var testChildCoordinators: [any BaseFeatureCoordinatorType] { childCoordinators }

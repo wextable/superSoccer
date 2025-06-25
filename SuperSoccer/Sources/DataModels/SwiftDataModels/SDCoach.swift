@@ -25,6 +25,8 @@ final class SDCoach {
     }
 }
 
+// MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
+
 #if DEBUG
 extension SDCoach {
     static func make(

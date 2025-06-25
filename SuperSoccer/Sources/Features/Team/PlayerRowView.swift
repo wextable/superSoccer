@@ -66,6 +66,8 @@ struct PlayerRowView: View {
     }
 }
 
+// MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
+
 #if DEBUG
 extension PlayerRowViewModel {
     static func make(

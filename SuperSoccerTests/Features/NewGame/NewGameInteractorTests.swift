@@ -69,8 +69,8 @@ struct NewGameInteractorTests {
         #expect(interactor.viewModel.coachFirstName == "John")
         #expect(interactor.viewModel.coachLastName == "Doe")
         #expect(interactor.viewModel.submitEnabled == true)
-        #expect(interactor.viewModel.teamSelectorTitle == "Test")
-        #expect(interactor.viewModel.teamSelectorButtonTitle == "City")
+        #expect(interactor.viewModel.teamSelectorTitle == "Test City")
+        #expect(interactor.viewModel.teamSelectorButtonTitle == "Change")
     }
     
     // MARK: - Binding Tests

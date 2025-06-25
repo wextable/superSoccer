@@ -22,7 +22,13 @@ final class ViewFactory: ViewFactoryProtocol {
         case .newGame(let interactor):
             return AnyView(SSThemeProvider{ NewGameView(interactor: interactor) })
         case .teamSelect(let interactor):
-            return AnyView(TeamSelectView(interactor: interactor))
+            return AnyView(
+                NavigationStack {
+                    SSThemeProvider {
+                        TeamSelectView(interactor: interactor)
+                    }
+                }
+            )
         case .team(let interactor):
             return AnyView(SSThemeProvider { TeamView(interactor: interactor) })
         case .tabContainer(let tabs):
@@ -45,7 +51,13 @@ class MockViewFactory: ViewFactoryProtocol {
         case .newGame(let interactor):
             return AnyView(SSThemeProvider{ NewGameView(interactor: interactor) })
         case .teamSelect(let interactor):
-            return AnyView(TeamSelectView(interactor: interactor))
+            return AnyView(
+                NavigationStack {
+                    SSThemeProvider {
+                        TeamSelectView(interactor: interactor)
+                    }
+                }
+            )
         case .team(let interactor):
             return AnyView(SSThemeProvider { TeamView(interactor: interactor) })
         case .tabContainer(let tabs):

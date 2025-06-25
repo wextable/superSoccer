@@ -14,9 +14,15 @@ struct TeamThumbnailViewModel: Identifiable {
 
 struct TeamThumbnailView: View {
     let viewModel: TeamThumbnailViewModel
+    @Environment(\.ssTheme) private var theme
     
     var body: some View {
-        Text(viewModel.text)
+        HStack {
+            SSTitle.title2(viewModel.text)
+            Spacer()
+        }
+        .padding(.vertical, theme.spacing.medium)
+        .contentShape(Rectangle())
     }
 }
 

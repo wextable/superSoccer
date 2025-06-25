@@ -1,9 +1,31 @@
 # Active Context
 
 ## Current Work Focus
-The SuperSoccer project has completed major architectural milestones, comprehensive UI redesign work, and comprehensive Team feature unit testing. The core data layer, navigation system, feature coordinators, retro-themed UI, and Team feature testing infrastructure are fully implemented and working.
+The SuperSoccer project has completed major architectural milestones, comprehensive UI redesign work, and comprehensive Team feature unit testing. **All core features now have complete SSTheme integration and dark mode support.** The core data layer, navigation system, feature coordinators, retro-themed UI, and Team feature testing infrastructure are fully implemented and working.
 
 ## Recent Major Changes
+
+### ✅ Completed: TeamSelectView Theming (Final Screen)
+- **Complete SSTheme Integration**: TeamSelectView now fully themed with design system
+  - Added `@Environment(\.ssTheme)` for proper theme access
+  - Applied consistent background colors and list styling
+  - Integrated navigation bar theming with toolbar styling
+  - Enhanced TeamThumbnailView with SSTitle typography
+  - Proper spacing and padding using theme spacing system
+- **Navigation Stack Implementation**: Fixed sheet presentation issue
+  - Wrapped TeamSelectView in NavigationStack within ViewFactory
+  - Added SSThemeProvider to ensure proper theme distribution in sheet
+  - Navigation title "Select team" now displays correctly in presented sheet
+  - Proper toolbar theming with dark color scheme
+- **Dark Mode Support**: Complete dark mode functionality
+  - SSThemeProvider automatically detects color scheme changes
+  - Theme updates propagate through environment to all components
+  - Consistent light/dark mode behavior across all features
+- **All Features Now Themed**: TeamSelectView was the final screen requiring theming
+  - MainMenu: ✅ Fully themed with SSPrimaryButton and proper backgrounds
+  - NewGame: ✅ Fully themed with SSTitle, SSTextFieldStyle, TeamSelectorView
+  - TeamSelect: ✅ Now fully themed with NavigationStack and SSTheme integration
+  - Team: ✅ Enhanced with SSTheme styling and PlayerRowView updates
 
 ### ✅ Completed: Team Feature Unit Tests
 - **TeamInteractorTests**: Comprehensive test coverage for team business logic
@@ -80,7 +102,12 @@ The SuperSoccer project has completed major architectural milestones, comprehens
   - Custom text field styling with cyan borders
   - Integrated team selector with proper state management
   - Clean view architecture with computed properties
-- **TeamSelect**: Team selection interface with thumbnail views
+- **TeamSelect**: Team selection interface with complete SSTheme integration
+  - NavigationStack wrapper for proper sheet navigation
+  - SSTheme integration with environment-based theming
+  - Enhanced TeamThumbnailView with SSTitle typography
+  - Navigation bar with "Select team" title and proper toolbar styling
+  - Complete dark mode support and theme responsiveness
 - **Team**: Basic team overview showing roster and team information
   - PlayerRowView with enhanced SSTheme styling
   - Team header display with stats
@@ -99,6 +126,7 @@ The SuperSoccer project has completed major architectural milestones, comprehens
   - Theme system with proper light/dark mode support
   - SSThemeProvider for automatic color scheme detection and centralized theme management
   - Environment-based theme distribution architecture
+  - **All Features Themed**: Complete SSTheme integration across all screens
 - **Testing Infrastructure**: Comprehensive unit testing for Team feature
   - Protocol-based mock implementations
   - Swift Testing framework integration
@@ -107,25 +135,38 @@ The SuperSoccer project has completed major architectural milestones, comprehens
   - Event bus and delegate testing patterns
 
 #### 🔄 Current Focus: Expand Unit Testing Coverage
-- **Other Feature Tests**: Apply Team testing patterns to MainMenu, NewGame, TeamSelect features
+- **TeamSelectInteractorTests**: Apply Team testing patterns to complete TeamSelect unit testing
+  - Selection logic testing for team picker functionality
+  - Event bus testing for team selection events
+  - Delegate forwarding tests for coordinator communication
+  - Data loading tests for team list presentation
+  - Memory management and lifecycle testing
+- **Other Feature Tests**: Apply Team testing patterns to MainMenu and NewGame features
 - **UI Component Tests**: Test all design system components
 - **Navigation Tests**: Test coordinators and navigation flows
 - **Integration Tests**: Test complete feature workflows
 
 ## Next Immediate Steps
 
-### 1. Extend Unit Testing to Other Features
+### 1. Complete TeamSelectInteractorTests
+- **TeamSelectInteractorTests Enhancement**: Current tests exist but are minimal (1.2KB vs Team's 9KB)
+  - Add comprehensive event bus testing for team selection
+  - Add data loading and view model creation tests
+  - Add delegate interaction testing
+  - Add memory management and lifecycle testing
+  - Follow established Team testing patterns for consistency
+
+### 2. Extend Unit Testing to Remaining Features
 - **MainMenuInteractorTests**: Apply Team testing patterns to MainMenu feature
 - **NewGameInteractorTests**: Comprehensive testing for NewGame business logic
-- **TeamSelectInteractorTests**: Complete testing for TeamSelect functionality
 - **FeatureCoordinatorTests**: Test all feature coordinators following Team pattern
 
-### 2. Complete UI Testing Coverage
+### 3. Complete UI Testing Coverage
 - **Design System Tests**: Test all theme components and styling
 - **View Model Tests**: Test presentation logic and make() functions
 - **Integration Tests**: Test complete redesigned feature flows
 
-### 3. Implement Core Game Features
+### 4. Implement Core Game Features
 - **League Feature**: League standings, schedule, and match results
 - **Match Simulation**: Basic match simulation engine
 - **Player Management**: Enhanced player details and statistics

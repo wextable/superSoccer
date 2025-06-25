@@ -14,6 +14,7 @@ struct TeamSelectViewModel {
 
 struct TeamSelectView: View {
     let interactor: any TeamSelectInteractorProtocol
+    @Environment(\.ssTheme) private var theme
     
     var body: some View {
         List(interactor.viewModel.teamModels) { teamModel in
@@ -21,8 +22,15 @@ struct TeamSelectView: View {
                 .onTapGesture {
                     interactor.eventBus.send(.teamSelected(teamInfoId: teamModel.id))
                 }
+                .listRowBackground(theme.colors.background)
+                .listRowSeparator(.hidden)
         }
+        .listStyle(.plain)
+        .background(theme.colors.background)
         .navigationTitle(interactor.viewModel.title)
+        .toolbarBackground(theme.colors.background, for: .navigationBar)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .scrollContentBackground(.hidden)
     }
 }
 

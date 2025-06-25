@@ -15,22 +15,25 @@ enum NewGameCoordinatorResult: CoordinatorResult {
 
 class NewGameFeatureCoordinator: BaseFeatureCoordinator<NewGameCoordinatorResult> {
     private let navigationCoordinator: NavigationCoordinatorProtocol
-    private let interactor: NewGameInteractorProtocol
+    private let businessLogic: NewGameBusinessLogic
+    private let presenter: NewGameViewPresenter
     
     init(navigationCoordinator: NavigationCoordinatorProtocol, 
          interactorFactory: InteractorFactoryProtocol) {
         self.navigationCoordinator = navigationCoordinator
         
-        interactor = interactorFactory.makeNewGameInteractor()
+        let interactor = interactorFactory.makeNewGameInteractor()
+        self.businessLogic = interactor
+        self.presenter = interactor
         
         super.init()
         
-        interactor.delegate = self
+        businessLogic.delegate = self
     }
     
     override func start() {
         Task { @MainActor in
-            self.navigationCoordinator.navigateToScreen(.newGame(interactor: interactor))
+            self.navigationCoordinator.navigateToScreen(.newGame(presenter: presenter))
         }
     }
     
@@ -66,7 +69,7 @@ class NewGameFeatureCoordinator: BaseFeatureCoordinator<NewGameCoordinatorResult
     @MainActor
     private func handleTeamSelected(teamInfo: TeamInfo) {
         navigationCoordinator.dismissSheet()
-        interactor.updateSelectedTeam(teamInfo)
+        businessLogic.updateSelectedTeam(teamInfo)
     }
     
     @MainActor
@@ -80,18 +83,18 @@ class NewGameFeatureCoordinator: BaseFeatureCoordinator<NewGameCoordinatorResult
     }
 }
 
-extension NewGameFeatureCoordinator: NewGameInteractorDelegate {
-    func interactorDidRequestTeamSelection() {
+extension NewGameFeatureCoordinator: NewGameBusinessLogicDelegate {
+    func businessLogicDidRequestTeamSelection() {
         Task { @MainActor in
             self.startTeamSelection()
         }
     }
     
-    func interactorDidCreateGame(with result: CreateNewCareerResult) {
+    func businessLogicDidCreateGame(with result: CreateNewCareerResult) {
         finish(with: .gameCreated(result))
     }
     
-    func interactorDidCancel() {
+    func businessLogicDidCancel() {
         finish(with: .cancelled)
     }
 }
@@ -107,7 +110,8 @@ extension NewGameFeatureCoordinator {
         
         var childCoordinators: [any BaseFeatureCoordinatorType] { target.testChildCoordinators }
         var navigationCoordinator: NavigationCoordinatorProtocol { target.navigationCoordinator }
-        var interactor: NewGameInteractorProtocol { target.interactor }
+        var businessLogic: NewGameBusinessLogic { target.businessLogic }
+        var presenter: NewGameViewPresenter { target.presenter }
         
         func simulateChildFinish<ChildResult: CoordinatorResult>(
             _ childCoordinator: BaseFeatureCoordinator<ChildResult>,

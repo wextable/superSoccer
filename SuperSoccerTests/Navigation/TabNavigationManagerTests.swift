@@ -272,7 +272,7 @@ struct TabNavigationManagerTests {
         
         manager.clearAllTabs()
         
-        let newGameScreen = NavigationRouter.Screen.newGame(interactor: mockNewGameInteractor)
+        let newGameScreen = NavigationRouter.Screen.newGame(presenter: mockNewGameInteractor)
         manager.navigate(to: newGameScreen, in: tab)
         #expect(manager.tabScreenStacks[tab]?.first == newGameScreen)
     }

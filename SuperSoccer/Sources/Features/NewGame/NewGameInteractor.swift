@@ -16,20 +16,25 @@ enum NewGameEvent: BusEvent {
     case teamSelectorTapped
 }
 
-protocol NewGameInteractorDelegate: AnyObject {
-    func interactorDidRequestTeamSelection()
-    func interactorDidCreateGame(with result: CreateNewCareerResult)
-    func interactorDidCancel()
+protocol NewGameBusinessLogicDelegate: AnyObject {
+    func businessLogicDidRequestTeamSelection()
+    func businessLogicDidCreateGame(with result: CreateNewCareerResult)
+    func businessLogicDidCancel()
 }
 
-protocol NewGameInteractorProtocol: AnyObject {
-    var viewModel: NewGameViewModel { get }
-    var eventBus: NewGameEventBus { get }
-    var delegate: NewGameInteractorDelegate? { get set }
-    func bindFirstName() -> Binding<String>
-    func bindLastName() -> Binding<String>
+protocol NewGameBusinessLogic: AnyObject {
+    var delegate: NewGameBusinessLogicDelegate? { get set }
     func updateSelectedTeam(_ teamInfo: TeamInfo)
 }
+
+protocol NewGameViewPresenter: AnyObject {
+    var viewModel: NewGameViewModel { get }
+    var eventBus: NewGameEventBus { get }
+    func bindFirstName() -> Binding<String>
+    func bindLastName() -> Binding<String>
+}
+
+protocol NewGameInteractorProtocol: NewGameBusinessLogic & NewGameViewPresenter {}
 
 @Observable
 final class NewGameInteractor: NewGameInteractorProtocol {
@@ -37,7 +42,7 @@ final class NewGameInteractor: NewGameInteractorProtocol {
     private let localDataSource: NewGameLocalDataSourceProtocol
     let eventBus = NewGameEventBus()
     
-    weak var delegate: NewGameInteractorDelegate?
+    weak var delegate: NewGameBusinessLogicDelegate?
     
     var viewModel: NewGameViewModel = .init()
     private var cancellables = Set<AnyCancellable>()
@@ -76,7 +81,7 @@ final class NewGameInteractor: NewGameInteractorProtocol {
                         await self.createGame()
                     }
                 case .teamSelectorTapped:
-                    delegate?.interactorDidRequestTeamSelection()
+                    delegate?.businessLogicDidRequestTeamSelection()
                 }
             }
             .store(in: &cancellables)
@@ -153,7 +158,7 @@ final class NewGameInteractor: NewGameInteractorProtocol {
             
             // Ensure delegate call happens on main thread for UI updates and testing
             await MainActor.run {
-                delegate?.interactorDidCreateGame(with: result)
+                delegate?.businessLogicDidCreateGame(with: result)
             }
         } catch {
             print("Error creating career: \(error)")
@@ -176,7 +181,7 @@ extension NewGameInteractor {
 class MockNewGameInteractor: NewGameInteractorProtocol {
     var viewModel: NewGameViewModel = .make()
     var eventBus: NewGameEventBus = NewGameEventBus()
-    weak var delegate: NewGameInteractorDelegate?
+    weak var delegate: NewGameBusinessLogicDelegate?
     
     // Test tracking properties
     var bindFirstNameCalled = false
@@ -215,7 +220,7 @@ class MockNewGameInteractor: NewGameInteractorProtocol {
     }
 }
 
-class MockNewGameInteractorDelegate: NewGameInteractorDelegate {
+class MockNewGameInteractorDelegate: NewGameBusinessLogicDelegate {
     var didRequestTeamSelection = false
     var didCreateGameCalled = false
     var didCancelCalled = false
@@ -226,18 +231,18 @@ class MockNewGameInteractorDelegate: NewGameInteractorDelegate {
     var onDidCreateGame: ((CreateNewCareerResult) -> Void)?
     var onDidCancel: (() -> Void)?
     
-    func interactorDidRequestTeamSelection() {
+    func businessLogicDidRequestTeamSelection() {
         didRequestTeamSelection = true
         onDidRequestTeamSelection?()
     }
     
-    func interactorDidCreateGame(with result: CreateNewCareerResult) {
+    func businessLogicDidCreateGame(with result: CreateNewCareerResult) {
         didCreateGameCalled = true
         lastCreateGameResult = result
         onDidCreateGame?(result)
     }
     
-    func interactorDidCancel() {
+    func businessLogicDidCancel() {
         didCancelCalled = true
         onDidCancel?()
     }

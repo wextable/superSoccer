@@ -55,3 +55,9 @@ class BaseFeatureCoordinator<Result: CoordinatorResult>: BaseFeatureCoordinatorT
         fatalError("Subclasses must implement start()")
     }
 }
+
+#if DEBUG
+extension BaseFeatureCoordinator {
+    var testChildCoordinators: [any BaseFeatureCoordinatorType] { childCoordinators }
+}
+#endif

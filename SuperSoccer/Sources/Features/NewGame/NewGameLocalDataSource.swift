@@ -22,7 +22,7 @@ final class NewGameLocalDataSource: NewGameLocalDataSourceProtocol {
         var coachLastName: String = ""
         var selectedTeamInfo: TeamInfo?
         
-        var isValid: Bool {
+        var canSubmit: Bool {
             return !coachFirstName.isEmpty && !coachLastName.isEmpty && selectedTeamInfo != nil
         }
     }
@@ -97,7 +97,7 @@ class MockNewGameLocalDataSource: NewGameLocalDataSourceProtocol {
         coachFirstName: String,
         coachLastName: String,
         selectedTeamInfo: TeamInfo?,
-        isValid: Bool
+        canSubmit: Bool
     ) {
         let newData = NewGameLocalDataSource.Data(
             coachFirstName: coachFirstName,

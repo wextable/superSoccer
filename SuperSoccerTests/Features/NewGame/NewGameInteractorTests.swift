@@ -61,7 +61,7 @@ struct NewGameInteractorTests {
                 coachFirstName: "John",
                 coachLastName: "Doe",
                 selectedTeamInfo: TeamInfo.make(city: "Test", teamName: "City"),
-                isValid: true
+                canSubmit: true
             )
         }
         
@@ -146,7 +146,7 @@ struct NewGameInteractorTests {
         interactor.delegate = mockDelegate
         
         // Act
-        await withCheckedContinuation { continuation in
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             mockDelegate.onDidRequestTeamSelection = {
                 continuation.resume()
             }
@@ -169,7 +169,7 @@ struct NewGameInteractorTests {
             coachFirstName: "John",
             coachLastName: "Doe",
             selectedTeamInfo: TeamInfo.make(id: "team1", city: "Test", teamName: "City"),
-            isValid: true
+            canSubmit: true
         )
         
         let expectedResult = CreateNewCareerResult.make(careerId: "career123")
@@ -182,8 +182,8 @@ struct NewGameInteractorTests {
         interactor.delegate = mockDelegate
         
         // Act
-        await withCheckedContinuation { continuation in
-            mockDelegate.onDidCreateGame = {
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            mockDelegate.onDidCreateGame = { result in
                 continuation.resume()
             }
             
@@ -213,7 +213,7 @@ struct NewGameInteractorTests {
             coachFirstName: "John",
             coachLastName: "Doe",
             selectedTeamInfo: nil,
-            isValid: false
+            canSubmit: false
         )
         
         let interactor = NewGameInteractor(
@@ -226,7 +226,7 @@ struct NewGameInteractorTests {
         interactor.eventBus.send(.submitTapped)
         
         // Wait a brief moment to ensure no async operations complete
-        await withCheckedContinuation { continuation in
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             DispatchQueue.main.async {
                 continuation.resume()
             }
@@ -249,7 +249,7 @@ struct NewGameInteractorTests {
             coachFirstName: "Jurgen",
             coachLastName: "Klopp",
             selectedTeamInfo: teamInfo,
-            isValid: true
+            canSubmit: true
         )
         
         // Act
@@ -259,7 +259,7 @@ struct NewGameInteractorTests {
         )
         
         // Wait a brief moment to ensure no async operations complete
-        await withCheckedContinuation { continuation in
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             DispatchQueue.main.async {
                 continuation.resume()
             }

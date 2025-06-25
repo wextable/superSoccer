@@ -16,7 +16,7 @@ struct SwiftDataStorageTests {
     @Test("Creating and fetching a career should work")
     func testCreateAndFetchCareer() async throws {
         // Arrange
-        let modelContext = createInMemoryModelContext()
+        let modelContext = try createInMemoryModelContext()
         let storage = SwiftDataStorage(modelContext: modelContext)
         let coach = SDCoach.make()
         let team = SDTeam.make()
@@ -39,7 +39,7 @@ struct SwiftDataStorageTests {
     @Test("Creating and fetching a league should work")
     func testCreateAndFetchLeague() async throws {
         // Arrange
-        let modelContext = createInMemoryModelContext()
+        let modelContext = try createInMemoryModelContext()
         let storage = SwiftDataStorage(modelContext: modelContext)
         let league = SDLeague.make()
         
@@ -57,7 +57,7 @@ struct SwiftDataStorageTests {
     @Test("Creating and fetching a season should work")
     func testCreateAndFetchSeason() async throws {
         // Arrange
-        let modelContext = createInMemoryModelContext()
+        let modelContext = try createInMemoryModelContext()
         let storage = SwiftDataStorage(modelContext: modelContext)
         let season = SDSeason.make()
         
@@ -75,7 +75,7 @@ struct SwiftDataStorageTests {
     @Test("Creating and fetching a team should work")
     func testCreateAndFetchTeam() async throws {
         // Arrange
-        let modelContext = createInMemoryModelContext()
+        let modelContext = try createInMemoryModelContext()
         let storage = SwiftDataStorage(modelContext: modelContext)
         let team = SDTeam.make()
         
@@ -93,7 +93,7 @@ struct SwiftDataStorageTests {
     @Test("Creating and fetching a player should work")
     func testCreateAndFetchPlayer() async throws {
         // Arrange
-        let modelContext = createInMemoryModelContext()
+        let modelContext = try createInMemoryModelContext()
         let storage = SwiftDataStorage(modelContext: modelContext)
         let player = SDPlayer.make()
         
@@ -111,7 +111,7 @@ struct SwiftDataStorageTests {
     @Test("Creating and fetching a coach should work")
     func testCreateAndFetchCoach() async throws {
         // Arrange
-        let modelContext = createInMemoryModelContext()
+        let modelContext = try createInMemoryModelContext()
         let storage = SwiftDataStorage(modelContext: modelContext)
         let coach = SDCoach.make()
         
@@ -129,7 +129,7 @@ struct SwiftDataStorageTests {
     @Test("Creating a career bundle should work")
     func testCreateCareerBundle() async throws {
         // Arrange
-        let modelContext = createInMemoryModelContext()
+        let modelContext = try createInMemoryModelContext()
         let storage = SwiftDataStorage(modelContext: modelContext)
                 
         let teamInfo = SDTeamInfo.make()
@@ -165,9 +165,9 @@ struct SwiftDataStorageTests {
     
     // MARK: - Helpers
     
-    private func createInMemoryModelContext() -> ModelContext {
+    private func createInMemoryModelContext() throws -> ModelContext {
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try! ModelContainer(
+        let container = try ModelContainer(
             for:
                 SDCoach.self, SDCareer.self, SDLeague.self,
                 SDSeason.self, SDTeam.self, SDPlayer.self,

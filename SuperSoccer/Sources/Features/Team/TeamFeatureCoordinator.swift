@@ -45,13 +45,3 @@ extension TeamFeatureCoordinator: TeamInteractorDelegate {
         finish(with: .playerSelected(playerId: playerId))
     }
 }
-
-#if DEBUG
-class MockTeamFeatureCoordinator: TeamFeatureCoordinator {
-    var startCalled = false
-    
-    override func start() {
-        startCalled = true
-    }
-}
-#endif

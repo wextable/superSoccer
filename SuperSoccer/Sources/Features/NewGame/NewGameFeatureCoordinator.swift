@@ -13,10 +13,7 @@ enum NewGameCoordinatorResult: CoordinatorResult {
     case cancelled
 }
 
-protocol NewGameFeatureCoordinatorProtocol: AnyObject {
-}
-
-class NewGameFeatureCoordinator: BaseFeatureCoordinator<NewGameCoordinatorResult>, NewGameFeatureCoordinatorProtocol, ObservableObject {
+class NewGameFeatureCoordinator: BaseFeatureCoordinator<NewGameCoordinatorResult> {
     private let navigationCoordinator: NavigationCoordinatorProtocol
     private let dataManager: DataManagerProtocol
     private let interactor: NewGameInteractor
@@ -102,7 +99,24 @@ extension NewGameFeatureCoordinator: NewGameInteractorDelegate {
 }
 
 #if DEBUG
-class MockNewGameFeatureCoordinator: NewGameFeatureCoordinatorProtocol {
-
+extension NewGameFeatureCoordinator {
+    var testHooks: TestHooks { TestHooks(target: self) }
+    
+    struct TestHooks {
+        let target: NewGameFeatureCoordinator
+        
+        var childCoordinators: [any BaseFeatureCoordinatorType] { target.testChildCoordinators }
+        var navigationCoordinator: NavigationCoordinatorProtocol { target.navigationCoordinator }
+        var dataManager: DataManagerProtocol { target.dataManager }
+        var interactor: NewGameInteractor { target.interactor }
+        
+        func simulateChildFinish<ChildResult: CoordinatorResult>(
+            _ childCoordinator: BaseFeatureCoordinator<ChildResult>,
+            with result: ChildResult
+        ) {
+            childCoordinator.finish(with: result)
+        }
+    }
 }
+
 #endif

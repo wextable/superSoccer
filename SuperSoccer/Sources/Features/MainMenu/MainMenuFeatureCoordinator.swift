@@ -12,10 +12,7 @@ enum MainMenuCoordinatorResult: CoordinatorResult {
     case newGameCreated(CreateNewCareerResult)
 }
 
-protocol MainMenuFeatureCoordinatorProtocol: AnyObject {
-}
-
-class MainMenuFeatureCoordinator: BaseFeatureCoordinator<MainMenuCoordinatorResult>, MainMenuFeatureCoordinatorProtocol, ObservableObject {
+class MainMenuFeatureCoordinator: BaseFeatureCoordinator<MainMenuCoordinatorResult> {
     private let navigationCoordinator: NavigationCoordinatorProtocol
     private let dataManager: DataManagerProtocol
     private let interactor: MainMenuInteractorProtocol
@@ -61,10 +58,27 @@ extension MainMenuFeatureCoordinator: MainMenuInteractorDelegate {
     func interactorDidSelectNewGame() {
         handleNewGameSelected()
     }
-}                                           
+}
 
 #if DEBUG
-class MockMainMenuFeatureCoordinator: MainMenuFeatureCoordinatorProtocol {
-
+extension MainMenuFeatureCoordinator {
+    var testHooks: TestHooks { TestHooks(target: self) }
+    
+    struct TestHooks {
+        let target: MainMenuFeatureCoordinator
+        
+        var childCoordinators: [any BaseFeatureCoordinatorType] { target.testChildCoordinators }
+        var navigationCoordinator: NavigationCoordinatorProtocol { target.navigationCoordinator }
+        var dataManager: DataManagerProtocol { target.dataManager }
+        var interactor: MainMenuInteractorProtocol { target.interactor }
+        
+        func simulateChildFinish<ChildResult: CoordinatorResult>(
+            _ childCoordinator: BaseFeatureCoordinator<ChildResult>,
+            with result: ChildResult
+        ) {
+            childCoordinator.finish(with: result)
+        }
+    }
 }
+
 #endif

@@ -79,16 +79,59 @@ Client Models ↔ Transformers ↔ SwiftData Models
 
 ### Coordinator Result Pattern
 ```swift
-enum TeamSelectCoordinatorResult {
+enum TeamSelectCoordinatorResult: CoordinatorResult {
     case teamSelected(Team)
     case cancelled
+}
+
+class TeamSelectFeatureCoordinator: BaseFeatureCoordinator<TeamSelectCoordinatorResult> {
+    private let navigationCoordinator: NavigationCoordinatorProtocol
+    private let dataManager: DataManagerProtocol
+    
+    init(navigationCoordinator: NavigationCoordinatorProtocol,
+         dataManager: DataManagerProtocol) {
+        self.navigationCoordinator = navigationCoordinator
+        self.dataManager = dataManager
+        super.init()
+    }
+    
+    override func start() {
+        let interactor = TeamSelectInteractor(
+            dataManager: dataManager,
+            delegate: self
+        )
+        
+        let screen = NavigationRouter.Screen.teamSelect(interactor: interactor)
+        Task { @MainActor in
+            self.navigationCoordinator.presentSheet(screen)
+        }
+    }
+}
+
+extension TeamSelectFeatureCoordinator: TeamSelectInteractorDelegate {
+    func teamSelected(_ team: Team) {
+        finish(with: .teamSelected(team))
+    }
 }
 ```
 
 ### Child Coordinator Management
 ```swift
-let childCoordinator = startChild(TeamSelectFeatureCoordinator.self)
-childCoordinator.delegate = self
+// Starting a child coordinator with automatic cleanup
+let childCoordinator = TeamSelectFeatureCoordinator(
+    navigationCoordinator: navigationCoordinator,
+    dataManager: dataManager
+)
+
+startChild(childCoordinator) { [weak self] result in
+    switch result {
+    case .teamSelected(let team):
+        self?.handleTeamSelected(team)
+    case .cancelled:
+        self?.handleCancellation()
+    }
+    // Automatic cleanup happens in BaseFeatureCoordinator
+}
 ```
 
 ## Event-Driven Patterns
@@ -96,14 +139,50 @@ childCoordinator.delegate = self
 ### EventBus Pattern
 Feature-specific event communication:
 ```swift
-TeamSelectEventBus.shared.send(.teamSelected(team))
+typealias TeamSelectEventBus = PassthroughSubject<TeamSelectEvent, Never>
+
+enum TeamSelectEvent: BusEvent {
+    case loadTeams
+    case teamSelected(teamId: String)
+}
+
+class TeamSelectInteractor: TeamSelectInteractorProtocol {
+    let eventBus = TeamSelectEventBus()
+    
+    private func setupSubscriptions() {
+        eventBus
+            .sink { [weak self] event in
+                switch event {
+                case .loadTeams:
+                    self?.loadTeams()
+                case .teamSelected(let teamId):
+                    self?.handleTeamSelected(teamId)
+                }
+            }
+            .store(in: &cancellables)
+    }
+}
+
+// Usage in View
+Button("Select Team") {
+    interactor.eventBus.send(.teamSelected(teamId: "team1"))
+}
 ```
 
 ### Delegate Pattern
 Coordinator communication:
 ```swift
-protocol TeamSelectCoordinatorDelegate: AnyObject {
-    func teamSelectCoordinator(_ coordinator: TeamSelectFeatureCoordinator, didSelectTeam team: Team)
+protocol TeamSelectInteractorDelegate: AnyObject {
+    func teamSelected(_ team: Team)
+}
+
+class TeamSelectInteractor {
+    private weak var delegate: TeamSelectInteractorDelegate?
+    
+    private func handleTeamSelected(_ teamId: String) {
+        let team = dataManager.fetchTeam(id: teamId)
+        delegate?.teamSelected(team)
+    }
 }
 ```
 
@@ -138,7 +217,31 @@ struct CareerCreationBundle {
 ```swift
 #if DEBUG
 class MockDataManager: DataManagerProtocol {
-    // Mock implementation
+    var mockTeams: [Team] = []
+    var mockPlayers: [Player] = []
+    var mockCoaches: [Coach] = []
+    
+    // Tracking properties for tests
+    var createNewCareerCalled = false
+    var lastCareerRequest: CreateNewCareerRequest?
+    
+    func createNewCareer(_ request: CreateNewCareerRequest) async throws -> CreateNewCareerResult {
+        createNewCareerCalled = true
+        lastCareerRequest = request
+        return CreateNewCareerResult(career: .make(), success: true)
+    }
+    
+    func fetchTeams() -> [Team] {
+        return mockTeams
+    }
+    
+    func fetchPlayers() -> [Player] {
+        return mockPlayers
+    }
+    
+    func fetchCoaches() -> [Coach] {
+        return mockCoaches
+    }
 }
 #endif
 ```
@@ -148,6 +251,23 @@ Every service has a protocol for testability:
 ```swift
 protocol DataManagerProtocol {
     func createNewCareer(_ request: CreateNewCareerRequest) async throws -> CreateNewCareerResult
+    func fetchTeams() -> [Team]
+    func fetchPlayers() -> [Player]
+    func fetchCoaches() -> [Coach]
+    
+    // Publishers for reactive UI updates
+    var teamPublisher: AnyPublisher<[Team], Never> { get }
+    var playerPublisher: AnyPublisher<[Player], Never> { get }
+    var coachPublisher: AnyPublisher<[Coach], Never> { get }
+}
+
+// Implementation with real SwiftData
+class SwiftDataManager: DataManagerProtocol {
+    private let storage: SwiftDataStorage
+    private let clientToSwiftDataTransformer: ClientToSwiftDataTransformer
+    private let swiftDataToClientTransformer: SwiftDataToClientTransformer
+    
+    // Implementation details...
 }
 ```
 

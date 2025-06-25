@@ -24,15 +24,27 @@
 
 ### For New Sessions
 1. **Always read ALL core files** - Memory resets completely between sessions
-2. **Start with Project Brief** - Understand the foundation
-3. **Review Active Context** - Understand current work focus
-4. **Check Progress** - Know what's working and what needs work
+2. **Start with INDEX.md** - Quick overview and reference
+3. **Read Project Brief** - Understand the foundation
+4. **Review Active Context** - Understand current work focus
+5. **Check Progress** - Know what's working and what needs work
 
 ### For Updates
 - **Active Context**: Update when work focus changes or new decisions are made
 - **Progress**: Update when features are completed or status changes
 - **System Patterns**: Update when architectural patterns evolve
 - **Technical Context**: Update when technology stack or structure changes
+
+## Enhanced Reference Files
+
+### 🚀 [Quick Reference](quickReference.md)
+**Practical templates** - Copy-paste ready code templates, patterns, and common snippets for rapid development. Includes feature creation templates, testing patterns, and UI component usage.
+
+### 🔧 [Troubleshooting](troubleshooting.md)
+**Common issues & solutions** - Build errors, navigation issues, testing problems, theme issues, and architecture violations with concrete solutions.
+
+### 🗺️ [Codebase Map](codebase-map.md)
+**Navigation guide** - File locations, entry points, dependency flows, and where to find/modify specific functionality. Essential for understanding project structure.
 
 ### File Hierarchy
 ```

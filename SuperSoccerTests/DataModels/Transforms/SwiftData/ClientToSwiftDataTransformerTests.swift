@@ -124,8 +124,8 @@ struct ClientToSwiftDataTransformerTests {
         let bundle = transformer.createCareerEntities(from: request, availableTeamInfos: availableTeamInfos)
         
         // Assert
-        let userTeam = bundle.teams.first { $0.info.id == "user-team" }!
-        let aiTeam = bundle.teams.first { $0.info.id == "ai-team" }!
+        let userTeam = try #require(bundle.teams.first { $0.info.id == "user-team" })
+        let aiTeam = try #require(bundle.teams.first { $0.info.id == "ai-team" })
         
         #expect(userTeam.coach.firstName == "User")
         #expect(userTeam.coach.lastName == "Coach")

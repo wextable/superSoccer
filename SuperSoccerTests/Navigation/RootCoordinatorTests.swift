@@ -177,35 +177,11 @@ struct RootCoordinatorTests {
     
     // MARK: - Protocol Conformance Tests
     
-    @Test("RootCoordinator conforms to RootCoordinatorProtocol")
-    @MainActor
-    func testConformsToRootCoordinatorProtocol() {
-        // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        let coordinator = RootCoordinator(
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
-        
-        // Act & Assert
-        #expect(coordinator is any RootCoordinatorProtocol)
-    }
+    // Note: RootCoordinator no longer conforms to a protocol as it was empty
+    // Coordinators only need to inherit from BaseFeatureCoordinator
     
-    @Test("RootCoordinator conforms to ObservableObject")
-    @MainActor
-    func testConformsToObservableObject() {
-        // Arrange
-        let mockNavigationCoordinator = MockNavigationCoordinator()
-        let mockDataManager = MockDataManager()
-        let coordinator = RootCoordinator(
-            navigationCoordinator: mockNavigationCoordinator,
-            dataManager: mockDataManager
-        )
-        
-        // Act & Assert
-        #expect(coordinator is any ObservableObject)
-    }
+    // Note: RootCoordinator no longer inherits from ObservableObject as it's not needed
+    // Coordinators only manage navigation and lifecycle, not UI state
     
     // MARK: - Child Coordinator Management Tests
     

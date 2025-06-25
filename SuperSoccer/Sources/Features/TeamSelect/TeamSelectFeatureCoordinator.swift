@@ -13,10 +13,7 @@ enum TeamSelectCoordinatorResult: CoordinatorResult {
     case cancelled
 }
 
-protocol TeamSelectFeatureCoordinatorProtocol: AnyObject {
-}
-
-class TeamSelectFeatureCoordinator: BaseFeatureCoordinator<TeamSelectCoordinatorResult>, TeamSelectFeatureCoordinatorProtocol {
+class TeamSelectFeatureCoordinator: BaseFeatureCoordinator<TeamSelectCoordinatorResult> {
     private let navigationCoordinator: NavigationCoordinatorProtocol
     private let dataManager: DataManagerProtocol
     private let interactor: TeamSelectInteractor
@@ -52,7 +49,24 @@ extension TeamSelectFeatureCoordinator: TeamSelectInteractorDelegate {
 }
 
 #if DEBUG
-class MockTeamSelectFeatureCoordinator: TeamSelectFeatureCoordinatorProtocol {
-
+extension TeamSelectFeatureCoordinator {
+    var testHooks: TestHooks { TestHooks(target: self) }
+    
+    struct TestHooks {
+        let target: TeamSelectFeatureCoordinator
+        
+        var childCoordinators: [any BaseFeatureCoordinatorType] { target.testChildCoordinators }
+        var navigationCoordinator: NavigationCoordinatorProtocol { target.navigationCoordinator }
+        var dataManager: DataManagerProtocol { target.dataManager }
+        var interactor: TeamSelectInteractor { target.interactor }
+        
+        func simulateChildFinish<ChildResult: CoordinatorResult>(
+            _ childCoordinator: BaseFeatureCoordinator<ChildResult>,
+            with result: ChildResult
+        ) {
+            childCoordinator.finish(with: result)
+        }
+    }
 }
+
 #endif

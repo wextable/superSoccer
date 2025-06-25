@@ -129,12 +129,12 @@ final class NewGameInteractor: NewGameInteractorProtocol {
                 self?.eventBus.send(.teamSelectorTapped)
             },
             buttonText: "Start game",
-            submitEnabled: localData.isValid
+            submitEnabled: localData.canSubmit
         )
     }
     
     func createGame() async {
-        guard localDataSource.data.isValid,
+        guard localDataSource.data.canSubmit,
               let teamInfo = localDataSource.data.selectedTeamInfo else {
             return
         }
@@ -176,42 +176,65 @@ class MockNewGameInteractor: NewGameInteractorProtocol {
     var eventBus: NewGameEventBus = NewGameEventBus()
     weak var delegate: NewGameInteractorDelegate?
     
+    // Test tracking properties
+    var bindFirstNameCalled = false
+    var bindLastNameCalled = false
+    var updateSelectedTeamCalled = false
+    var lastUpdatedTeam: TeamInfo?
+    
+    // Callback support for async testing
+    var onBindFirstName: (() -> Void)?
+    var onBindLastName: (() -> Void)?
+    var onUpdateSelectedTeam: ((TeamInfo) -> Void)?
+    
     private var firstName = ""
     private var lastName = ""
     
     func bindFirstName() -> Binding<String> {
-        Binding(get: { self.firstName }, set: { self.firstName = $0 })
+        bindFirstNameCalled = true
+        onBindFirstName?()
+        return Binding(get: { self.firstName }, set: { self.firstName = $0 })
     }
     
     func bindLastName() -> Binding<String> {
-        Binding(get: { self.lastName }, set: { self.lastName = $0 })
+        bindLastNameCalled = true
+        onBindLastName?()
+        return Binding(get: { self.lastName }, set: { self.lastName = $0 })
     }
     
     func updateSelectedTeam(_ teamInfo: TeamInfo) {
-        viewModel.teamSelectorTitle = teamInfo.city
-        viewModel.teamSelectorButtonTitle = teamInfo.teamName
+        updateSelectedTeamCalled = true
+        lastUpdatedTeam = teamInfo
+        onUpdateSelectedTeam?(teamInfo)
+        
+        // Update view model like real implementation
+        viewModel.teamSelectorTitle = "\(teamInfo.city) \(teamInfo.teamName)"
+        viewModel.teamSelectorButtonTitle = "Change"
     }
 }
 
 class MockNewGameInteractorDelegate: NewGameInteractorDelegate {
     var didRequestTeamSelection = false
+    var didCreateGameCalled = false
+    var didCancelCalled = false
+    var lastCreateGameResult: CreateNewCareerResult?
+    
+    // Callback support for async testing patterns
     var onDidRequestTeamSelection: (() -> Void)?
+    var onDidCreateGame: ((CreateNewCareerResult) -> Void)?
+    var onDidCancel: (() -> Void)?
+    
     func interactorDidRequestTeamSelection() {
         didRequestTeamSelection = true
         onDidRequestTeamSelection?()
     }
     
-    var didCreateGameCalled = false
-    var lastCreateGameResult: CreateNewCareerResult?
-    var onDidCreateGame: (() -> Void)?
     func interactorDidCreateGame(with result: CreateNewCareerResult) {
         didCreateGameCalled = true
         lastCreateGameResult = result
-        onDidCreateGame?()
+        onDidCreateGame?(result)
     }
     
-    var didCancelCalled = false
-    var onDidCancel: (() -> Void)?
     func interactorDidCancel() {
         didCancelCalled = true
         onDidCancel?()

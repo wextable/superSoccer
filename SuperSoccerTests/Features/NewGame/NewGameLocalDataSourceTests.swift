@@ -22,7 +22,7 @@ struct NewGameLocalDataSourceTests {
         #expect(dataSource.data.coachFirstName.isEmpty)
         #expect(dataSource.data.coachLastName.isEmpty)
         #expect(dataSource.data.selectedTeamInfo == nil)
-        #expect(dataSource.data.isValid == false)
+        #expect(dataSource.data.canSubmit == false)
     }
     
     @Test func testInitializationWithCustomData() async throws {
@@ -41,7 +41,7 @@ struct NewGameLocalDataSourceTests {
         #expect(dataSource.data.coachFirstName == "John")
         #expect(dataSource.data.coachLastName == "Doe")
         #expect(dataSource.data.selectedTeamInfo?.id == "team1")
-        #expect(dataSource.data.isValid == true)
+        #expect(dataSource.data.canSubmit == true)
     }
     
     // MARK: - Data Validation Tests
@@ -51,19 +51,19 @@ struct NewGameLocalDataSourceTests {
         var data = NewGameLocalDataSource.Data()
         
         // Act & Assert - All empty
-        #expect(data.isValid == false)
+        #expect(data.canSubmit == false)
         
         // Act & Assert - Only first name
         data.coachFirstName = "John"
-        #expect(data.isValid == false)
+        #expect(data.canSubmit == false)
         
         // Act & Assert - First and last name
         data.coachLastName = "Doe"
-        #expect(data.isValid == false)
+        #expect(data.canSubmit == false)
         
         // Act & Assert - All fields filled
         data.selectedTeamInfo = TeamInfo.make()
-        #expect(data.isValid == true)
+        #expect(data.canSubmit == true)
     }
     
     @Test func testDataValidationWithPartialData() async throws {
@@ -72,15 +72,15 @@ struct NewGameLocalDataSourceTests {
         
         // Test with only team selected
         var data = NewGameLocalDataSource.Data(selectedTeamInfo: teamInfo)
-        #expect(data.isValid == false)
+        #expect(data.canSubmit == false)
         
         // Test with team and first name
         data.coachFirstName = "John"
-        #expect(data.isValid == false)
+        #expect(data.canSubmit == false)
         
         // Test with all required fields
         data.coachLastName = "Doe"
-        #expect(data.isValid == true)
+        #expect(data.canSubmit == true)
     }
     
     // MARK: - Update Methods Tests
@@ -96,7 +96,7 @@ struct NewGameLocalDataSourceTests {
         #expect(dataSource.data.coachFirstName == "TestFirstName")
         #expect(dataSource.data.coachLastName.isEmpty)
         #expect(dataSource.data.selectedTeamInfo == nil)
-        #expect(dataSource.data.isValid == false)
+        #expect(dataSource.data.canSubmit == false)
     }
     
     @Test func testUpdateCoachLastName() async throws {
@@ -110,7 +110,7 @@ struct NewGameLocalDataSourceTests {
         #expect(dataSource.data.coachFirstName.isEmpty)
         #expect(dataSource.data.coachLastName == "TestLastName")
         #expect(dataSource.data.selectedTeamInfo == nil)
-        #expect(dataSource.data.isValid == false)
+        #expect(dataSource.data.canSubmit == false)
     }
     
     @Test func testUpdateSelectedTeam() async throws {
@@ -127,7 +127,7 @@ struct NewGameLocalDataSourceTests {
         #expect(dataSource.data.selectedTeamInfo?.id == "team123")
         #expect(dataSource.data.selectedTeamInfo?.city == "Manchester")
         #expect(dataSource.data.selectedTeamInfo?.teamName == "United")
-        #expect(dataSource.data.isValid == false)
+        #expect(dataSource.data.canSubmit == false)
     }
     
     @Test func testUpdateSelectedTeamWithNil() async throws {
@@ -141,7 +141,7 @@ struct NewGameLocalDataSourceTests {
         let dataSource = NewGameLocalDataSource(data: initialData)
         
         // Verify initial state
-        #expect(dataSource.data.isValid == true)
+        #expect(dataSource.data.canSubmit == true)
         
         // Act
         dataSource.updateSelectedTeam(nil)
@@ -150,7 +150,7 @@ struct NewGameLocalDataSourceTests {
         #expect(dataSource.data.coachFirstName == "John")
         #expect(dataSource.data.coachLastName == "Doe")
         #expect(dataSource.data.selectedTeamInfo == nil)
-        #expect(dataSource.data.isValid == false)
+        #expect(dataSource.data.canSubmit == false)
     }
     
     // MARK: - Publisher Tests
@@ -177,7 +177,7 @@ struct NewGameLocalDataSourceTests {
         #expect(receivedData.last?.coachFirstName == "John")
         #expect(receivedData.last?.coachLastName == "Doe")
         #expect(receivedData.last?.selectedTeamInfo?.id == "team1")
-        #expect(receivedData.last?.isValid == true)
+        #expect(receivedData.last?.canSubmit == true)
         
         cancellable.cancel()
     }
@@ -205,7 +205,7 @@ struct NewGameLocalDataSourceTests {
         #expect(receivedData?.coachFirstName == "Initial")
         #expect(receivedData?.coachLastName == "Coach")
         #expect(receivedData?.selectedTeamInfo?.id == "initial-team")
-        #expect(receivedData?.isValid == true)
+        #expect(receivedData?.canSubmit == true)
         
         cancellable.cancel()
     }
@@ -219,13 +219,13 @@ struct NewGameLocalDataSourceTests {
         
         // Act - Update in sequence
         dataSource.updateCoach(firstName: "Sequential")
-        #expect(dataSource.data.isValid == false)
+        #expect(dataSource.data.canSubmit == false)
         
         dataSource.updateCoach(lastName: "Test")
-        #expect(dataSource.data.isValid == false)
+        #expect(dataSource.data.canSubmit == false)
         
         dataSource.updateSelectedTeam(teamInfo)
-        #expect(dataSource.data.isValid == true)
+        #expect(dataSource.data.canSubmit == true)
         
         // Assert final state
         #expect(dataSource.data.coachFirstName == "Sequential")
@@ -246,7 +246,7 @@ struct NewGameLocalDataSourceTests {
         let dataSource = NewGameLocalDataSource(data: initialData)
         
         // Verify initial state
-        #expect(dataSource.data.isValid == true)
+        #expect(dataSource.data.canSubmit == true)
         
         // Act - Overwrite data
         dataSource.updateCoach(firstName: "New")
@@ -261,7 +261,7 @@ struct NewGameLocalDataSourceTests {
         #expect(dataSource.data.selectedTeamInfo?.id == "new")
         #expect(dataSource.data.selectedTeamInfo?.city == "New")
         #expect(dataSource.data.selectedTeamInfo?.teamName == "Club")
-        #expect(dataSource.data.isValid == true)
+        #expect(dataSource.data.canSubmit == true)
     }
     
     // MARK: - Edge Cases
@@ -276,20 +276,20 @@ struct NewGameLocalDataSourceTests {
         let dataSource = NewGameLocalDataSource(data: initialData)
         
         // Verify initial valid state
-        #expect(dataSource.data.isValid == true)
+        #expect(dataSource.data.canSubmit == true)
         
         // Act - Update with empty strings
         dataSource.updateCoach(firstName: "")
-        #expect(dataSource.data.isValid == false)
+        #expect(dataSource.data.canSubmit == false)
         
         dataSource.updateCoach(lastName: "")
-        #expect(dataSource.data.isValid == false)
+        #expect(dataSource.data.canSubmit == false)
         
         // Assert
         #expect(dataSource.data.coachFirstName.isEmpty)
         #expect(dataSource.data.coachLastName.isEmpty)
         #expect(dataSource.data.selectedTeamInfo != nil)
-        #expect(dataSource.data.isValid == false)
+        #expect(dataSource.data.canSubmit == false)
     }
     
     @Test func testUpdateWithWhitespaceStrings() async throws {
@@ -304,6 +304,6 @@ struct NewGameLocalDataSourceTests {
         // Assert - Whitespace strings are not considered empty by isEmpty
         #expect(dataSource.data.coachFirstName == "   ")
         #expect(dataSource.data.coachLastName == "   ")
-        #expect(dataSource.data.isValid == true) // Because isEmpty returns false for whitespace
+        #expect(dataSource.data.canSubmit == true) // Because isEmpty returns false for whitespace
     }
 }

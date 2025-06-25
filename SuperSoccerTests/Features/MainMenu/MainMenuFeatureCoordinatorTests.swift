@@ -117,7 +117,7 @@ struct MainMenuFeatureCoordinatorTests {
     
     @Test("MainMenuFeatureCoordinator manages child coordinator lifecycle")
     @MainActor
-    func testChildCoordinatorLifecycle() {
+    func testChildCoordinatorLifecycle() throws {
         // Arrange
         let mockNavigationCoordinator = MockNavigationCoordinator()
         let mockDataManager = MockDataManager()
@@ -134,22 +134,29 @@ struct MainMenuFeatureCoordinatorTests {
         // Act - Start a child coordinator
         coordinator.handleNewGameSelected()
         
-        // Since we can't access private childCoordinators, we'll simulate the result
-        let mockResult = CreateNewCareerResult.make()
-        coordinator.finish(with: .newGameCreated(mockResult))
+        // Assert - Child coordinator was created and started
+        #expect(coordinator.testHooks.childCoordinators.count == 1)
         
-        // Assert - Coordinator finished with correct result
+        // Use TestHooks to simulate child coordinator finishing
+        let mockResult = CreateNewCareerResult.make()
+        let childCoordinator = try #require(coordinator.testHooks.childCoordinators.first as? NewGameFeatureCoordinator)
+        coordinator.testHooks.simulateChildFinish(childCoordinator, with: .gameCreated(mockResult))
+        
+        // Assert - Main coordinator finished with correct result and child was cleaned up
         #expect(receivedResult != nil)
         if case .newGameCreated(let result) = receivedResult {
             #expect(result.careerId == mockResult.careerId)
         } else {
             #expect(Bool(false), "Expected newGameCreated result")
         }
+        
+        // Assert - Child coordinator was automatically cleaned up
+        #expect(coordinator.testHooks.childCoordinators.count == 0)
     }
     
     @Test("MainMenuFeatureCoordinator handles child coordinator cancellation")
     @MainActor
-    func testChildCoordinatorCancellation() {
+    func testChildCoordinatorCancellation() throws {
         // Arrange
         let mockNavigationCoordinator = MockNavigationCoordinator()
         let mockDataManager = MockDataManager()
@@ -166,9 +173,16 @@ struct MainMenuFeatureCoordinatorTests {
         // Act - Start a child coordinator and simulate cancellation
         coordinator.handleNewGameSelected()
         
-        // Since we can't access private implementation details,
-        // we test that cancellation doesn't trigger finish
+        // Assert - Child coordinator was created
+        #expect(coordinator.testHooks.childCoordinators.count == 1)
+        
+        // Use TestHooks to simulate child coordinator cancelling
+        let childCoordinator = try #require(coordinator.testHooks.childCoordinators.first as? NewGameFeatureCoordinator)
+        coordinator.testHooks.simulateChildFinish(childCoordinator, with: .cancelled)
+        
+        // Assert - Main coordinator didn't finish when child was cancelled, and child was cleaned up
         #expect(finishCalled == false)
+        #expect(coordinator.testHooks.childCoordinators.count == 0)
     }
     
     // MARK: - Result Handling Tests

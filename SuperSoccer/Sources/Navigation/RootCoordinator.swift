@@ -12,10 +12,7 @@ enum RootCoordinatorResult: CoordinatorResult {
     case appShouldExit
 }
 
-protocol RootCoordinatorProtocol: AnyObject {
-}
-
-class RootCoordinator: BaseFeatureCoordinator<RootCoordinatorResult>, RootCoordinatorProtocol, ObservableObject {
+class RootCoordinator: BaseFeatureCoordinator<RootCoordinatorResult> {
     private let navigationCoordinator: NavigationCoordinatorProtocol
     private let dataManager: DataManagerProtocol
     private var splashTimer: Timer?
@@ -79,11 +76,24 @@ class RootCoordinator: BaseFeatureCoordinator<RootCoordinatorResult>, RootCoordi
 }
 
 #if DEBUG
-class MockRootCoordinator: RootCoordinatorProtocol {
-    var startCalled = false
+extension RootCoordinator {
+    var testHooks: TestHooks { TestHooks(target: self) }
     
-    func start() {
-        startCalled = true
+    struct TestHooks {
+        let target: RootCoordinator
+        
+        var childCoordinators: [any BaseFeatureCoordinatorType] { target.testChildCoordinators }
+        var navigationCoordinator: NavigationCoordinatorProtocol { target.navigationCoordinator }
+        var dataManager: DataManagerProtocol { target.dataManager }
+        var splashTimer: Timer? { target.splashTimer }
+        
+        func simulateChildFinish<ChildResult: CoordinatorResult>(
+            _ childCoordinator: BaseFeatureCoordinator<ChildResult>,
+            with result: ChildResult
+        ) {
+            childCoordinator.finish(with: result)
+        }
     }
 }
+
 #endif

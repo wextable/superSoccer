@@ -1,9 +1,47 @@
 # Active Context
 
 ## Current Work Focus
-The SuperSoccer project has completed major architectural milestones including **comprehensive InteractorFactory pattern implementation**, comprehensive UI redesign work, and comprehensive unit testing infrastructure. **All core features now use the InteractorFactory pattern for dependency injection** and have complete SSTheme integration and dark mode support. The core data layer, navigation system, feature coordinators, retro-themed UI, and comprehensive testing infrastructure are fully implemented and working.
+The SuperSoccer project has completed major architectural milestones including **comprehensive InteractorFactory pattern implementation**, **async TestHooks pattern implementation**, comprehensive UI redesign work, and comprehensive unit testing infrastructure. **All core features now use the InteractorFactory pattern for dependency injection** and have complete SSTheme integration and dark mode support. The core data layer, navigation system, feature coordinators, retro-themed UI, and comprehensive testing infrastructure are fully implemented and working.
 
 ## Recent Major Changes
+
+### ✅ Completed: Async TestHooks Pattern Implementation (MAJOR TESTING MILESTONE)
+- **BaseFeatureCoordinator Enhanced**: Added `testOnChildCoordinatorAdded` callback mechanism
+  - Triggers when `startChild()` creates child coordinators, enabling real event-based testing
+  - Test-only callback system using `#if DEBUG` compilation flags
+  - Eliminates arbitrary delays in favor of deterministic async testing
+- **TestHooks Async Helpers**: Added comprehensive async testing support to all coordinators
+  - `waitForChildCoordinator()`: Standalone method for waiting on child coordinator creation
+  - `executeAndWaitForChildCoordinator()`: Combined action + wait pattern for test efficiency
+  - Uses `await withCheckedContinuation` with real events instead of `DispatchQueue.main.asyncAfter`
+- **Tests Updated to Use New Pattern**: Eliminated flaky timing-based tests
+  - **MainMenuFeatureCoordinatorTests**: `testInteractorNewGameSelection` now uses deterministic async pattern
+  - **NewGameFeatureCoordinatorTests**: `testTeamSelectionCoordinatorLifecycle` now uses deterministic async pattern
+  - **Testing Performance**: Tests are now faster (no 10ms+ delays) and more reliable
+  - **Pattern Established**: Template for all future async coordinator testing
+- **Benefits Achieved**:
+  - **Deterministic**: Tests wait for actual events, not arbitrary timeouts
+  - **Fast**: No more artificial delays in test execution
+  - **Reliable**: Tests pass consistently without race conditions
+  - **Maintainable**: Clear pattern for future coordinator async testing
+
+### ✅ Completed: MainMenu Feature Architecture Update (NEW PATTERN APPLIED)
+- **MainMenuInteractor Protocol Separation**: Applied NewGame's excellent architecture patterns
+  - `MainMenuBusinessLogic`: For coordinator communication via delegate pattern
+  - `MainMenuViewPresenter`: For view communication via direct function calls  
+  - Clean separation of concerns between coordinator and view interfaces
+- **EventBus Elimination**: Removed EventBus pattern in favor of direct delegate function calls
+  - Replaced event-based communication with dedicated protocol methods
+  - Direct function call interface through `MainMenuViewPresenter`
+  - Maintained clean separation: `MainMenuBusinessLogic` for coordinator, `MainMenuViewPresenter` for view
+- **Navigation Integration**: Updated NavigationRouter and ViewFactory
+  - `NavigationRouter.Screen.mainMenu(presenter: MainMenuViewPresenter)` - uses presenter protocol
+  - ViewFactory takes `MainMenuViewPresenter` parameter, not full interactor
+  - Consistent with NewGame pattern for proper architectural separation
+- **Testing Excellence**: All MainMenu tests updated and passing
+  - Updated to use new async TestHooks pattern (no arbitrary delays)
+  - Proper verification using TestHooks for child coordinator creation
+  - All coordinator tests pass consistently with new architecture
 
 ### ✅ Completed: InteractorFactory Pattern Implementation
 - **InteractorFactory Architecture**: Implemented comprehensive factory pattern for all features
@@ -175,18 +213,19 @@ The SuperSoccer project has completed major architectural milestones including *
   - Consistent testing patterns across all features
   - Protocol-based mock implementations with complete coverage
 
-#### 🔄 Current Focus: Apply NewGame Patterns to Other Features
-- **Eliminate EventBus Pattern**: Apply NewGame's direct function call approach to other interactors
-  - **MainMenu**: Replace EventBus with direct delegate function calls
+#### 🔄 Next Focus: Apply NewGame Patterns to Remaining Features
+- **Eliminate EventBus Pattern**: Apply NewGame's direct function call approach to remaining interactors
+  - **MainMenu**: ✅ **COMPLETED** - Replaced EventBus with direct delegate function calls
   - **TeamSelect**: Replace EventBus with direct delegate function calls  
   - **Team**: Replace EventBus with direct delegate function calls (keep existing tests as reference)
-- **Protocol Separation Pattern**: Apply NewGame's two-protocol architecture
-  - **BusinessLogic Protocol**: For coordinator communication (delegate pattern)
-  - **Presenter Protocol**: For view communication (direct function calls)
-  - **NavigationRouter.Screen Updates**: Update to use Presenter protocols instead of Interactor protocols
-  - **View Initialization**: Views should be initialized with Presenter protocols, not InteractorProtocol
+- **Protocol Separation Pattern**: Apply NewGame's two-protocol architecture to remaining features
+  - **MainMenu**: ✅ **COMPLETED** - BusinessLogic + Presenter protocols implemented
+  - **TeamSelect**: Add BusinessLogic Protocol (coordinator) + Presenter Protocol (view)
+  - **Team**: Add BusinessLogic Protocol (coordinator) + Presenter Protocol (view)
+  - **NavigationRouter.Screen Updates**: Update remaining screens to use Presenter protocols
+  - **View Initialization**: Ensure all views are initialized with Presenter protocols
   - Maintain clean separation of concerns between coordinator and view interfaces
-- **Apply NewGameInteractorTests Patterns**: Use as template for testing excellence
+- **Apply NewGameInteractorTests Patterns**: Use as template for testing excellence on remaining features
   - **withCheckedContinuation**: For reliable async testing without flaky delays
   - **Direct Effect Testing**: Test actual side effects, not derived reactive state
   - **Isolated Mock Dependencies**: Fresh mock instances per test via helper functions
@@ -194,8 +233,8 @@ The SuperSoccer project has completed major architectural milestones including *
 
 ## Next Immediate Steps
 
-### 1. Apply NewGame Architecture Patterns
-- **MainMenuInteractor**: Remove EventBus, add protocol separation (BusinessLogic + Presenter)
+### 1. Apply NewGame Architecture Patterns to Remaining Features
+- **MainMenuInteractor**: ✅ **COMPLETED** - EventBus removed, protocol separation implemented (BusinessLogic + Presenter)
 - **TeamSelectInteractor**: Remove EventBus, add protocol separation (BusinessLogic + Presenter)
 - **TeamInteractor**: Remove EventBus, add protocol separation (BusinessLogic + Presenter)
 - **NavigationRouter Updates**: Update Screen cases to use Presenter protocols instead of Interactor protocols

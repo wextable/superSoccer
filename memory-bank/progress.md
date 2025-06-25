@@ -23,6 +23,7 @@
   - Factory-based interactor creation with proper delegate setup
   - Proper dark mode support and theme integration
   - Navigation to NewGame flow
+  - **✅ UPDATED TO NEW ARCHITECTURE**: Protocol separation (BusinessLogic + Presenter), EventBus elimination, async TestHooks
 
 - **NewGame**: 
   - Coach profile creation with comprehensive retro-styled UI and InteractorFactory
@@ -104,6 +105,12 @@
   - MockInteractorFactory provides pre-configured mock interactors
   - Type-safe factory methods for test setup
   - Automatic mock creation and configuration
+- **Async TestHooks Pattern (MAJOR MILESTONE)**: Deterministic async testing for child coordinators
+  - **BaseFeatureCoordinator Enhanced**: `testOnChildCoordinatorAdded` callback mechanism
+  - **TestHooks Async Helpers**: `waitForChildCoordinator()` and `executeAndWaitForChildCoordinator()`
+  - **Eliminated Flaky Tests**: Replaced `DispatchQueue.main.asyncAfter` with real event-based testing
+  - **Pattern Applied**: MainMenu and NewGame coordinators now use deterministic async testing
+  - **Performance Improvement**: Tests are faster (no artificial delays) and more reliable
 - **Team Feature Testing**: Complete unit testing template with InteractorFactory integration
   - Swift Testing framework with @Test attributes
   - Comprehensive mock implementations with tracking properties
@@ -117,9 +124,9 @@
 
 ## What's Left to Build 🔄
 
-### Current Focus: Apply NewGame Architecture Excellence to All Features
-- **EventBus Elimination**: Apply NewGame's direct function call pattern to all interactors
-  - **MainMenuInteractor**: Remove EventBus, implement protocol separation (BusinessLogic + Presenter)
+### Current Focus: Apply NewGame Architecture Excellence to Remaining Features
+- **EventBus Elimination**: Apply NewGame's direct function call pattern to remaining interactors
+  - **MainMenuInteractor**: ✅ **COMPLETED** - EventBus removed, protocol separation implemented (BusinessLogic + Presenter)
   - **TeamSelectInteractor**: Remove EventBus, implement protocol separation (BusinessLogic + Presenter)
   - **TeamInteractor**: Remove EventBus, implement protocol separation (BusinessLogic + Presenter)
 - **NewGameInteractorTests Excellence Template**: Apply to all feature interactor tests

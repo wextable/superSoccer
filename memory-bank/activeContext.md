@@ -67,7 +67,25 @@ The SuperSoccer project has completed major architectural milestones including *
   - TeamSelect: ✅ Now fully themed with NavigationStack and SSTheme integration
   - Team: ✅ Enhanced with SSTheme styling and PlayerRowView updates
 
-### ✅ Completed: Team Feature Unit Tests
+### ✅ Completed: NewGame Feature EventBus Elimination & Testing Excellence
+- **NewGameInteractor Refactoring**: Successfully eliminated EventBus pattern for direct function calls
+  - Removed `NewGameEvent` enum and `NewGameEventBus` typealias
+  - Replaced event-based communication with dedicated protocol methods: `submitTapped()` and `teamSelectorTapped()`
+  - Updated `NewGameViewPresenter` protocol with direct function call interface
+  - Maintained clean separation: `NewGameBusinessLogic` for coordinator, `NewGameViewPresenter` for view
+- **NewGameInteractorTests**: **EXEMPLARY testing patterns** - model for all future tests
+  - **Reliable Async Testing**: `withCheckedContinuation` with delegate callbacks (no more flaky `Task.sleep`)
+  - **Direct Effect Testing**: Test local data source updates rather than binding getters
+  - **Isolated Mock Dependencies**: `createMocks()` helper for fresh instances per test
+  - **Comprehensive Coverage**: Binding tests, validation tests, delegate tests, async tests
+  - **All 14 tests passing consistently** - no flaky timing issues
+- **Testing Anti-Patterns Eliminated**: 
+  - No more `await confirmation` with unreliable timing
+  - No more `Task.sleep` delays that break under load
+  - No more testing derived state instead of actual effects
+  - No more shared mock state between tests
+
+### ✅ Completed: Team Feature Unit Tests  
 - **TeamInteractorTests**: Comprehensive test coverage for team business logic
   - Initialization tests verifying dependency injection
   - Event handling tests for event bus functionality (loadTeamData, playerRowTapped)
@@ -157,29 +175,44 @@ The SuperSoccer project has completed major architectural milestones including *
   - Consistent testing patterns across all features
   - Protocol-based mock implementations with complete coverage
 
-#### 🔄 Current Focus: Expand Unit Testing Coverage with InteractorFactory Pattern
-- **Apply InteractorFactory Testing Pattern**: Extend MockDependencyContainer pattern to all features
-- **Complete Feature Test Coverage**: Apply established testing patterns to remaining features
-- **UI Component Tests**: Test all design system components
-- **Navigation Tests**: Test coordinators and navigation flows with factory integration
-- **Integration Tests**: Test complete feature workflows with InteractorFactory
+#### 🔄 Current Focus: Apply NewGame Patterns to Other Features
+- **Eliminate EventBus Pattern**: Apply NewGame's direct function call approach to other interactors
+  - **MainMenu**: Replace EventBus with direct delegate function calls
+  - **TeamSelect**: Replace EventBus with direct delegate function calls  
+  - **Team**: Replace EventBus with direct delegate function calls (keep existing tests as reference)
+- **Protocol Separation Pattern**: Apply NewGame's two-protocol architecture
+  - **BusinessLogic Protocol**: For coordinator communication (delegate pattern)
+  - **Presenter Protocol**: For view communication (direct function calls)
+  - **NavigationRouter.Screen Updates**: Update to use Presenter protocols instead of Interactor protocols
+  - **View Initialization**: Views should be initialized with Presenter protocols, not InteractorProtocol
+  - Maintain clean separation of concerns between coordinator and view interfaces
+- **Apply NewGameInteractorTests Patterns**: Use as template for testing excellence
+  - **withCheckedContinuation**: For reliable async testing without flaky delays
+  - **Direct Effect Testing**: Test actual side effects, not derived reactive state
+  - **Isolated Mock Dependencies**: Fresh mock instances per test via helper functions
+  - **Comprehensive Coverage**: All interaction paths with consistent, reliable patterns
 
 ## Next Immediate Steps
 
-### 1. Extend InteractorFactory Testing Pattern
-- **Apply MockDependencyContainer Pattern**: Use established testing pattern for all feature tests
-- **Enhance Existing Tests**: Update any remaining tests to use factory-based dependency injection
-- **Verify Test Coverage**: Ensure all features have comprehensive testing with factory pattern
+### 1. Apply NewGame Architecture Patterns
+- **MainMenuInteractor**: Remove EventBus, add protocol separation (BusinessLogic + Presenter)
+- **TeamSelectInteractor**: Remove EventBus, add protocol separation (BusinessLogic + Presenter)
+- **TeamInteractor**: Remove EventBus, add protocol separation (BusinessLogic + Presenter)
+- **NavigationRouter Updates**: Update Screen cases to use Presenter protocols instead of Interactor protocols
+- **View Layer Updates**: Update Views to be initialized with Presenter protocols, not InteractorProtocol
+- **Apply Testing Excellence**: Use NewGameInteractorTests as template for all feature interactor tests
 
-### 2. Complete Remaining Feature Testing
-- **MainMenuInteractorTests**: Apply established testing patterns with factory integration
-- **NewGameInteractorTests**: Comprehensive testing for NewGame business logic
-- **Integration Tests**: Test complete feature workflows with InteractorFactory pattern
+### 2. Validate Pattern Consistency
+- **Protocol Interfaces**: Ensure all interactors follow BusinessLogic + Presenter separation
+- **Direct Function Calls**: Verify all view-interactor communication uses direct function calls
+- **Testing Standards**: All interactor tests use withCheckedContinuation and direct effect testing
+- **Mock Isolation**: All tests use isolated mock dependencies via helper functions
 
-### 3. Implement Core Game Features with Factory Pattern
-- **League Feature**: League standings, schedule, and match results with InteractorFactory
-- **Match Simulation**: Basic match simulation engine with factory-based dependency injection
-- **Player Management**: Enhanced player details and statistics using factory pattern
+### 3. Complete Feature Testing with New Patterns
+- **MainMenuInteractorTests**: Apply NewGame testing patterns after EventBus removal
+- **TeamSelectInteractorTests**: Apply NewGame testing patterns after EventBus removal
+- **Enhanced TeamInteractorTests**: Update existing tests to match NewGame excellence patterns
+- **Integration Tests**: Test complete feature workflows with new direct function call patterns
 
 ## Current Technical Decisions
 
@@ -190,12 +223,17 @@ The SuperSoccer project has completed major architectural milestones including *
 - **Testing Integration**: MockDependencyContainer provides unified testing interface
 - **Scalable Design**: Easy to extend for new features and interactor types
 
-### Testing Architecture with Factory Pattern
+### Testing Architecture Excellence (NewGame Template)
 - **MockDependencyContainer**: Centralized mock creation and coordinator factory methods
 - **Unified Test Setup**: Consistent `container.make[Feature]Coordinator()` pattern
 - **Factory-Based Mocks**: All mock interactors created through MockInteractorFactory
 - **Type Safety**: Compile-time verification of dependencies and factory methods
 - **Test Isolation**: Each test gets fresh mock instances through factory
+- **NewGameInteractorTests Excellence Patterns**:
+  - `withCheckedContinuation` for reliable async testing (no more flaky delays)
+  - Direct effect testing (test actual side effects, not derived state)
+  - `createMocks()` helper for isolated dependencies per test
+  - Comprehensive coverage with consistent, reliable patterns
 
 ### Architecture Patterns in Use
 - **InteractorFactory Pattern**: Type-safe dependency injection for all features

@@ -50,7 +50,7 @@ struct SSButtonPreviews: View {
             SSTitle.title2("Primary Buttons")
             
             SSPrimaryButton.make(
-                title: "New Game",
+                title: "New game",
                 action: { print("New Game tapped") }
             )
             

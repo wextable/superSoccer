@@ -39,7 +39,7 @@ final class MainMenuInteractor: MainMenuInteractorProtocol {
         self.viewModel = MainMenuViewModel(
             title: "Main menu",
             menuItemModels: [
-                .init(title: "New Game") {
+                .init(title: "New game") {
                     self.eventBus.send(.newGameSelected)
                 }
             ]
@@ -92,7 +92,7 @@ class MockMainMenuInteractor: MainMenuInteractorProtocol {
         MainMenuViewModel(
             title: "Main menu",
             menuItemModels: [
-                .init(title: "New Game") {}
+                .init(title: "New game") {}
             ])
     }
     

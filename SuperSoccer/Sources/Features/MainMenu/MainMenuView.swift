@@ -64,7 +64,7 @@ extension MainMenuViewModel {
         self.init(
             title: title,
             menuItemModels: [
-                .init(title: "New Game") {}
+                .init(title: "New game") {}
             ]
         )
     }

@@ -42,7 +42,7 @@ struct MainMenuInteractorTests {
         // Assert
         #expect(interactor.viewModel.title == "Main menu")
         #expect(interactor.viewModel.menuItemModels.count == 1)
-        #expect(interactor.viewModel.menuItemModels.first?.title == "New Game")
+        #expect(interactor.viewModel.menuItemModels.first?.title == "New game")
     }
     
     @Test("MainMenuInteractor initializes with event bus")
@@ -135,7 +135,7 @@ struct MainMenuInteractorTests {
         
         // Assert
         #expect(menuItems.count == 1)
-        #expect(menuItems.first?.title == "New Game")
+        #expect(menuItems.first?.title == "New game")
         #expect(menuItems.first?.action != nil)
     }
     

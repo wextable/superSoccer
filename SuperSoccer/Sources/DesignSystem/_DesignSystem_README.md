@@ -89,7 +89,7 @@ Primary action button with cyan background.
 
 ```swift
 SSPrimaryButton.make(
-    title: "New Game",
+    title: "New game",
     isEnabled: true,
     action: { /* action */ }
 )

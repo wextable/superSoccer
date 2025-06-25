@@ -9,13 +9,6 @@ import Combine
 import Observation
 import SwiftUI
 
-typealias NewGameEventBus = PassthroughSubject<NewGameEvent, Never>
-
-enum NewGameEvent: BusEvent {
-    case submitTapped
-    case teamSelectorTapped
-}
-
 protocol NewGameBusinessLogicDelegate: AnyObject {
     func businessLogicDidRequestTeamSelection()
     func businessLogicDidCreateGame(with result: CreateNewCareerResult)
@@ -29,9 +22,10 @@ protocol NewGameBusinessLogic: AnyObject {
 
 protocol NewGameViewPresenter: AnyObject {
     var viewModel: NewGameViewModel { get }
-    var eventBus: NewGameEventBus { get }
     func bindFirstName() -> Binding<String>
     func bindLastName() -> Binding<String>
+    func submitTapped()
+    func teamSelectorTapped()
 }
 
 protocol NewGameInteractorProtocol: NewGameBusinessLogic & NewGameViewPresenter {}
@@ -40,7 +34,6 @@ protocol NewGameInteractorProtocol: NewGameBusinessLogic & NewGameViewPresenter 
 final class NewGameInteractor: NewGameInteractorProtocol {
     private let dataManager: DataManagerProtocol
     private let localDataSource: NewGameLocalDataSourceProtocol
-    let eventBus = NewGameEventBus()
     
     weak var delegate: NewGameBusinessLogicDelegate?
     
@@ -58,7 +51,6 @@ final class NewGameInteractor: NewGameInteractorProtocol {
     
     private func setupSubscriptions() {
         subscribeToDataSources()
-        subscribeToUIEvents()
     }
     
     private func subscribeToDataSources() {
@@ -67,22 +59,6 @@ final class NewGameInteractor: NewGameInteractorProtocol {
             .sink { [weak self] data in
                 guard let self else { return }
                 self.viewModel = createViewModel(localData: data)
-            }
-            .store(in: &cancellables)
-    }
-    
-    private func subscribeToUIEvents() {
-        eventBus
-            .sink { [weak self] event in
-                guard let self else { return }
-                switch event {
-                case .submitTapped:
-                    Task {
-                        await self.createGame()
-                    }
-                case .teamSelectorTapped:
-                    delegate?.businessLogicDidRequestTeamSelection()
-                }
             }
             .store(in: &cancellables)
     }
@@ -105,6 +81,16 @@ final class NewGameInteractor: NewGameInteractorProtocol {
         )
     }
     
+    func submitTapped() {
+        Task {
+            await self.createGame()
+        }
+    }
+    
+    func teamSelectorTapped() {
+        delegate?.businessLogicDidRequestTeamSelection()
+    }
+
     func updateSelectedTeam(_ teamInfo: TeamInfo) {
         localDataSource.updateSelectedTeam(teamInfo)
     }
@@ -131,7 +117,7 @@ final class NewGameInteractor: NewGameInteractorProtocol {
             teamSelectorTitle: teamSelectorTitle,
             teamSelectorButtonTitle: teamSelectorButtonTitle,
             teamSelectorAction: { [weak self] in
-                self?.eventBus.send(.teamSelectorTapped)
+                self?.teamSelectorTapped()
             },
             buttonText: "Start game",
             submitEnabled: localData.canSubmit
@@ -180,19 +166,22 @@ extension NewGameInteractor {
 
 class MockNewGameInteractor: NewGameInteractorProtocol {
     var viewModel: NewGameViewModel = .make()
-    var eventBus: NewGameEventBus = NewGameEventBus()
     weak var delegate: NewGameBusinessLogicDelegate?
     
     // Test tracking properties
     var bindFirstNameCalled = false
     var bindLastNameCalled = false
     var updateSelectedTeamCalled = false
+    var submitTappedCalled = false
+    var teamSelectorTappedCalled = false
     var lastUpdatedTeam: TeamInfo?
     
     // Callback support for async testing
     var onBindFirstName: (() -> Void)?
     var onBindLastName: (() -> Void)?
     var onUpdateSelectedTeam: ((TeamInfo) -> Void)?
+    var onSubmitTapped: (() -> Void)?
+    var onTeamSelectorTapped: (() -> Void)?
     
     private var firstName = ""
     private var lastName = ""
@@ -200,23 +189,35 @@ class MockNewGameInteractor: NewGameInteractorProtocol {
     func bindFirstName() -> Binding<String> {
         bindFirstNameCalled = true
         onBindFirstName?()
-        return Binding(get: { self.firstName }, set: { self.firstName = $0 })
+        return Binding(
+            get: { self.firstName },
+            set: { self.firstName = $0 }
+        )
     }
     
     func bindLastName() -> Binding<String> {
         bindLastNameCalled = true
         onBindLastName?()
-        return Binding(get: { self.lastName }, set: { self.lastName = $0 })
+        return Binding(
+            get: { self.lastName },
+            set: { self.lastName = $0 }
+        )
     }
     
     func updateSelectedTeam(_ teamInfo: TeamInfo) {
         updateSelectedTeamCalled = true
         lastUpdatedTeam = teamInfo
         onUpdateSelectedTeam?(teamInfo)
-        
-        // Update view model like real implementation
-        viewModel.teamSelectorTitle = "\(teamInfo.city) \(teamInfo.teamName)"
-        viewModel.teamSelectorButtonTitle = "Change"
+    }
+    
+    func submitTapped() {
+        submitTappedCalled = true
+        onSubmitTapped?()
+    }
+    
+    func teamSelectorTapped() {
+        teamSelectorTappedCalled = true
+        onTeamSelectorTapped?()
     }
 }
 
@@ -247,4 +248,5 @@ class MockNewGameInteractorDelegate: NewGameBusinessLogicDelegate {
         onDidCancel?()
     }
 }
+
 #endif

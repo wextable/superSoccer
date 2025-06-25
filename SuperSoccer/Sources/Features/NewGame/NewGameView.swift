@@ -67,7 +67,7 @@ struct NewGameView: View {
     
     private var submitButton: some View {
         SSPrimaryButton.make(title: presenter.viewModel.buttonText) {
-            presenter.eventBus.send(.submitTapped)
+            presenter.submitTapped()
         }
         .disabled(!presenter.viewModel.submitEnabled)
         .padding(theme.spacing.large)
@@ -79,7 +79,7 @@ struct NewGameView: View {
 #if DEBUG
 extension NewGameViewModel {
     static func make(
-        title: String = "New Game",
+        title: String = "New game",
         coachLabelText: String = "Coach name",
         coachFirstNameLabel: String = "First name",
         coachFirstName: String = "",

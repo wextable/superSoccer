@@ -117,15 +117,22 @@
 
 ## What's Left to Build 🔄
 
-### Current Focus: Expand InteractorFactory Testing Coverage
-- **Apply MockDependencyContainer Pattern**: Extend established testing pattern to all remaining features
-  - Update any remaining tests to use factory-based dependency injection
-  - Verify all feature coordinator tests use `container.make[Feature]Coordinator()` pattern
-  - Ensure all interactor tests use factory-provided mocks
-- **Complete Feature Test Coverage**: Apply established InteractorFactory testing patterns
-  - MainMenuInteractorTests with factory integration and comprehensive business logic coverage
-  - NewGameInteractorTests with data validation, flow testing, and factory pattern
-  - Integration tests for complete feature workflows using InteractorFactory
+### Current Focus: Apply NewGame Architecture Excellence to All Features
+- **EventBus Elimination**: Apply NewGame's direct function call pattern to all interactors
+  - **MainMenuInteractor**: Remove EventBus, implement protocol separation (BusinessLogic + Presenter)
+  - **TeamSelectInteractor**: Remove EventBus, implement protocol separation (BusinessLogic + Presenter)
+  - **TeamInteractor**: Remove EventBus, implement protocol separation (BusinessLogic + Presenter)
+- **NewGameInteractorTests Excellence Template**: Apply to all feature interactor tests
+  - **Reliable Async Testing**: `withCheckedContinuation` with delegate callbacks (eliminates flaky `Task.sleep`)
+  - **Direct Effect Testing**: Test actual side effects (local data updates) not derived reactive state
+  - **Isolated Mock Dependencies**: `createMocks()` helper for fresh instances per test
+  - **Comprehensive Coverage**: All 14 tests passing consistently with reliable patterns
+- **Protocol Architecture Consistency**: Ensure all features follow NewGame's two-protocol separation
+  - `[Feature]BusinessLogic`: For coordinator communication via delegate pattern
+  - `[Feature]ViewPresenter`: For view communication via direct function calls
+  - **NavigationRouter.Screen Updates**: Update to use Presenter protocols instead of Interactor protocols
+  - **View Initialization Consistency**: Views initialized with Presenter protocols, not InteractorProtocol
+  - Clean separation of concerns between coordinator and view interfaces
 - **Design System Tests**: Test all UI components and theming
   - Button component tests (SSPrimaryButton, SSSecondaryButton, SSTextButton)
   - Text component tests (SSTitle, SSLabel hierarchies)

@@ -13,32 +13,20 @@ import Testing
 
 struct NewGameInteractorTests {
     
-    // MARK: - Initialization Tests
+    // MARK: - Helper Methods
     
-    @Test("NewGameInteractor initializes with correct dependencies via factory")
-    @MainActor
-    func testInitializationWithFactoryDependencies() {
-        // Arrange
-        let container = MockDependencyContainer()
-        
-        // Act
-        let interactor = container.interactorFactory.makeNewGameInteractor()
-        let mockDelegate = MockNewGameInteractorDelegate()
-        interactor.delegate = mockDelegate
-        
-        // Assert
-        #expect(interactor != nil)
-        #expect(interactor.eventBus != nil)
+    private func createMocks() -> (MockDataManager, MockNewGameLocalDataSource) {
+        return (MockDataManager(), MockNewGameLocalDataSource())
     }
+        
+    // MARK: - Initialization Tests
     
     @Test("NewGameInteractor initializes with correct view model")
     @MainActor
-    func testInitialViewModel() async throws {
-        // Arrange
-        let container = MockDependencyContainer()
-        
-        // Act
-        let interactor = container.interactorFactory.makeNewGameInteractor()
+    func testInitialViewModel() {
+        // Arrange & Act
+        let (mockDataManager, mockLocalDataSource) = createMocks()
+        let interactor = NewGameInteractor(dataManager: mockDataManager, localDataSource: mockLocalDataSource)
         
         // Assert
         #expect(interactor.viewModel.title == "New game")
@@ -48,17 +36,22 @@ struct NewGameInteractorTests {
         #expect(interactor.viewModel.buttonText == "Start game")
     }
     
-    @Test("NewGameInteractor initializes with event bus")
+    // MARK: - Function Interface Tests
+    
+    @Test("NewGameInteractor handles teamSelectorTapped function call")
     @MainActor
-    func testInitializationWithEventBus() {
+    func testTeamSelectorTappedFunctionCall() {
         // Arrange
-        let container = MockDependencyContainer()
+        let (mockDataManager, mockLocalDataSource) = createMocks()
+        let interactor = NewGameInteractor(dataManager: mockDataManager, localDataSource: mockLocalDataSource)
+        let mockDelegate = MockNewGameInteractorDelegate()
+        interactor.delegate = mockDelegate
         
         // Act
-        let interactor = container.interactorFactory.makeNewGameInteractor()
+        interactor.teamSelectorTapped()
         
         // Assert
-        #expect(interactor.eventBus != nil)
+        #expect(mockDelegate.didRequestTeamSelection == true)
     }
     
     // MARK: - Business Logic Tests
@@ -67,24 +60,21 @@ struct NewGameInteractorTests {
     @MainActor
     func testFormValidation() {
         // Arrange
-        let container = MockDependencyContainer()
-        let interactor = container.interactorFactory.makeNewGameInteractor()
+        let (mockDataManager, mockLocalDataSource) = createMocks()
+        let interactor = NewGameInteractor(dataManager: mockDataManager, localDataSource: mockLocalDataSource)
         
-        // Act & Assert - Initially invalid (empty fields)
+        // Assert - Initially should have default state
         #expect(interactor.viewModel.submitEnabled == false)
-        
-        // Note: Form validation is handled by local data source in production
-        // In testing, the mock interactor provides the validation logic
     }
     
     @Test("NewGameInteractor provides default team selector state")
     @MainActor
     func testDefaultTeamSelectorState() {
         // Arrange
-        let container = MockDependencyContainer()
-        let interactor = container.interactorFactory.makeNewGameInteractor()
+        let (mockDataManager, mockLocalDataSource) = createMocks()
+        let interactor = NewGameInteractor(dataManager: mockDataManager, localDataSource: mockLocalDataSource)
         
-        // Assert - Check default state from mock
+        // Assert - Check default state
         #expect(interactor.viewModel.teamSelectorTitle != nil)
         #expect(interactor.viewModel.teamSelectorButtonTitle != nil)
     }
@@ -95,32 +85,36 @@ struct NewGameInteractorTests {
     @MainActor
     func testFirstNameBinding() {
         // Arrange
-        let container = MockDependencyContainer()
-        let interactor = container.interactorFactory.makeNewGameInteractor()
+        let (mockDataManager, mockLocalDataSource) = createMocks()
+        let interactor = NewGameInteractor(dataManager: mockDataManager, localDataSource: mockLocalDataSource)
         
         // Act
         let binding = interactor.bindFirstName()
         
-        // Assert
-        #expect(binding != nil)
-        // Note: Actual binding behavior is handled by the local data source
-        // Mock implementation provides the binding interface
+        // Assert - Test that binding exists and has correct initial value
+        #expect(binding.wrappedValue == "")
+        
+        // Test that setting the binding value updates the local data source
+        binding.wrappedValue = "John"
+        #expect(mockLocalDataSource.data.coachFirstName == "John")
     }
     
     @Test("NewGameInteractor provides last name binding")
     @MainActor
     func testLastNameBinding() {
         // Arrange
-        let container = MockDependencyContainer()
-        let interactor = container.interactorFactory.makeNewGameInteractor()
+        let (mockDataManager, mockLocalDataSource) = createMocks()
+        let interactor = NewGameInteractor(dataManager: mockDataManager, localDataSource: mockLocalDataSource)
         
         // Act
         let binding = interactor.bindLastName()
         
-        // Assert
-        #expect(binding != nil)
-        // Note: Actual binding behavior is handled by the local data source
-        // Mock implementation provides the binding interface
+        // Assert - Test that binding exists and has correct initial value
+        #expect(binding.wrappedValue == "")
+        
+        // Test that setting the binding value updates the local data source
+        binding.wrappedValue = "Doe"
+        #expect(mockLocalDataSource.data.coachLastName == "Doe")
     }
     
     // MARK: - Team Selection Tests
@@ -129,92 +123,66 @@ struct NewGameInteractorTests {
     @MainActor
     func testUpdateSelectedTeam() {
         // Arrange
-        let container = MockDependencyContainer()
-        let interactor = container.interactorFactory.makeNewGameInteractor()
+        let (mockDataManager, mockLocalDataSource) = createMocks()
+        let interactor = NewGameInteractor(dataManager: mockDataManager, localDataSource: mockLocalDataSource)
         let teamInfo = TeamInfo.make(id: "team1", city: "Manchester", teamName: "United")
         
         // Act
         interactor.updateSelectedTeam(teamInfo)
         
-        // Assert - Verify the method exists and can be called
-        // Mock implementation handles the update logic
-        #expect(interactor != nil) // Basic verification that call completed
+        // Assert - Verify the local data source was updated
+        #expect(mockLocalDataSource.data.selectedTeamInfo?.id == "team1")
+        #expect(mockLocalDataSource.data.selectedTeamInfo?.city == "Manchester")
+        #expect(mockLocalDataSource.data.selectedTeamInfo?.teamName == "United")
     }
     
-    // MARK: - Event Handling Tests
+    // MARK: - Delegate Communication Tests
     
-    @Test("NewGameInteractor handles team selector tapped event")
-    func testTeamSelectorTappedEvent() async {
+    @Test("NewGameInteractor calls delegate on team selector tapped")
+    @MainActor
+    func testTeamSelectorTappedDelegate() {
         // Arrange
-        let container = MockDependencyContainer()
-        let interactor = await container.interactorFactory.makeNewGameInteractor()
+        let (mockDataManager, mockLocalDataSource) = createMocks()
+        let interactor = NewGameInteractor(dataManager: mockDataManager, localDataSource: mockLocalDataSource)
         let mockDelegate = MockNewGameInteractorDelegate()
         interactor.delegate = mockDelegate
-        
-        // Act & Assert
-        await confirmation { confirm in
-            mockDelegate.onDidRequestTeamSelection = {
-                confirm()
-            }
-            
-            interactor.eventBus.send(.teamSelectorTapped)
-        }
-        
+
+        // Act
+        interactor.teamSelectorTapped()
+
+        // Assert
         #expect(mockDelegate.didRequestTeamSelection == true)
     }
-    
-    @Test("NewGameInteractor handles submit tapped event")
-    func testSubmitTappedEvent() async {
+
+    @Test("NewGameInteractor calls delegate on career creation")
+    func testSubmitTappedDelegate() async {
         // Arrange
-        let container = MockDependencyContainer()
-        let interactor = await container.interactorFactory.makeNewGameInteractor()
+        let (mockDataManager, mockLocalDataSource) = createMocks()
+        // Setup valid data for submission
+        let teamInfo = TeamInfo.make(id: "team1", city: "Test", teamName: "City")
+        mockLocalDataSource.updateCoach(firstName: "John")
+        mockLocalDataSource.updateCoach(lastName: "Doe")
+        mockLocalDataSource.updateSelectedTeam(teamInfo)
+        let interactor = NewGameInteractor(dataManager: mockDataManager, localDataSource: mockLocalDataSource)
         let mockDelegate = MockNewGameInteractorDelegate()
         interactor.delegate = mockDelegate
-        
+
         // Setup expected result from mock data manager
         let expectedResult = CreateNewCareerResult.make(careerId: "career123")
-        container.mockDataManager.mockCreateNewCareerResult = expectedResult
-        
-        // Act & Assert
-        await confirmation { confirm in
-            mockDelegate.onDidCreateGame = { result in
-                #expect(result.careerId == "career123")
-                confirm()
+        mockDataManager.mockCreateNewCareerResult = expectedResult
+
+        // Act & Wait for completion
+        await withCheckedContinuation { continuation in
+            mockDelegate.onDidCreateGame = { _ in
+                continuation.resume()
             }
-            
-            interactor.eventBus.send(.submitTapped)
-        }
-        
-        #expect(container.mockDataManager.createNewCareerCalled == true)
-    }
-    
-    @Test("NewGameInteractor event bus publishes events correctly")
-    func testEventBusPublishesEvents() async {
-        // Arrange
-        let container = MockDependencyContainer()
-        let interactor = await container.interactorFactory.makeNewGameInteractor()
-        var receivedEvents: [NewGameEvent] = []
-        
-        // Act & Assert
-        await confirmation(expectedCount: 2) { confirm in
-            let cancellable = interactor.eventBus
-                .sink { event in
-                    receivedEvents.append(event)
-                    confirm()
-                }
-            
-            // Send events
-            interactor.eventBus.send(.teamSelectorTapped)
-            interactor.eventBus.send(.submitTapped)
-            
-            // Store cancellable to prevent deallocation
-            _ = cancellable
+            interactor.submitTapped()
         }
         
         // Assert
-        #expect(receivedEvents.count == 2)
-        #expect(receivedEvents.contains(.teamSelectorTapped))
-        #expect(receivedEvents.contains(.submitTapped))
+        #expect(mockDataManager.createNewCareerCalled == true)
+        #expect(mockDelegate.didCreateGameCalled == true)
+        #expect(mockDelegate.lastCreateGameResult?.careerId == "career123")
     }
     
     // MARK: - Data Manager Integration Tests
@@ -222,43 +190,30 @@ struct NewGameInteractorTests {
     @Test("NewGameInteractor integrates with data manager for career creation")
     func testDataManagerIntegration() async {
         // Arrange
-        let container = MockDependencyContainer()
-        let interactor = await container.interactorFactory.makeNewGameInteractor()
+        let (mockDataManager, mockLocalDataSource) = createMocks()
+        // Setup valid data for submission
+        let teamInfo = TeamInfo.make(id: "team1", city: "Test", teamName: "City")
+        mockLocalDataSource.updateCoach(firstName: "John")
+        mockLocalDataSource.updateCoach(lastName: "Doe")
+        mockLocalDataSource.updateSelectedTeam(teamInfo)
+        let interactor = NewGameInteractor(dataManager: mockDataManager, localDataSource: mockLocalDataSource)
         let mockDelegate = MockNewGameInteractorDelegate()
         interactor.delegate = mockDelegate
         
         let expectedResult = CreateNewCareerResult.make(careerId: "test-career")
-        container.mockDataManager.mockCreateNewCareerResult = expectedResult
+        mockDataManager.mockCreateNewCareerResult = expectedResult
         
-        // Act
-        await confirmation { confirm in
-            mockDelegate.onDidCreateGame = { result in
-                confirm()
+        // Act & Wait for completion
+        await withCheckedContinuation { continuation in
+            mockDelegate.onDidCreateGame = { _ in
+                continuation.resume()
             }
-            
-            interactor.eventBus.send(.submitTapped)
+            interactor.submitTapped()
         }
         
         // Assert
-        #expect(container.mockDataManager.createNewCareerCalled == true)
-    }
-    
-    @Test("NewGameInteractor handles career creation errors gracefully")
-    func testCareerCreationErrorHandling() async {
-        // Arrange
-        let container = MockDependencyContainer()
-        let interactor = await container.interactorFactory.makeNewGameInteractor()
-        let mockDelegate = MockNewGameInteractorDelegate()
-        interactor.delegate = mockDelegate
-        
-        // Test error handling scenario by sending submit without proper setup
-        // The mock implementation should handle this gracefully
-        
-        // Act & Assert - Verify interactor handles errors gracefully
-        interactor.eventBus.send(.submitTapped)
-        
-        // The mock implementation should handle errors without crashing
-        #expect(interactor != nil)
+        #expect(mockDataManager.createNewCareerCalled == true)
+        #expect(mockDelegate.didCreateGameCalled == true)
     }
     
     // MARK: - Delegate Communication Tests
@@ -267,29 +222,30 @@ struct NewGameInteractorTests {
     @MainActor
     func testDelegateMethodForwarding() {
         // Arrange
-        let container = MockDependencyContainer()
-        let interactor = container.interactorFactory.makeNewGameInteractor()
+        let (mockDataManager, mockLocalDataSource) = createMocks()
+        let interactor = NewGameInteractor(dataManager: mockDataManager, localDataSource: mockLocalDataSource)
         let mockDelegate = MockNewGameInteractorDelegate()
         interactor.delegate = mockDelegate
         
         // Act
-        interactor.eventBus.send(.teamSelectorTapped)
+        interactor.teamSelectorTapped()
         
         // Assert
         #expect(mockDelegate.didRequestTeamSelection == true)
     }
     
     @Test("NewGameInteractor handles multiple delegate calls correctly")
-    func testMultipleDelegateCalls() async {
+    @MainActor
+    func testMultipleDelegateCalls() {
         // Arrange
-        let container = MockDependencyContainer()
-        let interactor = await container.interactorFactory.makeNewGameInteractor()
+        let (mockDataManager, mockLocalDataSource) = createMocks()
+        let interactor = NewGameInteractor(dataManager: mockDataManager, localDataSource: mockLocalDataSource)
         let mockDelegate = MockNewGameInteractorDelegate()
         interactor.delegate = mockDelegate
         
         // Act
-        interactor.eventBus.send(.teamSelectorTapped)
-        interactor.eventBus.send(.teamSelectorTapped)
+        interactor.teamSelectorTapped()
+        interactor.teamSelectorTapped()
         
         // Assert
         #expect(mockDelegate.didRequestTeamSelection == true)
@@ -302,8 +258,8 @@ struct NewGameInteractorTests {
     @MainActor
     func testCancellablesManagement() {
         // Arrange & Act
-        let container = MockDependencyContainer()
-        var interactor: NewGameInteractorProtocol? = container.interactorFactory.makeNewGameInteractor()
+        let (mockDataManager, mockLocalDataSource) = createMocks()
+        var interactor: NewGameInteractor? = NewGameInteractor(dataManager: mockDataManager, localDataSource: mockLocalDataSource)
         
         // Verify interactor is created
         #expect(interactor != nil)
@@ -319,8 +275,8 @@ struct NewGameInteractorTests {
     @MainActor
     func testDelegateLifecycle() {
         // Arrange
-        let container = MockDependencyContainer()
-        let interactor = container.interactorFactory.makeNewGameInteractor()
+        let (mockDataManager, mockLocalDataSource) = createMocks()
+        let interactor = NewGameInteractor(dataManager: mockDataManager, localDataSource: mockLocalDataSource)
         var mockDelegate: MockNewGameInteractorDelegate? = MockNewGameInteractorDelegate()
         interactor.delegate = mockDelegate
         
@@ -332,5 +288,27 @@ struct NewGameInteractorTests {
         
         // Assert - Delegate should be nil (weak reference)
         #expect(interactor.delegate == nil)
+    }
+}
+
+// MARK: - Mock Local Data Source
+
+class MockNewGameLocalDataSource: NewGameLocalDataSourceProtocol {
+    var data: NewGameLocalDataSource.Data = NewGameLocalDataSource.Data()
+    
+    lazy var dataPublisher: AnyPublisher<NewGameLocalDataSource.Data, Never> = {
+        Just(data).eraseToAnyPublisher()
+    }()
+    
+    func updateCoach(firstName: String) {
+        data.coachFirstName = firstName
+    }
+    
+    func updateCoach(lastName: String) {
+        data.coachLastName = lastName
+    }
+    
+    func updateSelectedTeam(_ teamInfo: TeamInfo?) {
+        data.selectedTeamInfo = teamInfo
     }
 }

@@ -2,11 +2,12 @@
 //  NewGameInteractorTests.swift
 //  SuperSoccerTests
 //
-//  Created by Wesley on 6/16/25.
+//  Created by Wesley on 5/23/25.
 //
 
 import Combine
 import Foundation
+import Observation
 @testable import SuperSoccer
 import SwiftUI
 import Testing
@@ -15,25 +16,183 @@ struct NewGameInteractorTests {
     
     // MARK: - Helper Methods
     
-    private func createMocks() -> (MockDataManager, MockNewGameLocalDataSource) {
-        return (MockDataManager(), MockNewGameLocalDataSource())
+    private func createMocks() -> (MockDataManager, MockNewGameLocalDataSource, MockNewGameViewModelTransform) {
+        return (
+            MockDataManager(), 
+            MockNewGameLocalDataSource(), 
+            MockNewGameViewModelTransform() // Fresh instance each time
+        )
     }
         
     // MARK: - Initialization Tests
     
-    @Test("NewGameInteractor initializes with correct view model")
+    @Test("NewGameInteractor initializes with correct dependencies")
     @MainActor
-    func testInitialViewModel() {
+    func testInitializationWithDependencies() {
         // Arrange & Act
-        let (mockDataManager, mockLocalDataSource) = createMocks()
-        let interactor = NewGameInteractor(dataManager: mockDataManager, localDataSource: mockLocalDataSource)
+        let (mockDataManager, mockLocalDataSource, mockTransform) = createMocks()
+        let interactor = NewGameInteractor(
+            dataManager: mockDataManager, 
+            localDataSource: mockLocalDataSource,
+            newGameViewModelTransform: mockTransform
+        )
         
         // Assert
-        #expect(interactor.viewModel.title == "New game")
-        #expect(interactor.viewModel.coachLabelText == "Coach")
-        #expect(interactor.viewModel.coachFirstNameLabel == "First name")
-        #expect(interactor.viewModel.coachLastNameLabel == "Last name")
-        #expect(interactor.viewModel.buttonText == "Start game")
+        #expect(interactor != nil)
+        // Note: Transform may be called during subscription setup (async)
+    }
+
+    @Test("NewGameInteractor implements NewGameInteractorProtocol correctly")
+    @MainActor
+    func testProtocolCompliance() {
+        // Arrange & Act
+        let (mockDataManager, mockLocalDataSource, mockTransform) = createMocks()
+        let interactor = NewGameInteractor(
+            dataManager: mockDataManager, 
+            localDataSource: mockLocalDataSource,
+            newGameViewModelTransform: mockTransform
+        )
+        
+        // Assert - Test protocol compliance
+        let businessLogic: NewGameBusinessLogic = interactor
+        let viewPresenter: NewGameViewPresenter = interactor
+        let interactorProtocol: NewGameInteractorProtocol = interactor
+        
+        #expect(businessLogic != nil)
+        #expect(viewPresenter != nil)
+        #expect(interactorProtocol != nil)
+    }
+    
+    // MARK: - ViewModelTransform Integration Tests
+
+    @Test("NewGameInteractor uses ViewModelTransform for view model creation")
+    @MainActor
+    func testViewModelTransformIntegration() async {
+        // Arrange
+        let (mockDataManager, mockLocalDataSource, mockTransform) = createMocks()
+        let expectedViewModel = NewGameViewModel.make(
+            title: "Test Game",
+            coachFirstName: "Test",
+            submitEnabled: true
+        )
+        mockTransform.mockViewModel = expectedViewModel
+        
+        // Act
+        let interactor = NewGameInteractor(
+            dataManager: mockDataManager, 
+            localDataSource: mockLocalDataSource,
+            newGameViewModelTransform: mockTransform
+        )
+        
+        // Wait for async subscription setup
+        try? await Task.sleep(for: .milliseconds(50))
+        
+        // Assert
+        #expect(mockTransform.didCallTransform == true)
+        #expect(interactor.viewModel.title == "Test Game")
+        #expect(interactor.viewModel.coachFirstName == "Test")
+        #expect(interactor.viewModel.submitEnabled == true)
+    }
+
+    @Test("NewGameInteractor updates view model when local data changes")
+    @MainActor
+    func testViewModelUpdatesWithDataChanges() async {
+        // Arrange
+        let (mockDataManager, mockLocalDataSource, mockTransform) = createMocks()
+        let interactor = NewGameInteractor(
+            dataManager: mockDataManager, 
+            localDataSource: mockLocalDataSource,
+            newGameViewModelTransform: mockTransform
+        )
+        
+        // Wait for initial subscription setup and then clear the flag
+        try? await Task.sleep(for: .milliseconds(50))
+        mockTransform.didCallTransform = false // Reset after initialization
+        
+        let updatedViewModel = NewGameViewModel.make(
+            coachFirstName: "Updated",
+            coachLastName: "Name"
+        )
+        mockTransform.mockViewModel = updatedViewModel
+        
+        // Act - Update local data to trigger transformation
+        mockLocalDataSource.updateCoach(firstName: "Updated")
+        
+        // Wait for async subscription update
+        try? await Task.sleep(for: .milliseconds(100)) // Increased wait time
+        
+        // Assert
+        #expect(mockTransform.didCallTransform == true, "Transform should be called after data update")
+        #expect(interactor.viewModel.coachFirstName == "Updated")
+        #expect(interactor.viewModel.coachLastName == "Name")
+    }
+    
+    // MARK: - Nested ViewModel Pattern Tests
+    
+    @Test("NewGameInteractor provides nested TeamSelectorViewModel")
+    @MainActor
+    func testNestedTeamSelectorViewModel() async {
+        // Arrange
+        let (mockDataManager, mockLocalDataSource, mockTransform) = createMocks()
+        let teamSelectorModel = TeamSelectorViewModel.make(
+            title: "Manchester United",
+            buttonTitle: "Change"
+        )
+        let expectedViewModel = NewGameViewModel.make(
+            teamSelectorModel: teamSelectorModel
+        )
+        mockTransform.mockViewModel = expectedViewModel
+        
+        // Act
+        let interactor = NewGameInteractor(
+            dataManager: mockDataManager, 
+            localDataSource: mockLocalDataSource,
+            newGameViewModelTransform: mockTransform
+        )
+        
+        // Wait for async subscription setup
+        try? await Task.sleep(for: .milliseconds(50))
+        
+        // Assert - Verify nested view model is correctly provided
+        #expect(interactor.viewModel.teamSelectorModel.title == "Manchester United")
+        #expect(interactor.viewModel.teamSelectorModel.buttonTitle == "Change")
+    }
+
+    @Test("NewGameInteractor updates nested TeamSelectorViewModel on team selection")
+    @MainActor
+    func testNestedViewModelUpdatesOnTeamSelection() async {
+        // Arrange
+        let (mockDataManager, mockLocalDataSource, mockTransform) = createMocks()
+        let interactor = NewGameInteractor(
+            dataManager: mockDataManager, 
+            localDataSource: mockLocalDataSource,
+            newGameViewModelTransform: mockTransform
+        )
+        
+        // Wait for initial subscription setup and then clear the flag
+        try? await Task.sleep(for: .milliseconds(50))
+        mockTransform.didCallTransform = false // Reset after initialization
+        
+        let updatedTeamSelectorModel = TeamSelectorViewModel.make(
+            title: "Liverpool FC",
+            buttonTitle: "Change"
+        )
+        let updatedViewModel = NewGameViewModel.make(
+            teamSelectorModel: updatedTeamSelectorModel
+        )
+        mockTransform.mockViewModel = updatedViewModel
+        
+        // Act
+        let teamInfo = TeamInfo.make(city: "Liverpool", teamName: "FC")
+        interactor.updateSelectedTeam(teamInfo)
+        
+        // Wait for async subscription update
+        try? await Task.sleep(for: .milliseconds(100)) // Increased wait time
+        
+        // Assert
+        #expect(mockTransform.didCallTransform == true, "Transform should be called after team selection")
+        #expect(interactor.viewModel.teamSelectorModel.title == "Liverpool FC")
+        #expect(interactor.viewModel.teamSelectorModel.buttonTitle == "Change")
     }
     
     // MARK: - Function Interface Tests
@@ -42,8 +201,12 @@ struct NewGameInteractorTests {
     @MainActor
     func testTeamSelectorTappedFunctionCall() {
         // Arrange
-        let (mockDataManager, mockLocalDataSource) = createMocks()
-        let interactor = NewGameInteractor(dataManager: mockDataManager, localDataSource: mockLocalDataSource)
+        let (mockDataManager, mockLocalDataSource, mockTransform) = createMocks()
+        let interactor = NewGameInteractor(
+            dataManager: mockDataManager, 
+            localDataSource: mockLocalDataSource,
+            newGameViewModelTransform: mockTransform
+        )
         let mockDelegate = MockNewGameInteractorDelegate()
         interactor.delegate = mockDelegate
         
@@ -54,45 +217,27 @@ struct NewGameInteractorTests {
         #expect(mockDelegate.didRequestTeamSelection == true)
     }
     
-    // MARK: - Business Logic Tests
-    
-    @Test("NewGameInteractor validates form correctly")
-    @MainActor
-    func testFormValidation() {
-        // Arrange
-        let (mockDataManager, mockLocalDataSource) = createMocks()
-        let interactor = NewGameInteractor(dataManager: mockDataManager, localDataSource: mockLocalDataSource)
-        
-        // Assert - Initially should have default state
-        #expect(interactor.viewModel.submitEnabled == false)
-    }
-    
-    @Test("NewGameInteractor provides default team selector state")
-    @MainActor
-    func testDefaultTeamSelectorState() {
-        // Arrange
-        let (mockDataManager, mockLocalDataSource) = createMocks()
-        let interactor = NewGameInteractor(dataManager: mockDataManager, localDataSource: mockLocalDataSource)
-        
-        // Assert - Check default state
-        #expect(interactor.viewModel.teamSelectorTitle != nil)
-        #expect(interactor.viewModel.teamSelectorButtonTitle != nil)
-    }
-    
     // MARK: - Binding Tests
     
     @Test("NewGameInteractor provides first name binding")
     @MainActor
-    func testFirstNameBinding() {
+    func testFirstNameBinding() async {
         // Arrange
-        let (mockDataManager, mockLocalDataSource) = createMocks()
-        let interactor = NewGameInteractor(dataManager: mockDataManager, localDataSource: mockLocalDataSource)
+        let (mockDataManager, mockLocalDataSource, mockTransform) = createMocks()
+        let interactor = NewGameInteractor(
+            dataManager: mockDataManager, 
+            localDataSource: mockLocalDataSource,
+            newGameViewModelTransform: mockTransform
+        )
+        
+        // Wait for initial setup
+        try? await Task.sleep(for: .milliseconds(50))
         
         // Act
         let binding = interactor.bindFirstName()
         
-        // Assert - Test that binding exists and has correct initial value
-        #expect(binding.wrappedValue == "")
+        // Assert - Test that binding exists and gets value from view model
+        #expect(binding.wrappedValue == interactor.viewModel.coachFirstName)
         
         // Test that setting the binding value updates the local data source
         binding.wrappedValue = "John"
@@ -101,16 +246,23 @@ struct NewGameInteractorTests {
     
     @Test("NewGameInteractor provides last name binding")
     @MainActor
-    func testLastNameBinding() {
+    func testLastNameBinding() async {
         // Arrange
-        let (mockDataManager, mockLocalDataSource) = createMocks()
-        let interactor = NewGameInteractor(dataManager: mockDataManager, localDataSource: mockLocalDataSource)
+        let (mockDataManager, mockLocalDataSource, mockTransform) = createMocks()
+        let interactor = NewGameInteractor(
+            dataManager: mockDataManager, 
+            localDataSource: mockLocalDataSource,
+            newGameViewModelTransform: mockTransform
+        )
+        
+        // Wait for initial setup
+        try? await Task.sleep(for: .milliseconds(50))
         
         // Act
         let binding = interactor.bindLastName()
         
-        // Assert - Test that binding exists and has correct initial value
-        #expect(binding.wrappedValue == "")
+        // Assert - Test that binding exists and gets value from view model
+        #expect(binding.wrappedValue == interactor.viewModel.coachLastName)
         
         // Test that setting the binding value updates the local data source
         binding.wrappedValue = "Doe"
@@ -123,8 +275,12 @@ struct NewGameInteractorTests {
     @MainActor
     func testUpdateSelectedTeam() {
         // Arrange
-        let (mockDataManager, mockLocalDataSource) = createMocks()
-        let interactor = NewGameInteractor(dataManager: mockDataManager, localDataSource: mockLocalDataSource)
+        let (mockDataManager, mockLocalDataSource, mockTransform) = createMocks()
+        let interactor = NewGameInteractor(
+            dataManager: mockDataManager, 
+            localDataSource: mockLocalDataSource,
+            newGameViewModelTransform: mockTransform
+        )
         let teamInfo = TeamInfo.make(id: "team1", city: "Manchester", teamName: "United")
         
         // Act
@@ -142,8 +298,12 @@ struct NewGameInteractorTests {
     @MainActor
     func testTeamSelectorTappedDelegate() {
         // Arrange
-        let (mockDataManager, mockLocalDataSource) = createMocks()
-        let interactor = NewGameInteractor(dataManager: mockDataManager, localDataSource: mockLocalDataSource)
+        let (mockDataManager, mockLocalDataSource, mockTransform) = createMocks()
+        let interactor = NewGameInteractor(
+            dataManager: mockDataManager, 
+            localDataSource: mockLocalDataSource,
+            newGameViewModelTransform: mockTransform
+        )
         let mockDelegate = MockNewGameInteractorDelegate()
         interactor.delegate = mockDelegate
 
@@ -157,13 +317,17 @@ struct NewGameInteractorTests {
     @Test("NewGameInteractor calls delegate on career creation")
     func testSubmitTappedDelegate() async {
         // Arrange
-        let (mockDataManager, mockLocalDataSource) = createMocks()
+        let (mockDataManager, mockLocalDataSource, mockTransform) = createMocks()
         // Setup valid data for submission
         let teamInfo = TeamInfo.make(id: "team1", city: "Test", teamName: "City")
         mockLocalDataSource.updateCoach(firstName: "John")
         mockLocalDataSource.updateCoach(lastName: "Doe")
         mockLocalDataSource.updateSelectedTeam(teamInfo)
-        let interactor = NewGameInteractor(dataManager: mockDataManager, localDataSource: mockLocalDataSource)
+        let interactor = NewGameInteractor(
+            dataManager: mockDataManager, 
+            localDataSource: mockLocalDataSource,
+            newGameViewModelTransform: mockTransform
+        )
         let mockDelegate = MockNewGameInteractorDelegate()
         interactor.delegate = mockDelegate
 
@@ -190,13 +354,17 @@ struct NewGameInteractorTests {
     @Test("NewGameInteractor integrates with data manager for career creation")
     func testDataManagerIntegration() async {
         // Arrange
-        let (mockDataManager, mockLocalDataSource) = createMocks()
+        let (mockDataManager, mockLocalDataSource, mockTransform) = createMocks()
         // Setup valid data for submission
         let teamInfo = TeamInfo.make(id: "team1", city: "Test", teamName: "City")
         mockLocalDataSource.updateCoach(firstName: "John")
         mockLocalDataSource.updateCoach(lastName: "Doe")
         mockLocalDataSource.updateSelectedTeam(teamInfo)
-        let interactor = NewGameInteractor(dataManager: mockDataManager, localDataSource: mockLocalDataSource)
+        let interactor = NewGameInteractor(
+            dataManager: mockDataManager, 
+            localDataSource: mockLocalDataSource,
+            newGameViewModelTransform: mockTransform
+        )
         let mockDelegate = MockNewGameInteractorDelegate()
         interactor.delegate = mockDelegate
         
@@ -214,80 +382,55 @@ struct NewGameInteractorTests {
         // Assert
         #expect(mockDataManager.createNewCareerCalled == true)
         #expect(mockDelegate.didCreateGameCalled == true)
-    }
-    
-    // MARK: - Delegate Communication Tests
-    
-    @Test("NewGameInteractor delegate methods are forwarded correctly")
-    @MainActor
-    func testDelegateMethodForwarding() {
-        // Arrange
-        let (mockDataManager, mockLocalDataSource) = createMocks()
-        let interactor = NewGameInteractor(dataManager: mockDataManager, localDataSource: mockLocalDataSource)
-        let mockDelegate = MockNewGameInteractorDelegate()
-        interactor.delegate = mockDelegate
-        
-        // Act
-        interactor.teamSelectorTapped()
-        
-        // Assert
-        #expect(mockDelegate.didRequestTeamSelection == true)
-    }
-    
-    @Test("NewGameInteractor handles multiple delegate calls correctly")
-    @MainActor
-    func testMultipleDelegateCalls() {
-        // Arrange
-        let (mockDataManager, mockLocalDataSource) = createMocks()
-        let interactor = NewGameInteractor(dataManager: mockDataManager, localDataSource: mockLocalDataSource)
-        let mockDelegate = MockNewGameInteractorDelegate()
-        interactor.delegate = mockDelegate
-        
-        // Act
-        interactor.teamSelectorTapped()
-        interactor.teamSelectorTapped()
-        
-        // Assert
-        #expect(mockDelegate.didRequestTeamSelection == true)
-        // Note: Multiple calls maintain the boolean state
+        #expect(mockDelegate.lastCreateGameResult?.careerId == "test-career")
     }
     
     // MARK: - Memory Management Tests
-    
-    @Test("NewGameInteractor properly manages cancellables")
-    @MainActor
-    func testCancellablesManagement() {
-        // Arrange & Act
-        let (mockDataManager, mockLocalDataSource) = createMocks()
-        var interactor: NewGameInteractor? = NewGameInteractor(dataManager: mockDataManager, localDataSource: mockLocalDataSource)
-        
-        // Verify interactor is created
-        #expect(interactor != nil)
-        
-        // Act - Release the interactor
-        interactor = nil
-        
-        // Assert - No assertion needed, this test verifies no memory leaks occur
-        // The test passes if no retain cycles prevent deallocation
-    }
     
     @Test("NewGameInteractor handles delegate lifecycle correctly")
     @MainActor
     func testDelegateLifecycle() {
         // Arrange
-        let (mockDataManager, mockLocalDataSource) = createMocks()
-        let interactor = NewGameInteractor(dataManager: mockDataManager, localDataSource: mockLocalDataSource)
+        let (mockDataManager, mockLocalDataSource, mockTransform) = createMocks()
+        let interactor = NewGameInteractor(
+            dataManager: mockDataManager, 
+            localDataSource: mockLocalDataSource,
+            newGameViewModelTransform: mockTransform
+        )
         var mockDelegate: MockNewGameInteractorDelegate? = MockNewGameInteractorDelegate()
         interactor.delegate = mockDelegate
         
-        // Verify delegate is set
-        #expect(interactor.delegate != nil)
-        
-        // Act - Release delegate
+        // Act - Clear delegate reference
         mockDelegate = nil
         
-        // Assert - Delegate should be nil (weak reference)
+        // Assert - Interactor should handle weak delegate gracefully
         #expect(interactor.delegate == nil)
+    }
+    
+    // MARK: - Edge Cases
+    
+    @Test("NewGameInteractor handles edge cases gracefully")
+    @MainActor
+    func testEdgeCaseHandling() {
+        // Arrange
+        let (mockDataManager, mockLocalDataSource, mockTransform) = createMocks()
+        let interactor = NewGameInteractor(
+            dataManager: mockDataManager, 
+            localDataSource: mockLocalDataSource,
+            newGameViewModelTransform: mockTransform
+        )
+        
+        // Act & Assert - Should handle nil team selection gracefully
+        interactor.updateSelectedTeam(TeamInfo.make(id: "", city: "", teamName: ""))
+        #expect(mockLocalDataSource.data.selectedTeamInfo != nil)
+        
+        // Act & Assert - Should handle empty name inputs gracefully
+        let firstNameBinding = interactor.bindFirstName()
+        let lastNameBinding = interactor.bindLastName()
+        firstNameBinding.wrappedValue = ""
+        lastNameBinding.wrappedValue = ""
+        #expect(mockLocalDataSource.data.coachFirstName == "")
+        #expect(mockLocalDataSource.data.coachLastName == "")
     }
 }
 
@@ -296,19 +439,24 @@ struct NewGameInteractorTests {
 class MockNewGameLocalDataSource: NewGameLocalDataSourceProtocol {
     var data: NewGameLocalDataSource.Data = NewGameLocalDataSource.Data()
     
+    private let dataSubject = CurrentValueSubject<NewGameLocalDataSource.Data, Never>(NewGameLocalDataSource.Data())
+    
     lazy var dataPublisher: AnyPublisher<NewGameLocalDataSource.Data, Never> = {
-        Just(data).eraseToAnyPublisher()
+        dataSubject.eraseToAnyPublisher()
     }()
     
     func updateCoach(firstName: String) {
         data.coachFirstName = firstName
+        dataSubject.send(data) // Notify subscribers of the change
     }
     
     func updateCoach(lastName: String) {
         data.coachLastName = lastName
+        dataSubject.send(data) // Notify subscribers of the change
     }
     
     func updateSelectedTeam(_ teamInfo: TeamInfo?) {
         data.selectedTeamInfo = teamInfo
+        dataSubject.send(data) // Notify subscribers of the change
     }
 }

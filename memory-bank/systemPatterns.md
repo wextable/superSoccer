@@ -379,3 +379,171 @@ protocol NewGameInteractorProtocol: AnyObject {
 - Simplified coordinator construction and testing
 
 This pattern system ensures maintainable, testable, and scalable architecture for the SuperSoccer application.
+
+## Core Architectural Patterns (Applied to ALL Features)
+
+### 1. InteractorFactory Pattern ✅ ESTABLISHED
+**Purpose**: Type-safe dependency injection with unified testing interface
+
+**Implementation**:
+- `InteractorFactoryProtocol` defines factory methods for all feature interactors
+- Production: `InteractorFactory` creates real interactors with real dependencies
+- Testing: `MockDependencyContainer.interactorFactory` returns mock interactors
+
+**Usage**:
+```swift
+// Production
+let interactor = DependencyContainer.shared.interactorFactory.makeNewGameInteractor()
+
+// Testing
+let container = MockDependencyContainer()
+let mockInteractor = container.interactorFactory.makeNewGameInteractor()
+```
+
+**Benefits**: Eliminates manual dependency wiring, enables easy testing, provides type safety
+
+### 2. Protocol Separation Pattern ✅ ESTABLISHED
+**Purpose**: Clean separation between coordinator and view communication
+
+**Implementation**:
+- Split interactor protocols into two distinct interfaces:
+  - `[Feature]BusinessLogic`: For coordinator communication via delegate pattern
+  - `[Feature]ViewPresenter`: For view communication via direct function calls
+- Combined protocol: `[Feature]InteractorProtocol: BusinessLogic & ViewPresenter`
+
+**Navigation Integration**:
+- NavigationRouter uses `Screen.[feature](presenter: [Feature]ViewPresenter)`
+- ViewFactory takes presenter parameter, not full interactor
+- Coordinators use BusinessLogic interface, Views use Presenter interface
+
+**Benefits**: Separation of concerns, clear dependencies, independent testability
+
+### 3. ViewModelTransform Pattern ✅ NEW ESTABLISHED
+**Purpose**: Dedicated transformation of data sources into presentation models
+
+**Implementation**:
+- `[Feature]ViewModelTransformProtocol` defines transformation interface
+- Transform class handles all view model creation logic
+- Interactor delegates view model creation to transform
+- Mock available for isolated testing
+
+**Example**:
+```swift
+protocol NewGameViewModelTransformProtocol {
+    func transform(localData: NewGameLocalDataSource.Data) -> NewGameViewModel
+}
+
+final class NewGameViewModelTransform: NewGameViewModelTransformProtocol {
+    func transform(localData: NewGameLocalDataSource.Data) -> NewGameViewModel {
+        // Transform logic here
+    }
+}
+```
+
+**Benefits**: Single responsibility, testable transformation logic, reusable patterns
+
+### 4. InteractorProtocol Pattern ✅ NEW ESTABLISHED
+**Purpose**: Enhanced testability through protocol-based interactor design
+
+**Implementation**:
+- All interactors implement a dedicated protocol combining BusinessLogic + ViewPresenter
+- Enables easy mocking and dependency injection
+- Protocol provides complete interface contract
+
+**Example**:
+```swift
+protocol NewGameInteractorProtocol: NewGameBusinessLogic & NewGameViewPresenter {}
+
+final class NewGameInteractor: NewGameInteractorProtocol {
+    init(dataManager: DataManagerProtocol,
+         localDataSource: NewGameLocalDataSourceProtocol,
+         newGameViewModelTransform: NewGameViewModelTransformProtocol) {
+        // Constructor injection of all dependencies
+    }
+}
+```
+
+**Benefits**: Complete mockability, clear interface contracts, dependency injection support
+
+### 5. Nested ViewModel Pattern ✅ NEW ESTABLISHED
+**Purpose**: Hierarchical view model composition for complex views
+
+**Implementation**:
+- Parent view models contain child view models as properties
+- Sub-views receive their specific view model from parent
+- Transform classes create nested view model hierarchies
+
+**Example**:
+```swift
+struct NewGameViewModel {
+    var teamSelectorModel: TeamSelectorViewModel
+    // other properties
+}
+
+struct NewGameView: View {
+    let presenter: NewGameViewPresenter
+    
+    var body: some View {
+        // Pass nested view model to sub-view
+        TeamSelectorView(
+            viewModel: presenter.viewModel.teamSelectorModel,
+            action: { presenter.teamSelectorTapped() }
+        )
+    }
+}
+```
+
+**Benefits**: Modular view composition, clear data flow, reusable sub-views
+
+## Feature Implementation Checklist
+
+For each new feature, ensure ALL patterns are implemented:
+
+### ✅ Core Architecture
+- [ ] Protocol Separation (BusinessLogic + ViewPresenter + Combined)
+- [ ] InteractorFactory integration  
+- [ ] ViewModelTransform with protocol
+- [ ] InteractorProtocol implementation
+- [ ] Nested ViewModels where appropriate
+
+### ✅ Navigation Integration
+- [ ] NavigationRouter uses presenter parameter
+- [ ] ViewFactory accepts presenter parameter
+- [ ] Coordinator delegates business logic
+
+### ✅ Testing Excellence
+- [ ] MockDependencyContainer integration
+- [ ] Real interactor + mock dependencies for behavior tests
+- [ ] Mock interactor for integration tests
+- [ ] ViewModelTransform dedicated tests
+- [ ] Async patterns with continuation-based testing
+
+## Testing Patterns
+
+### Real Interactor Testing (Behavior Verification)
+```swift
+private func createMocks() -> (MockDataManager, MockLocalDataSource, MockViewModelTransform) {
+    return (MockDataManager(), MockLocalDataSource(), MockViewModelTransform())
+}
+
+let interactor = FeatureInteractor(
+    dataManager: mockDataManager,
+    localDataSource: mockLocalDataSource,
+    viewModelTransform: mockTransform
+)
+```
+
+### Mock Interactor Testing (Integration Verification)
+```swift
+let container = MockDependencyContainer()
+let mockInteractor = container.interactorFactory.makeFeatureInteractor()
+#expect(mockInteractor is MockFeatureInteractor)
+```
+
+## Architecture Benefits
+
+- **Consistency**: Every feature follows identical patterns
+- **Testability**: Complete mockability at every layer
+- **Maintainability**: Clear separation of concerns
+- **Scalability**: Patterns support feature complexity growth
+- **Type Safety**: Compile-time verification of dependencies

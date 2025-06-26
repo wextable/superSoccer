@@ -13,21 +13,21 @@ struct TeamSelectViewModel {
 }
 
 struct TeamSelectView: View {
-    let interactor: any TeamSelectInteractorProtocol
+    let presenter: any TeamSelectViewPresenter
     @Environment(\.ssTheme) private var theme
     
     var body: some View {
-        List(interactor.viewModel.teamModels) { teamModel in
+        List(presenter.viewModel.teamModels) { teamModel in
             TeamThumbnailView(viewModel: teamModel)
                 .onTapGesture {
-                    interactor.eventBus.send(.teamSelected(teamInfoId: teamModel.id))
+                    presenter.teamSelected(teamInfoId: teamModel.id)
                 }
                 .listRowBackground(theme.colors.background)
                 .listRowSeparator(.hidden)
         }
         .listStyle(.plain)
         .background(theme.colors.background)
-        .navigationTitle(interactor.viewModel.title)
+        .navigationTitle(presenter.viewModel.title)
         .toolbarBackground(theme.colors.background, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .scrollContentBackground(.hidden)

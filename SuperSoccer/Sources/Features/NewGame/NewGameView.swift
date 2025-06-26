@@ -16,7 +16,6 @@ struct NewGameViewModel {
     var coachLastName: String = ""
     var teamSelectorTitle: String = "Team:"
     var teamSelectorButtonTitle: String = "Select your team"
-    var teamSelectorAction: () -> Void = {}
     var buttonText: String = "Start game"
     var submitEnabled: Bool = false
 }
@@ -47,7 +46,7 @@ struct NewGameView: View {
             TeamSelectorView(
                 title: presenter.viewModel.teamSelectorTitle,
                 buttonTitle: presenter.viewModel.teamSelectorButtonTitle,
-                action: presenter.viewModel.teamSelectorAction
+                action: presenter.teamSelectorTapped()
             )
             
             Spacer()
@@ -87,7 +86,6 @@ extension NewGameViewModel {
         coachLastName: String = "",
         teamSelectorTitle: String = "Team:",
         teamSelectorButtonTitle: String = "Select your team",
-        teamSelectorAction: @escaping () -> Void = {},
         buttonText: String = "Start Game",
         submitEnabled: Bool = false
     ) -> Self {
@@ -100,7 +98,6 @@ extension NewGameViewModel {
             coachLastName: coachLastName,
             teamSelectorTitle: teamSelectorTitle,
             teamSelectorButtonTitle: teamSelectorButtonTitle,
-            teamSelectorAction: teamSelectorAction,
             buttonText: buttonText,
             submitEnabled: submitEnabled
         )

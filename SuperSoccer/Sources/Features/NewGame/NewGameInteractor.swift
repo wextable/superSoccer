@@ -38,14 +38,17 @@ final class NewGameInteractor: NewGameInteractorProtocol {
     weak var delegate: NewGameBusinessLogicDelegate?
     
     var viewModel: NewGameViewModel = .init()
+    private let newGameViewModelTransform: NewGameViewModelTransformProtocol
     private var cancellables = Set<AnyCancellable>()
     
     init(
         dataManager: DataManagerProtocol,
-        localDataSource: NewGameLocalDataSourceProtocol = NewGameLocalDataSource()
+        localDataSource: NewGameLocalDataSourceProtocol = NewGameLocalDataSource(),
+        newGameViewModelTransform: NewGameViewModelTransformProtocol = NewGameViewModelTransform()
     ) {
         self.dataManager = dataManager
         self.localDataSource = localDataSource
+        self.newGameViewModelTransform = newGameViewModelTransform
         setupSubscriptions()
     }
     
@@ -58,7 +61,7 @@ final class NewGameInteractor: NewGameInteractorProtocol {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] data in
                 guard let self else { return }
-                self.viewModel = createViewModel(localData: data)
+                self.viewModel = self.newGameViewModelTransform.transform(localData: data)
             }
             .store(in: &cancellables)
     }
@@ -95,36 +98,7 @@ final class NewGameInteractor: NewGameInteractorProtocol {
         localDataSource.updateSelectedTeam(teamInfo)
     }
     
-    private func createViewModel(localData: NewGameLocalDataSource.Data) -> NewGameViewModel {
-        let teamSelectorTitle: String
-        let teamSelectorButtonTitle: String
-        
-        if let teamInfo = localData.selectedTeamInfo {
-            teamSelectorTitle = "\(teamInfo.city) \(teamInfo.teamName)"
-            teamSelectorButtonTitle = "Change"
-        } else {
-            teamSelectorTitle = "Team:"
-            teamSelectorButtonTitle = "Select your team"
-        }
-        
-        return NewGameViewModel(
-            title: "New game",
-            coachLabelText: "Coach",
-            coachFirstNameLabel: "First name",
-            coachFirstName: localData.coachFirstName,
-            coachLastNameLabel: "Last name",
-            coachLastName: localData.coachLastName,
-            teamSelectorTitle: teamSelectorTitle,
-            teamSelectorButtonTitle: teamSelectorButtonTitle,
-            teamSelectorAction: { [weak self] in
-                self?.teamSelectorTapped()
-            },
-            buttonText: "Start game",
-            submitEnabled: localData.canSubmit
-        )
-    }
-    
-    func createGame() async {
+    private func createGame() async {
         guard localDataSource.data.canSubmit,
               let teamInfo = localDataSource.data.selectedTeamInfo else {
             return

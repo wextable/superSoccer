@@ -98,7 +98,7 @@ struct TabNavigationCoordinatorTests {
         let mockParentCoordinator = MockNavigationCoordinator()
         let coordinator = TabNavigationCoordinator(tab: .team, parentNavigationCoordinator: mockParentCoordinator)
         let mockInteractor = MockTeamSelectInteractor()
-        let screen = NavigationRouter.Screen.teamSelect(interactor: mockInteractor)
+        let screen = NavigationRouter.Screen.teamSelect(presenter: mockInteractor)
         
         // Act
         coordinator.presentSheet(screen)

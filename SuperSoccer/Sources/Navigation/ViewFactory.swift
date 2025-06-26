@@ -21,11 +21,11 @@ final class ViewFactory: ViewFactoryProtocol {
             return AnyView(SSThemeProvider { MainMenuView(presenter: presenter) })
         case .newGame(let presenter):
             return AnyView(SSThemeProvider{ NewGameView(presenter: presenter) })
-        case .teamSelect(let interactor):
+        case .teamSelect(let presenter):
             return AnyView(
-                NavigationStack {
-                    SSThemeProvider {
-                        TeamSelectView(interactor: interactor)
+                SSThemeProvider {
+                    NavigationStack {
+                        TeamSelectView(presenter: presenter)
                     }
                 }
             )
@@ -52,11 +52,11 @@ class MockViewFactory: ViewFactoryProtocol {
             return AnyView(SSThemeProvider { MainMenuView(presenter: presenter) })
         case .newGame(let presenter):
             return AnyView(SSThemeProvider{ NewGameView(presenter: presenter) })
-        case .teamSelect(let interactor):
+        case .teamSelect(let presenter):
             return AnyView(
                 NavigationStack {
                     SSThemeProvider {
-                        TeamSelectView(interactor: interactor)
+                        TeamSelectView(presenter: presenter)
                     }
                 }
             )

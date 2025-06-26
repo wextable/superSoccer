@@ -266,7 +266,7 @@ struct TabNavigationManagerTests {
         
         manager.clearAllTabs()
         
-        let teamSelectScreen = NavigationRouter.Screen.teamSelect(interactor: mockTeamSelectInteractor)
+        let teamSelectScreen = NavigationRouter.Screen.teamSelect(presenter: mockTeamSelectInteractor)
         manager.navigate(to: teamSelectScreen, in: tab)
         #expect(manager.tabScreenStacks[tab]?.first == teamSelectScreen)
         

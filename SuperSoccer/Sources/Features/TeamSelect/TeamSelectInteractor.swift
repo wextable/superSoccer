@@ -8,32 +8,29 @@
 import Combine
 import Observation
 
-typealias TeamSelectEventBus = PassthroughSubject<TeamSelectEvent, Never>
-
-enum TeamSelectEvent: BusEvent {
-    case teamSelected(teamInfoId: String)
-}
-
 protocol TeamSelectInteractorDelegate: AnyObject {
     func interactorDidSelectTeam(_ team: TeamInfo)
     func interactorDidCancel()
 }
 
-protocol TeamSelectInteractorProtocol: AnyObject {
-    var viewModel: TeamSelectViewModel { get }
-    var eventBus: TeamSelectEventBus { get }
+protocol TeamSelectBusinessLogic: AnyObject {
     var delegate: TeamSelectInteractorDelegate? { get set }
 }
+
+protocol TeamSelectViewPresenter: AnyObject {
+    var viewModel: TeamSelectViewModel { get }
+    func teamSelected(teamInfoId: String)
+}
+
+protocol TeamSelectInteractorProtocol: TeamSelectBusinessLogic & TeamSelectViewPresenter {}
 
 @Observable
 final class TeamSelectInteractor: TeamSelectInteractorProtocol {
     private let dataManager: DataManagerProtocol
-    let eventBus = TeamSelectEventBus()
     weak var delegate: TeamSelectInteractorDelegate?
     
     private let teamInfos: [TeamInfo]
     var viewModel: TeamSelectViewModel
-    private var cancellables = Set<AnyCancellable>()
     
     init(dataManager: DataManagerProtocol) {
         self.dataManager = dataManager
@@ -49,29 +46,10 @@ final class TeamSelectInteractor: TeamSelectInteractorProtocol {
             title: "Select a team",
             teamModels: teamModels
         )
-        
-        setupSubscriptions()
-        
     }
     
-    private func setupSubscriptions() {
-        subscribeToEvents()
-    }
-    
-    private func subscribeToEvents() {
-        eventBus
-            .sink { [weak self] event in
-                switch event {
-                case .teamSelected(let teamInfoId):
-                    self?.handleTeamSelected(teamInfoId: teamInfoId)
-                }
-            }
-            .store(in: &cancellables)
-    }
-    
-    private func handleTeamSelected(teamInfoId: String) {
+    func teamSelected(teamInfoId: String) {
         guard let teamInfo = teamInfos.first(where: { $0.id == teamInfoId }) else { return }
-        
         delegate?.interactorDidSelectTeam(teamInfo)
     }
 }
@@ -101,8 +79,20 @@ class MockTeamSelectInteractor: TeamSelectInteractorProtocol {
             teamModels: mockTeamModels
         )
     }
-    var eventBus: TeamSelectEventBus = TeamSelectEventBus()
     weak var delegate: TeamSelectInteractorDelegate?
+    
+    // Test tracking properties
+    var teamSelectedCalled = false
+    var lastSelectedTeamId: String?
+    
+    // Callback support for async testing
+    var onTeamSelected: ((String) -> Void)?
+    
+    func teamSelected(teamInfoId: String) {
+        teamSelectedCalled = true
+        lastSelectedTeamId = teamInfoId
+        onTeamSelected?(teamInfoId)
+    }
 }
 
 class MockTeamSelectInteractorDelegate: TeamSelectInteractorDelegate {    

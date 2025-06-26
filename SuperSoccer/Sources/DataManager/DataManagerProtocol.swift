@@ -66,11 +66,36 @@ class MockDataManager: DataManagerProtocol {
         return mockCreateNewCareerResult
     }
     
-    func fetchCareers() -> [Career] { return mockCareers }
-    func fetchLeagues() -> [League] { return mockLeagues }
-    func fetchTeamInfos() -> [TeamInfo] { return mockTeamInfos }
-    func fetchTeams() -> [Team] { return mockTeams }
-    func fetchPlayers() -> [Player] { return mockPlayers }
-    func fetchCoaches() -> [Coach] { return mockCoaches }
+    var fetchCareersCalled = false
+    var fetchLeaguesCalled = false
+    var fetchTeamInfosCalled = false
+    var fetchTeamsCalled = false
+    var fetchPlayersCalled = false
+    var fetchCoachesCalled = false
+    
+    func fetchCareers() -> [Career] {
+        fetchCareersCalled = true
+        return mockCareers
+    }
+    func fetchLeagues() -> [League] {
+        fetchLeaguesCalled = true
+        return mockLeagues
+    }
+    func fetchTeamInfos() -> [TeamInfo] {
+        fetchTeamInfosCalled = true
+        return mockTeamInfos
+    }
+    func fetchTeams() -> [Team] {
+        fetchTeamsCalled = true
+        return mockTeams
+    }
+    func fetchPlayers() -> [Player] {
+        fetchPlayersCalled = true
+        return mockPlayers
+    }
+    func fetchCoaches() -> [Coach] {
+        fetchCoachesCalled = true
+        return mockCoaches
+    }
 }
 #endif

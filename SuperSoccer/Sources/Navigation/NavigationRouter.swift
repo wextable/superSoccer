@@ -11,7 +11,7 @@ final class NavigationRouter: ObservableObject {
         case splash
         case mainMenu(presenter: MainMenuViewPresenter)
         case newGame(presenter: NewGameViewPresenter)
-        case teamSelect(interactor: TeamSelectInteractorProtocol)
+        case teamSelect(presenter: TeamSelectViewPresenter)
         case team(interactor: TeamInteractorProtocol)
         case tabContainer(tabs: [TabConfiguration])
         
@@ -48,9 +48,9 @@ final class NavigationRouter: ObservableObject {
             case .newGame(let presenter):
                 hasher.combine("newGame")
                 hasher.combine(ObjectIdentifier(presenter))
-            case .teamSelect(let interactor):
+            case .teamSelect(let presenter):
                 hasher.combine("teamSelect")
-                hasher.combine(ObjectIdentifier(interactor))
+                hasher.combine(ObjectIdentifier(presenter))
             case .team(let interactor):
                 hasher.combine("team")
                 hasher.combine(ObjectIdentifier(interactor))

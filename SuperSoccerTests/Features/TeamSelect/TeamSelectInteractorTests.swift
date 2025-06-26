@@ -13,37 +13,43 @@ import Testing
 
 struct TeamSelectInteractorTests {
     
+    // MARK: - Helper Methods
+    
+    private func createMocks() -> MockDataManager {
+        return MockDataManager()
+    }
+    
     // MARK: - Initialization Tests
     
-    @Test("TeamSelectInteractor initializes with correct dependencies via factory")
+    @Test("TeamSelectInteractor initializes with correct dependencies")
     @MainActor
-    func testInitializationWithFactoryDependencies() {
+    func testInitializationWithDependencies() {
         // Arrange
-        let container = MockDependencyContainer()
+        let mockDataManager = createMocks()
         
         // Act
-        let interactor = container.interactorFactory.makeTeamSelectInteractor()
+        let interactor = TeamSelectInteractor(dataManager: mockDataManager)
         let mockDelegate = MockTeamSelectInteractorDelegate()
         interactor.delegate = mockDelegate
         
         // Assert
         #expect(interactor != nil)
-        #expect(interactor.eventBus != nil)
+        #expect(interactor.delegate === mockDelegate)
     }
     
     @Test("TeamSelectInteractor initializes with correct view model")
     @MainActor
-    func testInitialViewModel() async throws {
+    func testInitialViewModel() throws {
         // Arrange
-        let container = MockDependencyContainer()
+        let mockDataManager = createMocks()
         let mockTeamInfos = [
             TeamInfo.make(city: "Portland", teamName: "Trail Blazers"),
             TeamInfo.make(city: "Golden State", teamName: "Warriors")
         ]
-        container.mockDataManager.mockTeamInfos = mockTeamInfos
+        mockDataManager.mockTeamInfos = mockTeamInfos
         
         // Act
-        let interactor = container.interactorFactory.makeTeamSelectInteractor()
+        let interactor = TeamSelectInteractor(dataManager: mockDataManager)
         
         // Assert
         #expect(interactor.viewModel.title == "Select a team")
@@ -58,35 +64,22 @@ struct TeamSelectInteractorTests {
         #expect(team2?.text == "Golden State Warriors")
     }
     
-    @Test("TeamSelectInteractor initializes with event bus")
-    @MainActor
-    func testInitializationWithEventBus() {
-        // Arrange
-        let container = MockDependencyContainer()
-        
-        // Act
-        let interactor = container.interactorFactory.makeTeamSelectInteractor()
-        
-        // Assert
-        #expect(interactor.eventBus != nil)
-    }
-    
     // MARK: - Data Loading Tests
     
     @Test("TeamSelectInteractor loads team data correctly")
     @MainActor
     func testLoadTeamDataCorrectly() {
         // Arrange
-        let container = MockDependencyContainer()
+        let mockDataManager = createMocks()
         let mockTeamInfos = [
             TeamInfo.make(id: "team1", city: "Manchester", teamName: "United"),
             TeamInfo.make(id: "team2", city: "Liverpool", teamName: "FC"),
             TeamInfo.make(id: "team3", city: "Arsenal", teamName: "FC")
         ]
-        container.mockDataManager.mockTeamInfos = mockTeamInfos
+        mockDataManager.mockTeamInfos = mockTeamInfos
         
         // Act
-        let interactor = container.interactorFactory.makeTeamSelectInteractor()
+        let interactor = TeamSelectInteractor(dataManager: mockDataManager)
         
         // Assert
         #expect(interactor.viewModel.teamModels.count == 3)
@@ -101,36 +94,36 @@ struct TeamSelectInteractorTests {
     @MainActor
     func testHandlesEmptyTeamDataGracefully() {
         // Arrange
-        let container = MockDependencyContainer()
-        container.mockDataManager.mockTeamInfos = []
+        let mockDataManager = createMocks()
+        mockDataManager.mockTeamInfos = []
         
         // Act
-        let interactor = container.interactorFactory.makeTeamSelectInteractor()
+        let interactor = TeamSelectInteractor(dataManager: mockDataManager)
         
         // Assert
         #expect(interactor.viewModel.title == "Select a team")
         #expect(interactor.viewModel.teamModels.isEmpty)
     }
     
-    // MARK: - Team Selection Tests
+    // MARK: - Function Interface Tests (Following NewGame Excellence)
     
-    @Test("TeamSelectInteractor handles team selection correctly via event bus")
+    @Test("TeamSelectInteractor handles teamSelected function call")
     @MainActor
-    func testTeamSelectionHandling() {
+    func testTeamSelectedFunctionCall() {
         // Arrange
-        let container = MockDependencyContainer()
+        let mockDataManager = createMocks()
         let mockTeamInfos = [
             TeamInfo.make(id: "team1", city: "Chelsea", teamName: "FC"),
             TeamInfo.make(id: "team2", city: "Tottenham", teamName: "Hotspur")
         ]
-        container.mockDataManager.mockTeamInfos = mockTeamInfos
+        mockDataManager.mockTeamInfos = mockTeamInfos
         
-        let interactor = container.interactorFactory.makeTeamSelectInteractor()
+        let interactor = TeamSelectInteractor(dataManager: mockDataManager)
         let mockDelegate = MockTeamSelectInteractorDelegate()
         interactor.delegate = mockDelegate
         
         // Act
-        interactor.eventBus.send(.teamSelected(teamInfoId: "team1"))
+        interactor.teamSelected(teamInfoId: "team1")
         
         // Assert
         #expect(mockDelegate.didSelectTeam == true)
@@ -143,115 +136,86 @@ struct TeamSelectInteractorTests {
     @MainActor
     func testTeamSelectionTriggersDelegate() {
         // Arrange
-        let container = MockDependencyContainer()
+        let mockDataManager = createMocks()
         let teamInfo = TeamInfo.make(id: "test-team", city: "Test", teamName: "City")
-        container.mockDataManager.mockTeamInfos = [teamInfo]
+        mockDataManager.mockTeamInfos = [teamInfo]
         
-        let interactor = container.interactorFactory.makeTeamSelectInteractor()
+        let interactor = TeamSelectInteractor(dataManager: mockDataManager)
         let mockDelegate = MockTeamSelectInteractorDelegate()
         interactor.delegate = mockDelegate
         
         // Act
-        interactor.eventBus.send(.teamSelected(teamInfoId: "test-team"))
+        interactor.teamSelected(teamInfoId: "test-team")
         
         // Assert
         #expect(mockDelegate.didSelectTeam == true)
         #expect(mockDelegate.selectedTeam?.id == "test-team")
     }
     
-    // MARK: - Event Bus Tests
+    // MARK: - Delegate Communication Tests (Reliable Async Pattern)
     
-    @Test("TeamSelectInteractor event bus publishes events correctly")
-    func testEventBusPublishesEvents() async {
+    @Test("TeamSelectInteractor calls delegate on team selection with async confirmation")
+    func testTeamSelectionDelegateAsync() async {
         // Arrange
-        let container = MockDependencyContainer()
-        let interactor = await container.interactorFactory.makeTeamSelectInteractor()
-        var receivedEvents: [TeamSelectEvent] = []
+        let mockDataManager = createMocks()
+        let teamInfo = TeamInfo.make(id: "async-team", city: "Async", teamName: "City")
+        mockDataManager.mockTeamInfos = [teamInfo]
         
-        // Act & Assert
-        await confirmation { confirm in
-            let cancellable = interactor.eventBus
-                .sink { event in
-                    receivedEvents.append(event)
-                    confirm()
-                }
-            
-            // Send event
-            interactor.eventBus.send(.teamSelected(teamInfoId: "team1"))
-            
-            // Store cancellable to prevent deallocation
-            _ = cancellable
+        let interactor = TeamSelectInteractor(dataManager: mockDataManager)
+        let mockDelegate = MockTeamSelectInteractorDelegate()
+        interactor.delegate = mockDelegate
+        
+        // Act & Wait for completion
+        await withCheckedContinuation { continuation in
+            mockDelegate.onDidSelectTeam = {
+                continuation.resume()
+            }
+            interactor.teamSelected(teamInfoId: "async-team")
         }
         
         // Assert
-        #expect(receivedEvents.count == 1)
-        if case .teamSelected(let selectedTeamId) = receivedEvents.first {
-            #expect(selectedTeamId == "team1")
-        } else {
-            Issue.record("Expected teamSelected event")
-        }
+        #expect(mockDelegate.didSelectTeam == true)
+        #expect(mockDelegate.selectedTeam?.id == "async-team")
     }
     
-    @Test("TeamSelectInteractor handles multiple event subscriptions")
-    func testMultipleEventSubscriptions() async {
-        // Arrange
-        let container = MockDependencyContainer()
-        let interactor = await container.interactorFactory.makeTeamSelectInteractor()
-        var receivedEvents1: [TeamSelectEvent] = []
-        var receivedEvents2: [TeamSelectEvent] = []
-        
-        // Act & Assert
-        await confirmation(expectedCount: 2) { confirm in
-            let cancellable1 = interactor.eventBus
-                .sink { event in
-                    receivedEvents1.append(event)
-                    confirm()
-                }
-            
-            let cancellable2 = interactor.eventBus
-                .sink { event in
-                    receivedEvents2.append(event)
-                    confirm()
-                }
-            
-            // Send event
-            interactor.eventBus.send(.teamSelected(teamInfoId: "team1"))
-            
-            // Store cancellables to prevent deallocation
-            _ = cancellable1
-            _ = cancellable2
-        }
-        
-        // Assert
-        #expect(receivedEvents1.count == 1)
-        #expect(receivedEvents2.count == 1)
-    }
+    // MARK: - Edge Case Tests
     
-    // MARK: - View Model Tests
-    
-    @Test("TeamSelectInteractor view model provides correct team models")
+    @Test("TeamSelectInteractor handles team selection for invalid ID gracefully")
     @MainActor
-    func testViewModelTeamModels() {
+    func testTeamSelectionWithInvalidId() {
         // Arrange
-        let container = MockDependencyContainer()
-        let mockTeamInfos = [
-            TeamInfo.make(id: "team1", city: "Real", teamName: "Madrid"),
-            TeamInfo.make(id: "team2", city: "Barcelona", teamName: "FC")
-        ]
-        container.mockDataManager.mockTeamInfos = mockTeamInfos
+        let mockDataManager = createMocks()
+        let teamInfo = TeamInfo.make(id: "valid-team", city: "Valid", teamName: "Team")
+        mockDataManager.mockTeamInfos = [teamInfo]
+        
+        let interactor = TeamSelectInteractor(dataManager: mockDataManager)
+        let mockDelegate = MockTeamSelectInteractorDelegate()
+        interactor.delegate = mockDelegate
         
         // Act
-        let interactor = container.interactorFactory.makeTeamSelectInteractor()
-        let teamModels = interactor.viewModel.teamModels
+        interactor.teamSelected(teamInfoId: "invalid-team")
         
-        // Assert
-        #expect(teamModels.count == 2)
-        #expect(teamModels[0].text == "Real Madrid")
-        #expect(teamModels[1].text == "Barcelona FC")
+        // Assert - Delegate should not be called for invalid ID
+        #expect(mockDelegate.didSelectTeam == false)
+        #expect(mockDelegate.selectedTeam == nil)
+    }
+    
+    // MARK: - Memory Management Tests
+    
+    @Test("TeamSelectInteractor handles delegate lifecycle correctly")
+    @MainActor
+    func testDelegateLifecycle() {
+        // Arrange
+        let mockDataManager = createMocks()
+        let interactor = TeamSelectInteractor(dataManager: mockDataManager)
+        var mockDelegate: MockTeamSelectInteractorDelegate? = MockTeamSelectInteractorDelegate()
+        interactor.delegate = mockDelegate
         
-        // Verify model IDs match the team info IDs
-        #expect(teamModels[0].id == "team1")
-        #expect(teamModels[1].id == "team2")
+        // Act - Clear delegate reference
+        mockDelegate = nil
+        
+        // Assert - Interactor should handle weak delegate gracefully
+        #expect(interactor.delegate == nil)
     }
     
     // MARK: - Data Manager Integration Tests
@@ -260,126 +224,92 @@ struct TeamSelectInteractorTests {
     @MainActor
     func testDataManagerIntegration() {
         // Arrange
-        let container = MockDependencyContainer()
+        let mockDataManager = createMocks()
         let expectedTeamInfos = [
-            TeamInfo.make(id: "team1", city: "Bayern", teamName: "Munich"),
-            TeamInfo.make(id: "team2", city: "Borussia", teamName: "Dortmund")
+            TeamInfo.make(id: "integration1", city: "Integration", teamName: "Test1"),
+            TeamInfo.make(id: "integration2", city: "Integration", teamName: "Test2")
         ]
-        container.mockDataManager.mockTeamInfos = expectedTeamInfos
+        mockDataManager.mockTeamInfos = expectedTeamInfos
         
         // Act
-        let interactor = container.interactorFactory.makeTeamSelectInteractor()
+        let interactor = TeamSelectInteractor(dataManager: mockDataManager)
         
-        // Assert - Verify data manager was used
+        // Assert - Verify data manager integration
+        #expect(mockDataManager.fetchTeamInfosCalled == true)
         #expect(interactor.viewModel.teamModels.count == 2)
         
-        // Verify that the view model correctly reflects the data from data manager
-        let teamTexts = interactor.viewModel.teamModels.map { $0.text }
-        #expect(teamTexts.contains("Bayern Munich"))
-        #expect(teamTexts.contains("Borussia Dortmund"))
+        let teamIds = interactor.viewModel.teamModels.map { $0.id }
+        #expect(teamIds.contains("integration1"))
+        #expect(teamIds.contains("integration2"))
     }
     
-    // MARK: - Delegate Communication Tests
-    
-    @Test("TeamSelectInteractor delegate methods are forwarded correctly")
-    @MainActor
-    func testDelegateMethodForwarding() {
-        // Arrange
-        let container = MockDependencyContainer()
-        let teamInfo = TeamInfo.make(id: "team1", city: "Test", teamName: "Team")
-        container.mockDataManager.mockTeamInfos = [teamInfo]
-        
-        let interactor = container.interactorFactory.makeTeamSelectInteractor()
-        let mockDelegate = MockTeamSelectInteractorDelegate()
-        interactor.delegate = mockDelegate
-        
-        // Act
-        interactor.eventBus.send(.teamSelected(teamInfoId: "team1"))
-        
-        // Assert
-        #expect(mockDelegate.didSelectTeam == true)
-        #expect(mockDelegate.selectedTeam?.id == "team1")
-    }
+    // MARK: - Multiple Delegate Calls Tests
     
     @Test("TeamSelectInteractor handles multiple delegate calls correctly")
     @MainActor
     func testMultipleDelegateCalls() {
         // Arrange
-        let container = MockDependencyContainer()
-        let teamInfo1 = TeamInfo.make(id: "team1", city: "Team", teamName: "One")
-        let teamInfo2 = TeamInfo.make(id: "team2", city: "Team", teamName: "Two")
-        container.mockDataManager.mockTeamInfos = [teamInfo1, teamInfo2]
+        let mockDataManager = createMocks()
+        let teamInfos = [
+            TeamInfo.make(id: "team1", city: "First", teamName: "Team"),
+            TeamInfo.make(id: "team2", city: "Second", teamName: "Team")
+        ]
+        mockDataManager.mockTeamInfos = teamInfos
         
-        let interactor = container.interactorFactory.makeTeamSelectInteractor()
+        let interactor = TeamSelectInteractor(dataManager: mockDataManager)
         let mockDelegate = MockTeamSelectInteractorDelegate()
         interactor.delegate = mockDelegate
         
         // Act
-        interactor.eventBus.send(.teamSelected(teamInfoId: "team1"))
-        interactor.eventBus.send(.teamSelected(teamInfoId: "team2"))
+        interactor.teamSelected(teamInfoId: "team1")
+        interactor.teamSelected(teamInfoId: "team2")
+        
+        // Assert - Last call should be reflected
+        #expect(mockDelegate.didSelectTeam == true)
+        #expect(mockDelegate.selectedTeam?.id == "team2")
+    }
+    
+    // MARK: - View Model Presentation Tests
+    
+    @Test("TeamSelectInteractor view model provides correct team models")
+    @MainActor
+    func testViewModelTeamModels() {
+        // Arrange
+        let mockDataManager = createMocks()
+        let teamInfos = [
+            TeamInfo.make(id: "vm1", city: "View", teamName: "Model1"),
+            TeamInfo.make(id: "vm2", city: "View", teamName: "Model2")
+        ]
+        mockDataManager.mockTeamInfos = teamInfos
+        
+        // Act
+        let interactor = TeamSelectInteractor(dataManager: mockDataManager)
         
         // Assert
-        #expect(mockDelegate.didSelectTeam == true)
-        #expect(mockDelegate.selectedTeam?.id == "team2") // Last call wins
+        let viewModel = interactor.viewModel
+        #expect(viewModel.title == "Select a team")
+        #expect(viewModel.teamModels.count == 2)
+        
+        let firstTeam = viewModel.teamModels.first(where: { $0.id == "vm1" })
+        #expect(firstTeam?.text == "View Model1")
+        
+        let secondTeam = viewModel.teamModels.first(where: { $0.id == "vm2" })
+        #expect(secondTeam?.text == "View Model2")
     }
     
-    // MARK: - Event Handling Integration Tests
+    // MARK: - InteractorFactory Integration Tests
     
-    @Test("TeamSelectInteractor handles team selection for invalid ID gracefully")
+    @Test("TeamSelectInteractor factory integration works correctly")
     @MainActor
-    func testInvalidTeamIdHandling() {
+    func testInteractorFactoryIntegration() {
         // Arrange
         let container = MockDependencyContainer()
-        let teamInfo = TeamInfo.make(id: "valid-team", city: "Valid", teamName: "Team")
-        container.mockDataManager.mockTeamInfos = [teamInfo]
         
+        // Act
         let interactor = container.interactorFactory.makeTeamSelectInteractor()
-        let mockDelegate = MockTeamSelectInteractorDelegate()
-        interactor.delegate = mockDelegate
         
-        // Act - Send event with invalid team ID
-        interactor.eventBus.send(.teamSelected(teamInfoId: "invalid-team"))
-        
-        // Assert - Delegate should not be called
-        #expect(mockDelegate.didSelectTeam == false)
-        #expect(mockDelegate.selectedTeam == nil)
-    }
-    
-    // MARK: - Memory Management Tests
-    
-    @Test("TeamSelectInteractor properly manages cancellables")
-    @MainActor
-    func testCancellablesManagement() {
-        // Arrange & Act
-        let container = MockDependencyContainer()
-        var interactor: TeamSelectInteractorProtocol? = container.interactorFactory.makeTeamSelectInteractor()
-        
-        // Verify interactor is created
+        // Assert - This should be a MockTeamSelectInteractor from the factory
+        #expect(interactor is MockTeamSelectInteractor)
         #expect(interactor != nil)
-        
-        // Act - Release the interactor
-        interactor = nil
-        
-        // Assert - No assertion needed, this test verifies no memory leaks occur
-        // The test passes if no retain cycles prevent deallocation
-    }
-    
-    @Test("TeamSelectInteractor handles delegate lifecycle correctly")
-    @MainActor
-    func testDelegateLifecycle() {
-        // Arrange
-        let container = MockDependencyContainer()
-        let interactor = container.interactorFactory.makeTeamSelectInteractor()
-        var mockDelegate: MockTeamSelectInteractorDelegate? = MockTeamSelectInteractorDelegate()
-        interactor.delegate = mockDelegate
-        
-        // Verify delegate is set
-        #expect(interactor.delegate != nil)
-        
-        // Act - Release delegate
-        mockDelegate = nil
-        
-        // Assert - Delegate should be nil (weak reference)
-        #expect(interactor.delegate == nil)
     }
 }

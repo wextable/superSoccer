@@ -495,6 +495,280 @@ struct NewGameView: View {
 
 **Benefits**: Modular view composition, clear data flow, reusable sub-views
 
+### 6. ViewModelTransform Pattern (NEW - Required for All Features)
+```
+Local Data Sources → ViewModelTransform → ViewModels → Views
+```
+
+**Purpose**: Dedicated transformation of raw data into presentation models, removing presentation logic from interactors.
+
+**Structure:**
+- **Transform Protocol**: `[Feature]ViewModelTransformProtocol` defines transformation interface
+- **Transform Implementation**: `[Feature]ViewModelTransform` handles all view model creation logic
+- **Mock Transform**: `Mock[Feature]ViewModelTransform` for isolated testing
+- **Constructor Injection**: Transform injected into interactor via factory
+
+**Example:**
+```swift
+protocol NewGameViewModelTransformProtocol {
+    func transformToViewModel(
+        localDataSource: NewGameLocalDataSourceProtocol
+    ) -> NewGameViewModel
+}
+
+class NewGameViewModelTransform: NewGameViewModelTransformProtocol {
+    func transformToViewModel(
+        localDataSource: NewGameLocalDataSourceProtocol
+    ) -> NewGameViewModel {
+        let data = localDataSource.getCurrentData()
+        
+        return NewGameViewModel(
+            coachName: data.coachName,
+            coachCountry: data.coachCountry,
+            teamSelectorModel: TeamSelectorViewModel(
+                selectedTeamId: data.selectedTeamId,
+                isTeamSelected: data.selectedTeamId != nil
+            )
+        )
+    }
+}
+
+class NewGameInteractor: NewGameInteractorProtocol {
+    private let viewModelTransform: NewGameViewModelTransformProtocol
+    
+    init(dataManager: DataManagerProtocol,
+         localDataSource: NewGameLocalDataSourceProtocol,
+         viewModelTransform: NewGameViewModelTransformProtocol) {
+        self.viewModelTransform = viewModelTransform
+        // ... other initialization
+    }
+    
+    var viewModel: NewGameViewModel {
+        return viewModelTransform.transformToViewModel(
+            localDataSource: localDataSource
+        )
+    }
+}
+```
+
+**Benefits:**
+- **Single Responsibility**: Interactor focuses on business logic, transform handles presentation
+- **Testability**: Transform logic can be tested in isolation
+- **Reusability**: Transform patterns can be applied across features
+- **Maintainability**: Clear separation between data and presentation concerns
+
+### 7. InteractorProtocol Pattern (NEW - Required for All Features)
+```
+[Feature]BusinessLogic + [Feature]ViewPresenter = [Feature]InteractorProtocol
+```
+
+**Purpose**: Enhanced protocol design that combines all interactor interfaces for complete mockability.
+
+**Structure:**
+- **Business Logic Protocol**: Interface for coordinator communication
+- **View Presenter Protocol**: Interface for view communication
+- **Combined Protocol**: `[Feature]InteractorProtocol: [Feature]BusinessLogic & [Feature]ViewPresenter`
+- **Mock Implementation**: Complete mockable interactor
+
+**Example:**
+```swift
+protocol NewGameBusinessLogic: AnyObject {
+    var delegate: NewGameBusinessLogicDelegate? { get set }
+}
+
+protocol NewGameViewPresenter: AnyObject {
+    var viewModel: NewGameViewModel { get }
+    func updateCoachName(_ name: String)
+    func updateCoachCountry(_ country: String)
+    func teamSelected(teamInfoId: String)
+    func submitGameCreation()
+}
+
+protocol NewGameInteractorProtocol: NewGameBusinessLogic & NewGameViewPresenter {}
+
+class NewGameInteractor: NewGameInteractorProtocol {
+    // Implements both protocols with full functionality
+}
+
+class MockNewGameInteractor: NewGameInteractorProtocol {
+    // Can mock both coordinator and view interactions
+    var updateCoachNameCallCount = 0
+    var submitGameCreationCallCount = 0
+    var mockViewModel = NewGameViewModel()
+    // ... complete mockability
+}
+```
+
+**Benefits:**
+- **Complete Mockability**: Every interactor can be fully mocked
+- **Clear Contracts**: Protocol defines complete interface
+- **Dependency Injection**: Constructor injection supports all dependencies
+- **Type Safety**: Compile-time verification of implementations
+
+### 8. Nested ViewModel Pattern (NEW - Required for Complex Views)
+```
+Parent ViewModel → Child ViewModels → Sub-Views
+```
+
+**Purpose**: Hierarchical view model composition for complex views with reusable sub-components.
+
+**Structure:**
+- **Parent ViewModel**: Contains child view models as properties
+- **Child ViewModels**: Specific view models for sub-components
+- **Hierarchical Composition**: Views receive appropriate view models
+- **Reusable Components**: Sub-views can be used across features
+
+**Example:**
+```swift
+struct NewGameViewModel {
+    let coachName: String
+    let coachCountry: String
+    
+    // Nested child view model
+    let teamSelectorModel: TeamSelectorViewModel
+    
+    // Computed properties for validation
+    var canSubmit: Bool {
+        return !coachName.isEmpty && 
+               !coachCountry.isEmpty && 
+               teamSelectorModel.isTeamSelected
+    }
+}
+
+struct TeamSelectorViewModel {
+    let selectedTeamId: String?
+    let isTeamSelected: Bool
+    let teams: [TeamInfo]
+    
+    var selectedTeam: TeamInfo? {
+        guard let selectedTeamId = selectedTeamId else { return nil }
+        return teams.first { $0.id == selectedTeamId }
+    }
+}
+
+// In the view:
+struct NewGameView: View {
+    let presenter: NewGameViewPresenter
+    
+    var body: some View {
+        VStack {
+            // Coach input fields
+            TextField("Coach Name", text: .constant(presenter.viewModel.coachName))
+            
+            // Nested sub-view receives its specific view model
+            TeamSelectorView(viewModel: presenter.viewModel.teamSelectorModel)
+            
+            // Submit button uses parent validation
+            Button("Create Game") {
+                presenter.submitGameCreation()
+            }
+            .disabled(!presenter.viewModel.canSubmit)
+        }
+    }
+}
+```
+
+**Benefits:**
+- **Modular Composition**: Complex views built from reusable components
+- **Clear Data Flow**: Each sub-view gets exactly what it needs
+- **Reusable Components**: Sub-views can be used across features
+- **Hierarchical Organization**: Natural organization of presentation data
+
+## Enhanced Testing Patterns (NEW STANDARD)
+
+### Real vs Mock Testing Strategy
+```swift
+// Behavior Testing (Real interactor + Mock dependencies)
+@Test func testBusinessLogicBehavior() async throws {
+    let mocks = createMocks()
+    let interactor = NewGameInteractor(
+        dataManager: mocks.dataManager,
+        localDataSource: mocks.localDataSource,
+        viewModelTransform: mocks.viewModelTransform
+    )
+    
+    // Test actual business logic behavior
+    interactor.updateCoachName("Test Coach")
+    
+    // Verify effects in dependencies
+    #expect(mocks.localDataSource.updateCoachNameCallCount == 1)
+}
+
+// Integration Testing (Mock interactor)
+@Test func testViewIntegration() async throws {
+    let mockInteractor = MockNewGameInteractor()
+    let view = NewGameView(presenter: mockInteractor)
+    
+    // Test view-interactor integration
+    mockInteractor.simulateDataChange()
+    #expect(mockInteractor.viewModel.canSubmit == true)
+}
+
+// ViewModelTransform Testing (Isolated transformation logic)
+@Test func testViewModelTransformation() async throws {
+    let transform = NewGameViewModelTransform()
+    let mockDataSource = MockNewGameLocalDataSource()
+    
+    mockDataSource.mockData = NewGameLocalData(
+        coachName: "Test Coach",
+        selectedTeamId: "team1"
+    )
+    
+    let viewModel = transform.transformToViewModel(
+        localDataSource: mockDataSource
+    )
+    
+    #expect(viewModel.coachName == "Test Coach")
+    #expect(viewModel.teamSelectorModel.isTeamSelected == true)
+}
+```
+
+### Async Testing with Continuations
+```swift
+@Test func testAsyncBusinessLogic() async throws {
+    let interactor = NewGameInteractor(/* dependencies */)
+    
+    await withCheckedContinuation { continuation in
+        interactor.delegate = MockDelegate { result in
+            // Verify result
+            continuation.resume()
+        }
+        
+        interactor.submitGameCreation()
+    }
+}
+```
+
+## Implementation Checklist for New Features
+
+When creating a new feature with complete architecture:
+
+### Core Implementation ✅
+- [ ] **Protocol Separation**: Create BusinessLogic + ViewPresenter protocols
+- [ ] **Combined Protocol**: Create InteractorProtocol combining both
+- [ ] **EventBus Elimination**: Use direct function calls
+- [ ] **InteractorFactory Integration**: Add factory method
+- [ ] **ViewModelTransform**: Create transform protocol + implementation
+- [ ] **Nested ViewModels**: Implement hierarchical composition if needed
+
+### Navigation Integration ✅
+- [ ] **NavigationRouter**: Add screen with presenter parameter
+- [ ] **ViewFactory**: Create view with presenter parameter
+- [ ] **Coordinator**: Use business logic for coordination
+
+### Testing Excellence ✅
+- [ ] **ViewModelTransform Tests**: Dedicated transformation testing
+- [ ] **Real Interactor Tests**: Business logic with mock dependencies
+- [ ] **Mock Interactor**: Complete mockable implementation
+- [ ] **Async Testing**: Continuation-based patterns
+- [ ] **Integration Tests**: View-presenter interaction
+
+### Pattern Compliance ✅
+- [ ] **Matches NewGame**: All patterns implemented consistently
+- [ ] **Factory Created**: Interactor created via factory
+- [ ] **Protocol Adherence**: Implements all required protocols
+- [ ] **Testing Coverage**: Comprehensive test suite
+
 ## Feature Implementation Checklist
 
 For each new feature, ensure ALL patterns are implemented:

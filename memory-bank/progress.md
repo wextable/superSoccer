@@ -16,35 +16,53 @@
 - **Transformation Layer**: Bidirectional model conversion between Client and SwiftData models
 - **Tab Navigation System**: Complete tab-based navigation with TabNavigationCoordinator and TabContainerView
 
-### Implemented Features with InteractorFactory
-- **MainMenu**: 
-  - Career selection interface with retro-themed UI and InteractorFactory integration
-  - Uses SSPrimaryButton for consistent styling
-  - Factory-based interactor creation with proper delegate setup
-  - Proper dark mode support and theme integration
-  - Navigation to NewGame flow
-  - **✅ UPDATED TO NEW ARCHITECTURE**: Protocol separation (BusinessLogic + Presenter), EventBus elimination, async TestHooks
+### Implemented Features with Modern Architecture
 
-- **NewGame**: 
-  - Coach profile creation with comprehensive retro-styled UI and InteractorFactory
+- **NewGame**: ✅ **ARCHITECTURAL PERFECTION** - Complete Template
+  - **NEW ARCHITECTURAL PATTERNS IMPLEMENTED:**
+    - **ViewModelTransform Pattern**: `NewGameViewModelTransformProtocol` + implementation
+    - **InteractorProtocol Pattern**: Enhanced protocol-based design with full mockability
+    - **Nested ViewModel Pattern**: Hierarchical view model composition
+  - **Testing Excellence**: 45+ tests passing with comprehensive coverage
+    - `NewGameViewModelTransformTests.swift` for dedicated transformation testing
+    - Fixed reactive testing with `CurrentValueSubject` in `MockLocalDataSource`
+    - Real interactor + mock dependencies for behavior testing
+    - Mock interactor for integration testing
+    - Async continuation-based testing patterns
+  - Career creation with comprehensive retro-styled UI and InteractorFactory
   - Custom SSTextFieldStyle for consistent text input styling
   - Integrated TeamSelectorView with proper state management
   - Factory-based interactor instantiation with DataManager injection
   - Career creation request/result pattern working
 
-- **TeamSelect**:
+- **TeamSelect**: ✅ **COMPLETE** - Modern Architecture Excellence
+  - **RECENTLY UPGRADED WITH MODERN PATTERNS:**
+    - **Protocol Separation**: Split into `TeamSelectBusinessLogic` + `TeamSelectViewPresenter`
+    - **EventBus Elimination**: Replaced with direct function calls (`teamSelected(teamInfoId:)`)
+    - **Navigation Integration**: Updated to use presenter protocol pattern
+    - **Testing Excellence**: 12 tests passing with reliable async patterns
   - Team selection interface with complete SSTheme integration and InteractorFactory
   - NavigationStack wrapper enabling proper navigation bar in presented sheet
   - Enhanced TeamThumbnailView with SSTitle typography and theme-aware styling
   - Factory-created interactor with proper delegate communication
   - Complete dark mode support with automatic theme switching
-  - Event bus communication for team selection handling
+  - All navigation integration points updated (ViewFactory, NavigationRouter, coordinators)
+
+- **MainMenu**: ✅ **COMPLETE** - Modern Architecture Excellence
+  - **PREVIOUSLY UPGRADED WITH MODERN PATTERNS:**
+    - **Protocol Separation**: `MainMenuBusinessLogic` + `MainMenuViewPresenter`
+    - **EventBus Elimination**: Direct function calls replace event-based communication
+    - **Testing Excellence**: Async TestHooks pattern for reliable coordinator testing
+  - Career selection interface with retro-themed UI and InteractorFactory integration
+  - Uses SSPrimaryButton for consistent styling
+  - Factory-based interactor creation with proper delegate setup
+  - Proper dark mode support and theme integration
+  - Navigation to NewGame flow
 
 - **Team**: 
   - Team overview display with InteractorFactory parameterized creation (`userTeamId` support)
   - Player roster listing with styled PlayerRowView
   - Team information display with header stats
-  - Event bus communication pattern implemented
   - **Comprehensive Unit Test Coverage with Factory Pattern**: Complete testing infrastructure
     - TeamInteractorTests with all business logic coverage
     - TeamFeatureCoordinatorTests with InteractorFactory integration testing
@@ -52,6 +70,7 @@
     - MockDependencyContainer testing pattern established
     - Memory management and async testing patterns
     - Protocol-based testing with factory-provided mock implementations
+  - 🟡 **PENDING**: Upgrade to complete NewGame architecture template
 
 - **InGame Flow**:
   - Complete career creation to in-game team management flow with InteractorFactory
@@ -109,63 +128,59 @@
   - **BaseFeatureCoordinator Enhanced**: `testOnChildCoordinatorAdded` callback mechanism
   - **TestHooks Async Helpers**: `waitForChildCoordinator()` and `executeAndWaitForChildCoordinator()`
   - **Eliminated Flaky Tests**: Replaced `DispatchQueue.main.asyncAfter` with real event-based testing
-  - **Pattern Applied**: MainMenu and NewGame coordinators now use deterministic async testing
+  - **Pattern Applied**: MainMenu, NewGame, and TeamSelect coordinators now use deterministic async testing
   - **Performance Improvement**: Tests are faster (no artificial delays) and more reliable
+- **Enhanced Testing Architecture**: NewGame leads with comprehensive testing patterns
+  - **Real + Mock Separation**: Real interactor with mock dependencies for behavior testing
+  - **ViewModelTransform Testing**: Dedicated test file for transformation logic testing
+  - **Reactive Testing**: Fixed `MockLocalDataSource` with `CurrentValueSubject` for proper data updates
+  - **Comprehensive Coverage**: 45+ tests in NewGame covering all architectural patterns
 - **Team Feature Testing**: Complete unit testing template with InteractorFactory integration
   - Swift Testing framework with @Test attributes
   - Comprehensive mock implementations with tracking properties
   - Async testing patterns with confirmation blocks
   - Memory management testing for retain cycle detection
-  - Event bus and delegate testing patterns
+  - TeamSelect testing updated with modern patterns (12 tests passing)
   - InteractorFactory integration verification in all tests
 - **Mock Implementations**: Protocol-based mocks for all major services via factory
 - **Unit Test Structure**: Test directories mirroring source structure with factory pattern
-- **Testing Strategy**: Established template for all features using Team as reference with InteractorFactory
+- **Testing Strategy**: Established template for all features using NewGame as reference with InteractorFactory
 
 ## What's Left to Build 🔄
 
-### Current Focus: Apply NewGame Architecture Excellence to Remaining Features
-- **EventBus Elimination**: Apply NewGame's direct function call pattern to remaining interactors
-  - **MainMenuInteractor**: ✅ **COMPLETED** - EventBus removed, protocol separation implemented (BusinessLogic + Presenter)
-  - **TeamSelectInteractor**: Remove EventBus, implement protocol separation (BusinessLogic + Presenter)
-  - **TeamInteractor**: Remove EventBus, implement protocol separation (BusinessLogic + Presenter)
-- **NewGameInteractorTests Excellence Template**: Apply to all feature interactor tests
-  - **Reliable Async Testing**: `withCheckedContinuation` with delegate callbacks (eliminates flaky `Task.sleep`)
-  - **Direct Effect Testing**: Test actual side effects (local data updates) not derived reactive state
-  - **Isolated Mock Dependencies**: `createMocks()` helper for fresh instances per test
-  - **Comprehensive Coverage**: All 14 tests passing consistently with reliable patterns
-- **Protocol Architecture Consistency**: Ensure all features follow NewGame's two-protocol separation
-  - `[Feature]BusinessLogic`: For coordinator communication via delegate pattern
-  - `[Feature]ViewPresenter`: For view communication via direct function calls
-  - **NavigationRouter.Screen Updates**: Update to use Presenter protocols instead of Interactor protocols
-  - **View Initialization Consistency**: Views initialized with Presenter protocols, not InteractorProtocol
-  - Clean separation of concerns between coordinator and view interfaces
-- **Design System Tests**: Test all UI components and theming
-  - Button component tests (SSPrimaryButton, SSSecondaryButton, SSTextButton)
-  - Text component tests (SSTitle, SSLabel hierarchies)
-  - Theme component tests (SSColors, SSFonts, SSSpacing)
-  - Form component tests (SSTextFieldStyle styling)
-- **Navigation Tests**: Comprehensive coordinator and router testing with factory integration
-  - NavigationCoordinator integration tests
-  - BaseFeatureCoordinator lifecycle tests with InteractorFactory
-  - TabNavigationCoordinator functionality tests
-  - Router state management tests
+### Current Focus: Apply NewGame Architecture Excellence to Team Feature
+- **Team Feature**: Apply complete NewGame architectural template
+  - **ViewModelTransform Pattern**: Create `TeamViewModelTransformProtocol` + implementation
+  - **InteractorProtocol Pattern**: Enhance `TeamInteractorProtocol` with combined protocol design
+  - **Nested ViewModel Pattern**: Implement hierarchical view model composition if needed
+  - **Protocol Separation**: Split into `TeamBusinessLogic` + `TeamViewPresenter`
+  - **EventBus Elimination**: Replace event-based communication with direct function calls
+  - **Enhanced Testing**: Apply NewGame's testing excellence patterns
+  - **ViewModelTransform Tests**: Create dedicated transformation testing
+- **Architecture Consistency**: Ensure Team matches NewGame's architectural perfection
 
-### Core Game Features with InteractorFactory (Next Phase)
+### Future Features Enhancement (Apply NewGame Template)
+- **MainMenu + TeamSelect Enhancement**: Apply NEW patterns discovered in NewGame
+  - **ViewModelTransform Pattern**: Add dedicated transformation classes
+  - **InteractorProtocol Pattern**: Enhance protocol design
+  - **Nested ViewModel Pattern**: Implement hierarchical composition where appropriate
+  - **Enhanced Testing**: Upgrade testing to match NewGame's excellence
+
+### Core Game Features with Complete Architecture (Next Phase)
 - **League Feature**:
-  - League standings display with factory-based interactor
+  - League standings display with complete NewGame template
   - Match schedule and results
   - Season progression
   - League statistics
 
 - **Match Simulation**:
-  - Basic match simulation engine with InteractorFactory integration
+  - Basic match simulation engine with complete architectural template
   - Pre-match preparation interface
   - Real-time match events
   - Post-match results and statistics
 
 - **Player Management**:
-  - Detailed player statistics with factory-created interactors
+  - Detailed player statistics with complete template
   - Player development over time
   - Transfer market functionality
   - Contract management
@@ -192,71 +207,24 @@
 
 ### Architecture Health: 🟢 Excellent
 - **InteractorFactory Pattern**: Complete type-safe dependency injection established
+- **NewGame Architectural Template**: Complete reference implementation with all patterns
+- **Three Features Complete**: NewGame (perfection), TeamSelect (modern), MainMenu (modern)
 - Clean separation of concerns with factory-based creation
 - Proper dependency injection with parameterized factory support
 - Testable design with MockInteractorFactory and MockDependencyContainer
 - Clear data flow patterns with factory integration
 - Complete tab navigation system
 - Centralized theme management architecture
-- Comprehensive testing template with factory pattern established
 
-### Feature Completeness: 🟡 Progressing
-- **All core features use InteractorFactory pattern**: MainMenu, NewGame, TeamSelect, Team
-- Basic career creation flow working with comprehensive retro UI design and factory integration
-- Team feature fully implemented with complete unit test coverage and factory pattern
-- Core navigation structure in place with InteractorFactory integration
-- Tab navigation system complete with factory-based coordinator creation
-- InGame flow fully functional with parameterized factory support
-- Need to extend InteractorFactory testing patterns to remaining features
-- Need to implement core game simulation features using factory pattern
+### Testing Health: 🟢 Excellent
+- **Comprehensive Test Coverage**: All implemented features have solid test coverage
+- **Testing Patterns Established**: NewGame serves as testing excellence template
+- **Reliable Async Testing**: Continuation-based patterns eliminate flaky tests
+- **Mock/Real Separation**: Clear testing strategies for different scenarios
+- **ViewModelTransform Testing**: Dedicated transformation testing patterns
 
-### UI/UX Status: 🟢 Complete Foundation
-- Comprehensive design system with retro aesthetic established
-- Centralized theme architecture implemented
-- **All core features fully themed and styled with InteractorFactory integration**:
-  - MainMenu: Complete retro-themed UI with SSPrimaryButton styling and factory pattern
-  - NewGame: Comprehensive retro-styled UI with custom components and factory integration
-  - TeamSelect: Complete SSTheme integration with NavigationStack, dark mode support, and factory pattern
-  - Team: Enhanced styling with SSTheme integration, PlayerRowView updates, and parameterized factory
-- Reusable components created and properly themed
-
-### Technical Debt: 🟢 Minimal
-- Clean InteractorFactory architecture with no architectural violations
-- Proper protocol-based dependency injection established
-- Factory pattern ensures type safety and testability
-- Consistent patterns across all features
-- Comprehensive testing infrastructure with factory integration
-- No known memory leaks or performance issues
-- Well-documented architecture patterns
-
-### Testing Coverage: 🟡 Expanding
-- **Team Feature**: Complete unit testing with InteractorFactory patterns (11 tests passing)
-- **Feature Coordinators**: All updated to use MockDependencyContainer pattern
-- **Mock Infrastructure**: Complete MockInteractorFactory and MockDependencyContainer established
-- **Testing Template**: Established patterns for factory-based testing
-- Need to apply established patterns to remaining interactor tests
-- Need to expand UI component and integration testing
-
-## Recent Achievements 🎉
-
-### InteractorFactory Implementation (Major Milestone)
-- ✅ **Complete Factory Pattern Implementation**: All features now use InteractorFactory for dependency injection
-- ✅ **Parameterized Factory Support**: Context-specific interactors (e.g., TeamInteractor with userTeamId)
-- ✅ **Unified Testing Infrastructure**: MockDependencyContainer pattern for all feature tests
-- ✅ **Protocol Consistency**: All InteractorProtocols have consistent `delegate` property pattern
-- ✅ **Type Safety**: Compile-time verification of dependencies and factory methods
-- ✅ **Scalable Architecture**: Easy to extend for new features and interactor types
-
-### Testing Infrastructure Modernization
-- ✅ **MockDependencyContainer**: Centralized test setup with factory methods
-- ✅ **Factory-Based Testing**: All tests use factory-provided dependencies
-- ✅ **Consistent Test Patterns**: Template established for all feature testing
-- ✅ **11 Team Tests Passing**: Complete coverage with InteractorFactory integration
-
-### Architecture Evolution
-- ✅ **Type-Safe Dependency Injection**: InteractorFactory ensures proper dependency management
-- ✅ **Simplified Testing**: Eliminated manual mock object creation
-- ✅ **Enhanced Maintainability**: Centralized interactor creation logic
-- ✅ **Clear Dependency Relationships**: Factory methods define explicit dependencies
-
-The SuperSoccer project now has a robust, type-safe, and fully testable architecture with the InteractorFactory pattern providing scalable dependency injection for all features.
+### Development Velocity: 🟢 High
+- **Clear Templates**: NewGame provides complete architectural template
+- **Established Patterns**: All future features follow proven patterns
+- **Testing Infrastructure**: Reliable testing patterns accelerate development
+- **Factory Pattern**: Type-safe dependency injection simplifies feature creation

@@ -20,6 +20,9 @@
 ### 📊 [Progress](progress.md)
 **Status tracking** - What's working, what's left to build, current status, known issues, and project evolution. Comprehensive project health view.
 
+### 🔧 [Implementation Lessons](implementation-lessons.md)
+**Technical knowledge** - Specific fixes, implementation details, code patterns, and critical technical lessons learned during development. Essential for avoiding repeated mistakes.
+
 ## Memory Bank Usage
 
 ### For New Sessions
@@ -28,12 +31,14 @@
 3. **Read Project Brief** - Understand the foundation
 4. **Review Active Context** - Understand current work focus
 5. **Check Progress** - Know what's working and what needs work
+6. **Review Implementation Lessons** - Learn from specific technical solutions
 
 ### For Updates
 - **Active Context**: Update when work focus changes or new decisions are made
 - **Progress**: Update when features are completed or status changes
 - **System Patterns**: Update when architectural patterns evolve
 - **Technical Context**: Update when technology stack or structure changes
+- **Implementation Lessons**: Update when discovering critical fixes or patterns
 
 ## Enhanced Reference Files
 
@@ -53,7 +58,8 @@ projectbrief.md (Foundation)
 ├── systemPatterns.md (How - Architecture)
 └── techContext.md (How - Technology)
     └── activeContext.md (Current State)
-        └── progress.md (Status)
+        ├── progress.md (Status)
+        └── implementation-lessons.md (Technical Knowledge)
 ```
 
 ## Quick Reference
@@ -98,6 +104,7 @@ projectbrief.md (Foundation)
 - **When starting new features**
 - **When completing milestones**
 - **When making important decisions**
+- **When discovering critical technical solutions**
 
 ### Update Process
 1. Review ALL memory bank files
@@ -105,11 +112,13 @@ projectbrief.md (Foundation)
 3. Ensure consistency across files
 4. Focus on activeContext.md and progress.md for current state
 5. Update systemPatterns.md for architectural changes
+6. Update implementation-lessons.md for technical discoveries
 
 ### Critical Rules
 - **Never assume previous knowledge** - Document everything needed for fresh start
 - **Maintain file relationships** - Ensure files build upon each other logically
 - **Keep current** - Active context and progress must reflect actual project state
 - **Be specific** - Include file paths, code patterns, and concrete examples
+- **Capture technical lessons** - Document specific fixes and implementation details
 
 This memory bank serves as the complete knowledge base for the SuperSoccer project, enabling effective work continuation after any memory reset.

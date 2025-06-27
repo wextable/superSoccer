@@ -1,0 +1,31 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Agent Behavior Guidelines
+
+## Memory Management
+- **DO NOT use the `update_memory` tool** - it creates inconsistencies with the project documentation
+- **Memory-bank .md files are the SINGLE SOURCE OF TRUTH** for project context and decisions
+- **Read memory-bank files first** in every new session before responding to user queries
+- **Update memory-bank files directly** instead of using internal memory systems
+
+## Documentation System
+This project uses Cline's memory-bank system located in `memory-bank/`:
+- `INDEX.md` - Overview and quick reference
+- `activeContext.md` - Current work focus and recent changes  
+- `progress.md` - Status tracking and achievements
+- `systemPatterns.md` - Architectural patterns and standards
+- `projectbrief.md` - Foundation and requirements
+
+## Working with Memory-Bank
+1. **Always read the memory-bank files** at session start per workspace rules
+2. **Update .md files directly** when project state changes
+3. **Keep files synchronized** and consistent with actual project state  
+4. **Ask user for clarification** if memory-bank content conflicts with current state
+
+## Cursor Rules Usage
+- Use `.cursor/rules/*.mdc` files for AI behavior guidance
+- Memory-bank files for comprehensive project documentation
+- Both systems complement each other without duplication

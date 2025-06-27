@@ -1,0 +1,42 @@
+---
+description: SuperSoccer architectural patterns and standards for implementing features
+globs: ["SuperSoccer/Sources/**/*.swift"]
+alwaysApply: false
+---
+
+# SuperSoccer Architecture Standards
+
+When working with SuperSoccer source code, follow these patterns:
+
+## Required Architectural Patterns (ALL Features)
+
+### 1. Protocol Separation Pattern
+- Create `[Feature]BusinessLogic` protocol for coordinator communication
+- Create `[Feature]ViewPresenter` protocol for view communication  
+- Create `[Feature]InteractorProtocol: [Feature]BusinessLogic & [Feature]ViewPresenter`
+
+### 2. ViewModelTransform Pattern
+- Create `[Feature]ViewModelTransformProtocol` for data transformation
+- Inject transform into interactor via constructor
+- Remove presentation logic from interactor
+
+### 3. InteractorFactory Integration
+- All interactors created via `InteractorFactory.make[Feature]Interactor()`
+- Use constructor dependency injection
+- Support parameterized creation when needed
+
+### 4. EventBus Elimination
+- Use direct function calls instead of event-based communication
+- Views call presenter methods directly
+- Coordinators use delegate pattern
+
+### 5. Testing Excellence
+- Real interactor + mock dependencies for behavior testing
+- Mock interactor for integration testing
+- Dedicated ViewModelTransform tests
+- Use `withCheckedContinuation` for async testing
+
+## Reference Implementation
+NewGame feature serves as the complete architectural template with all patterns implemented.
+
+@memory-bank/systemPatterns.md

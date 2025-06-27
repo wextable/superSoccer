@@ -1,0 +1,52 @@
+---
+description: Testing standards and patterns for SuperSoccer test files
+globs: ["SuperSoccerTests/**/*.swift"]
+alwaysApply: false
+---
+
+# SuperSoccer Testing Standards
+
+When writing or updating tests, follow these patterns:
+
+## Test Value Requirements
+Avoid tests that provide little value:
+- Tests that only verify something doesn't crash
+- Tests that only verify object creation succeeds  
+- Tests that check if a function can be called without verifying effects
+
+## Required Test Patterns
+- **Test actual behavior**: Check return values, verify state changes
+- **Test observable effects**: Assert meaningful interactions between components
+- **Use MockDependencyContainer**: Unified testing interface for all features
+- **Async testing**: Use `withCheckedContinuation` with real events, not delays
+
+## Testing Architecture
+- **Real interactor + mock dependencies**: For testing business logic behavior
+- **Mock interactor**: For integration and view testing
+- **ViewModelTransform tests**: Dedicated transformation testing
+- **Factory-based setup**: Use InteractorFactory for dependency injection
+
+## Async TestHooks Pattern (Critical for Coordinators)
+When testing coordinator async behavior:
+
+```swift
+// Use TestHooks for deterministic async testing
+await coordinator.testHooks.executeAndWaitForChildCoordinator {
+    coordinator.businessLogicDidSelectNewGame()
+}
+```
+
+**Implementation Details:**
+- BaseFeatureCoordinator has `testOnChildCoordinatorAdded` callback
+- TestHooks expose `waitForChildCoordinator()` and `executeAndWaitForChildCoordinator()`
+- **Never use `DispatchQueue.main.asyncAfter`** - use real event-based testing
+- Pattern implemented in MainMenu, NewGame, and TeamSelect coordinators
+
+## Mock Implementation Fixes
+**MockLocalDataSource Reactive Pattern:**
+- Use `CurrentValueSubject` instead of `Just()` for proper reactive testing
+- Call `dataSubject.send(data)` in update methods to notify subscribers
+- Critical for testing view model updates and data changes
+
+## Reference
+NewGame feature tests demonstrate comprehensive testing excellence with 45+ passing tests.

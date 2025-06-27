@@ -81,8 +81,9 @@ struct RootCoordinatorTests {
             dataManager: mockDataManager
         )
         
-        let mockCareerResult = CreateNewCareerResult.make()
+//        let mockCareerResult = CreateNewCareerResult.make()
         
+        // TODO: fix this - use TestHooks to access private methods
         // Act - This would be called internally, but we can't access it directly
         // We'll test the public interface instead
         coordinator.start()

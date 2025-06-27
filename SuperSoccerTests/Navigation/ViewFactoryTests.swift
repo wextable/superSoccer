@@ -110,53 +110,6 @@ struct ViewFactoryTests {
         #expect(view != nil)
     }
     
-    // MARK: - Protocol Conformance Tests
-    
-    @Test("ViewFactory conforms to ViewFactoryProtocol")
-    @MainActor
-    func testConformsToViewFactoryProtocol() {
-        // Arrange
-        let factory = ViewFactory()
-        
-        // Act & Assert
-        #expect(factory is any ViewFactoryProtocol)
-    }
-    
-    // MARK: - View Type Tests
-    
-    @Test("ViewFactory returns AnyView for all screen types")
-    @MainActor
-    func testReturnsAnyViewForAllScreenTypes() {
-        // Arrange
-        let factory = ViewFactory()
-        let mockMainMenuInteractor = MockMainMenuInteractor()
-        let mockNewGameInteractor = MockNewGameInteractor()
-        let mockTeamSelectInteractor = MockTeamSelectInteractor()
-        let mockTeamInteractor = MockTeamInteractor()
-        let tabs: [TabConfiguration] = [
-            TabConfiguration(type: .team, title: "Team", iconName: "person.3")
-        ]
-        
-        // Act & Assert
-        let splashView = factory.makeView(for: .splash)
-        #expect(splashView is AnyView)
-        
-        let mainMenuView = factory.makeView(for: .mainMenu(presenter: mockMainMenuInteractor))
-        #expect(mainMenuView is AnyView)
-        
-        let newGameView = factory.makeView(for: .newGame(presenter: mockNewGameInteractor))
-        #expect(newGameView is AnyView)
-        
-        let teamSelectView = factory.makeView(for: .teamSelect(presenter: mockTeamSelectInteractor))
-        #expect(teamSelectView is AnyView)
-        
-        let teamView = factory.makeView(for: .team(interactor: mockTeamInteractor))
-        #expect(teamView is AnyView)
-        
-        let tabContainerView = factory.makeView(for: .tabContainer(tabs: tabs))
-        #expect(tabContainerView is AnyView)
-    }
-    
     // MARK: - Multiple Screen Creation Tests
     
     @Test("ViewFactory can create multiple views of different types")

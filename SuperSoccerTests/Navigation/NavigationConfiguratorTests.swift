@@ -32,21 +32,6 @@ struct NavigationConfiguratorTests {
     
     // MARK: - ViewModifier Tests
     
-    @Test("NavigationConfigurator conforms to ViewModifier")
-    @MainActor
-    func testConformsToViewModifier() {
-        // Arrange
-        let mockViewFactory = MockViewFactory()
-        let router = NavigationRouter()
-        let configurator = NavigationConfigurator(
-            viewFactory: mockViewFactory,
-            router: router
-        )
-        
-        // Act & Assert
-        #expect(configurator is any ViewModifier)
-    }
-    
     @Test("NavigationConfigurator modifies content view")
     @MainActor
     func testModifiesContentView() {

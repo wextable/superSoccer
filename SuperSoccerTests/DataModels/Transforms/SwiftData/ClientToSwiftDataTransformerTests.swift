@@ -200,23 +200,6 @@ struct ClientToSwiftDataTransformerTests {
         #expect(sdPlayer.position == "Forward")
     }
     
-    // MARK: - Error Cases
-    
-    @Test func testCreateCareerEntitiesWithEmptyTeamInfosCausesFatalError() async throws {
-        // Arrange
-        let request = CreateNewCareerRequest.make(selectedTeamInfoId: "team1")
-        let availableTeamInfos: [SDTeamInfo] = []
-        
-        // Note: This test documents that empty teamInfos causes a fatalError
-        // In a real implementation, this should be handled more gracefully
-        // For now, we skip testing this edge case to avoid test crashes
-        
-        // Act & Assert - Would cause fatalError, so we document the behavior instead
-        // #expect(throws: (any Error).self) {
-        //     _ = transformer.createCareerEntities(from: request, availableTeamInfos: availableTeamInfos)
-        // }
-    }
-    
     // Note: Individual transform methods for Team, League, and Season are not implemented
     // and throw fatalError. These are intentionally not tested as they are placeholders.
     // The main functionality is tested through createCareerEntities which handles complex transformations.

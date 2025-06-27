@@ -8,7 +8,7 @@
 import Foundation
 import SwiftData
 
-protocol SwiftDataStorageProtocol {
+protocol SwiftDataStorageProtocol: Sendable {
     // Career Operations
     func createCareer(_ career: SDCareer) throws -> SDCareer
     func fetchCareers() -> [SDCareer]
@@ -43,7 +43,7 @@ protocol SwiftDataStorageProtocol {
     func rollback()
 }
 
-class SwiftDataStorage: SwiftDataStorageProtocol {
+final class SwiftDataStorage: SwiftDataStorageProtocol, @unchecked Sendable {
     private let modelContext: ModelContext
     
     init(modelContext: ModelContext) {
@@ -205,7 +205,7 @@ class SwiftDataStorage: SwiftDataStorageProtocol {
 // MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
 
 #if DEBUG
-class MockSwiftDataStorage: SwiftDataStorageProtocol {
+final class MockSwiftDataStorage: SwiftDataStorageProtocol, @unchecked Sendable {
     var mockCareers: [SDCareer] = []
     var mockLeagues: [SDLeague] = []
     var mockSeasons: [SDSeason] = []

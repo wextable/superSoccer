@@ -8,7 +8,7 @@
 import Combine
 import Foundation
 
-final class SwiftDataManager: DataManagerProtocol {
+final class SwiftDataManager: DataManagerProtocol, @unchecked Sendable {
     private let storage: SwiftDataStorageProtocol
     private let clientToSDTransformer: ClientToSwiftDataTransformer
     private let sdToClientTransformer: SwiftDataToClientTransformer
@@ -88,6 +88,24 @@ final class SwiftDataManager: DataManagerProtocol {
     func fetchTeams() -> [Team] {
         let sdTeams = storage.fetchTeams()
         return sdTeams.map { sdToClientTransformer.transform($0) }
+    }
+    
+    // NEW: Use-case method for team details
+    @MainActor
+    func getTeamDetails(teamId: String) async -> (team: Team?, coach: Coach?, players: [Player]) {
+        // DataManager handles its own execution - stays on main thread for SwiftData
+        let teams = fetchTeams()
+        let coaches = fetchCoaches()
+        let players = fetchPlayers()
+        
+        guard let team = teams.first(where: { $0.id == teamId }) else {
+            return (team: nil, coach: nil, players: [])
+        }
+        
+        let coach = coaches.first { $0.id == team.coachId }
+        let teamPlayers = players.filter { team.playerIds.contains($0.id) }
+        
+        return (team: team, coach: coach, players: teamPlayers)
     }
     
     // MARK: - Player Management

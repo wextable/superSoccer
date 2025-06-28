@@ -33,15 +33,18 @@ final class TeamInteractor: TeamInteractorProtocol {
     
     private let userTeamId: String
     private let dataManager: DataManagerProtocol
+    private let teamViewModelTransform: TeamViewModelTransformProtocol
     weak var delegate: TeamBusinessLogicDelegate?
     
     init(userTeamId: String,
-         dataManager: DataManagerProtocol) {
+         dataManager: DataManagerProtocol,
+         teamViewModelTransform: TeamViewModelTransformProtocol = TeamViewModelTransform()) {
         self.userTeamId = userTeamId
         self.dataManager = dataManager
+        self.teamViewModelTransform = teamViewModelTransform
         
         // Load data on initialization
-        Task { await loadTeamData() }
+        loadTeamData()
     }
     
     // MARK: - TeamViewPresenter
@@ -60,66 +63,11 @@ final class TeamInteractor: TeamInteractorProtocol {
         // DataManager handles its own threading - just await the result  
         let (team, coach, players) = await dataManager.getTeamDetails(teamId: userTeamId)
         
-        guard let team = team, let coach = coach else {
-            // Set empty state if team/coach not found
-            self.viewModel = TeamViewModel()
-            return
-        }
-        
-        // Simple data processing (lightweight)
-        let playerRows = players.map { player in
-            PlayerRowViewModel(
-                playerId: player.id,
-                playerName: "\(player.firstName) \(player.lastName)",
-                position: player.position
-            )
-        }
-        
-        // Create team header with stats
-        let coachFullName = "\(coach.firstName) \(coach.lastName)"
-        let header = createTeamHeader(for: team, coachName: coachFullName)
-        
-        // We're still on MainActor, can update UI directly
-        self.viewModel = TeamViewModel(
-            coachName: coachFullName,
-            teamName: "\(team.info.city) \(team.info.teamName)",
-            header: header,
-            playerRows: playerRows
-        )
-    }
-    
-    private func createTeamHeader(for team: Team, coachName: String) -> TeamHeaderViewModel {
-        // For now, create mock data since we don't have actual stats yet
-        // In a real implementation, this would fetch team season stats
-        
-        // Create team logo from initials
-        let cityInitial = String(team.info.city.prefix(1))
-        let teamInitial = String(team.info.teamName.prefix(1))
-        let teamLogo = cityInitial + teamInitial
-        
-        // Mock star rating based on team name hash (for consistent but varied ratings)
-        let teamNameHash = abs(team.info.teamName.hashValue)
-        let starRating = 2.5 + (Double(teamNameHash % 30) / 10.0) // Range: 2.5 - 5.5, then clamped
-        let clampedRating = min(5.0, max(1.0, starRating))
-        
-        // Mock league standing (could be calculated from actual season stats)
-        let standings = ["1st Place", "2nd Place", "3rd Place", "4th Place", "5th Place", "6th Place"]
-        let standingIndex = teamNameHash % standings.count
-        let leagueStanding = standings[standingIndex]
-        
-        // Mock team record
-        let wins = 10 + (teamNameHash % 20)
-        let losses = 2 + (teamNameHash % 8)
-        let draws = 1 + (teamNameHash % 6)
-        let teamRecord = "\(wins)W-\(losses)L-\(draws)D"
-        
-        return TeamHeaderViewModel(
-            teamName: "\(team.info.city) \(team.info.teamName)",
-            teamLogo: teamLogo,
-            starRating: clampedRating,
-            leagueStanding: leagueStanding,
-            teamRecord: teamRecord,
-            coachName: coachName
+        // Use transform to create view model
+        self.viewModel = teamViewModelTransform.transform(
+            team: team,
+            coach: coach,
+            players: players
         )
     }
 }

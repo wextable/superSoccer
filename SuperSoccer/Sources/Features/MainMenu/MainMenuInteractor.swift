@@ -25,25 +25,32 @@ protocol MainMenuInteractorProtocol: MainMenuBusinessLogic & MainMenuViewPresent
 @Observable
 final class MainMenuInteractor: MainMenuInteractorProtocol {
     private let dataManager: DataManagerProtocol
+    private let mainMenuViewModelTransform: MainMenuViewModelTransformProtocol
     
     weak var delegate: MainMenuBusinessLogicDelegate?
     var viewModel: MainMenuViewModel = .init(title: "Main menu", menuItemModels: [])
     
     private var cancellables = Set<AnyCancellable>()
     
-    init(dataManager: DataManagerProtocol) {
+    init(dataManager: DataManagerProtocol,
+         mainMenuViewModelTransform: MainMenuViewModelTransformProtocol = MainMenuViewModelTransform()) {
         self.dataManager = dataManager
+        self.mainMenuViewModelTransform = mainMenuViewModelTransform
         
-        self.viewModel = MainMenuViewModel(
-            title: "Main menu",
-            menuItemModels: [
-                .init(title: "New game") {
-                    self.newGameTapped()
-                }
-            ]
-        )
-        
+        setupInitialViewModel()
         setupSubscriptions()
+    }
+    
+    private func setupInitialViewModel() {
+        // TODO: Check for existing careers from data manager
+        let hasExistingCareers = false // Placeholder
+        
+        self.viewModel = mainMenuViewModelTransform.transform(
+            hasExistingCareers: hasExistingCareers,
+            onNewGameTapped: { [weak self] in
+                self?.newGameTapped()
+            }
+        )
     }
     
     private func setupSubscriptions() {
@@ -51,7 +58,9 @@ final class MainMenuInteractor: MainMenuInteractorProtocol {
     }
     
     private func subscribeToDataSource() {
-        // TODO: see if we have any saved games, if so add a load game button
+        // TODO: Subscribe to career changes to update hasExistingCareers
+        // When we implement career persistence, we'll subscribe to career publisher
+        // and update the view model when careers are created/deleted
     }
     
     // MARK: - MainMenuViewPresenter

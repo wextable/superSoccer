@@ -22,25 +22,22 @@ protocol TeamSelectInteractorProtocol: TeamSelectBusinessLogic & TeamSelectViewP
 @Observable
 final class TeamSelectInteractor: TeamSelectInteractorProtocol {
     private let dataManager: DataManagerProtocol
+    private let teamSelectViewModelTransform: TeamSelectViewModelTransformProtocol
     weak var delegate: TeamSelectInteractorDelegate?
     
     private let teamInfos: [TeamInfo]
     var viewModel: TeamSelectViewModel
     
-    init(dataManager: DataManagerProtocol) {
+    init(dataManager: DataManagerProtocol,
+         teamSelectViewModelTransform: TeamSelectViewModelTransformProtocol = TeamSelectViewModelTransform()) {
         self.dataManager = dataManager
+        self.teamSelectViewModelTransform = teamSelectViewModelTransform
         
-        teamInfos = dataManager.fetchTeamInfos()
-        let teamModels = teamInfos.map {
-            TeamThumbnailViewModel(
-                id: $0.id,
-                text: "\($0.city) \($0.teamName)"
-            )
-        }
-        viewModel = TeamSelectViewModel(
-            title: "Select a team",
-            teamModels: teamModels
-        )
+        // Fetch team data
+        self.teamInfos = dataManager.fetchTeamInfos()
+        
+        // Create view model using transform
+        self.viewModel = teamSelectViewModelTransform.transform(teamInfos: teamInfos)
     }
     
     func teamSelected(teamInfoId: String) {

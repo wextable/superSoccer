@@ -10,7 +10,7 @@ import SwiftUI
 @MainActor
 protocol TeamViewPresenter: AnyObject {
     var viewModel: TeamViewModel { get }
-    func loadTeamData()
+//    func loadTeamData()
     func playerRowTapped(_ playerId: String)
 }
 
@@ -39,9 +39,9 @@ struct TeamView: View {
         .background(theme.colors.background)
         .toolbarBackground(theme.colors.background, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
-        .onAppear {
-            presenter.loadTeamData()
-        }
+//        .onAppear {
+//            presenter.loadTeamData()
+//        }
     }
     
     private var playersSection: some View {

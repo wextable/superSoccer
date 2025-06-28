@@ -34,20 +34,34 @@ final class InteractorFactory: InteractorFactoryProtocol {
     }
     
     func makeNewGameInteractor() -> NewGameInteractorProtocol {
-        return NewGameInteractor(dataManager: dataManager)
+        return NewGameInteractor(
+            dataManager: dataManager,
+            localDataSource: NewGameLocalDataSource(),
+            newGameViewModelTransform: NewGameViewModelTransform()
+        )
     }
     
     func makeMainMenuInteractor() -> MainMenuInteractorProtocol {
-        return MainMenuInteractor(dataManager: dataManager)
+        return MainMenuInteractor(
+            dataManager: dataManager,
+            mainMenuViewModelTransform: MainMenuViewModelTransform()
+        )
     }
     
     func makeTeamSelectInteractor() -> TeamSelectInteractorProtocol {
-        return TeamSelectInteractor(dataManager: dataManager)
+        return TeamSelectInteractor(
+            dataManager: dataManager,
+            teamSelectViewModelTransform: TeamSelectViewModelTransform()
+        )
     }
     
     @MainActor
     func makeTeamInteractor(userTeamId: String) -> TeamInteractorProtocol {
-        return TeamInteractor(userTeamId: userTeamId, dataManager: dataManager)
+        return TeamInteractor(
+            userTeamId: userTeamId,
+            dataManager: dataManager,
+            teamViewModelTransform: TeamViewModelTransform()
+        )
     }
 }
 

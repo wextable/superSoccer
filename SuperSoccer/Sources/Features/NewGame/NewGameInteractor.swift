@@ -20,14 +20,6 @@ protocol NewGameBusinessLogic: AnyObject {
     func updateSelectedTeam(_ teamInfo: TeamInfo)
 }
 
-protocol NewGameViewPresenter: AnyObject {
-    var viewModel: NewGameViewModel { get }
-    func bindFirstName() -> Binding<String>
-    func bindLastName() -> Binding<String>
-    func submitTapped()
-    func teamSelectorTapped()
-}
-
 protocol NewGameInteractorProtocol: NewGameBusinessLogic & NewGameViewPresenter {}
 
 @Observable

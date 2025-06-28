@@ -7,6 +7,15 @@
 
 import SwiftUI
 
+struct TeamHeaderViewModel {
+    var teamName: String = ""
+    var teamLogo: String = "" // For now, we'll use team initials or a simple identifier
+    var starRating: Double = 0 // Calculated from team performance
+    var leagueStanding: String = "" // e.g., "3rd Place"
+    var teamRecord: String = "" // e.g., "15W-3L-4D"
+    var coachName: String = ""
+}
+
 struct TeamHeaderView: View {
     @Environment(\.ssTheme) private var theme
     
@@ -100,6 +109,26 @@ struct TeamHeaderView: View {
 // MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
 
 #if DEBUG
+extension TeamHeaderViewModel {
+    static func make(
+        teamName: String = "Mock Team",
+        teamLogo: String = "MT",
+        starRating: Double = 4.2,
+        leagueStanding: String = "3rd Place",
+        teamRecord: String = "15W-3L-4D",
+        coachName: String = "John Smith"
+    ) -> TeamHeaderViewModel {
+        TeamHeaderViewModel(
+            teamName: teamName,
+            teamLogo: teamLogo,
+            starRating: starRating,
+            leagueStanding: leagueStanding,
+            teamRecord: teamRecord,
+            coachName: coachName
+        )
+    }
+}
+
 struct TeamHeaderView_Previews: PreviewProvider {
     static var previews: some View {
         SSThemeProvider {

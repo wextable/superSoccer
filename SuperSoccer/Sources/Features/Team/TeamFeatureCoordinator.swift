@@ -34,13 +34,13 @@ class TeamFeatureCoordinator: BaseFeatureCoordinator<TeamCoordinatorResult> {
             teamInteractor.delegate = self
             self.interactor = teamInteractor
             
-            let teamScreen = NavigationRouter.Screen.team(interactor: teamInteractor)
+            let teamScreen = NavigationRouter.Screen.team(presenter: teamInteractor)
             self.navigationCoordinator.replaceStackWith(teamScreen)
         }        
     }
 }
 
-extension TeamFeatureCoordinator: TeamInteractorDelegate {
+extension TeamFeatureCoordinator: TeamBusinessLogicDelegate {
     func playerRowTapped(_ playerId: String) {
         finish(with: .playerSelected(playerId: playerId))
     }

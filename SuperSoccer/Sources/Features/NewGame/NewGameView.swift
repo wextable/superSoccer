@@ -7,6 +7,14 @@
 
 import SwiftUI
 
+protocol NewGameViewPresenter: AnyObject {
+    var viewModel: NewGameViewModel { get }
+    func bindFirstName() -> Binding<String>
+    func bindLastName() -> Binding<String>
+    func submitTapped()
+    func teamSelectorTapped()
+}
+
 struct NewGameViewModel {
     var title: String = "New game"
     var coachLabelText: String = "Coach"

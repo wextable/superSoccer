@@ -7,6 +7,11 @@
 
 import SwiftUI
 
+protocol TeamSelectViewPresenter: AnyObject {
+    var viewModel: TeamSelectViewModel { get }
+    func teamSelected(teamInfoId: String)
+}
+
 struct TeamSelectViewModel {
     let title: String
     let teamModels: [TeamThumbnailViewModel]

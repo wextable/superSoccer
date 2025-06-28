@@ -17,11 +17,6 @@ protocol TeamSelectBusinessLogic: AnyObject {
     var delegate: TeamSelectInteractorDelegate? { get set }
 }
 
-protocol TeamSelectViewPresenter: AnyObject {
-    var viewModel: TeamSelectViewModel { get }
-    func teamSelected(teamInfoId: String)
-}
-
 protocol TeamSelectInteractorProtocol: TeamSelectBusinessLogic & TeamSelectViewPresenter {}
 
 @Observable

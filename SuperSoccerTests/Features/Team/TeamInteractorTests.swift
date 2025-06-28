@@ -33,37 +33,15 @@ struct TeamInteractorTests {
         
         // Assert
         #expect(interactor != nil)
-        #expect(interactor.eventBus != nil)
         #expect(mockDataManager.getTeamDetailsCalled == true)
         #expect(mockDataManager.lastGetTeamDetailsId == "team1")
     }
     
-    @Test("TeamInteractor initializes with event bus")
-    @MainActor
-    func testInitializationWithEventBus() async {
-        // Arrange
-        let mockDataManager = MockDataManager()
-        let mockDelegate = MockTeamInteractorDelegate()
-        
-        // Act
-        let interactor = TeamInteractor(
-            userTeamId: "team1",
-            dataManager: mockDataManager
-        )
-        interactor.delegate = mockDelegate
-        
-        // Wait for initial load task to complete
-        try? await Task.sleep(for: .milliseconds(100))
-        
-        // Assert
-        #expect(interactor.eventBus != nil)
-    }
+    // MARK: - Direct Function Call Tests
     
-    // MARK: - Event Handling Tests
-    
-    @Test("TeamInteractor handles loadTeamData event correctly")
+    @Test("TeamInteractor loadTeamData function works correctly")
     @MainActor
-    func testLoadTeamDataEventHandling() async {
+    func testLoadTeamDataFunction() async {
         // Arrange
         let mockDataManager = MockDataManager()
         let mockDelegate = MockTeamInteractorDelegate()
@@ -85,10 +63,10 @@ struct TeamInteractorTests {
         // Wait for initial load
         try? await Task.sleep(for: .milliseconds(100))
         
-        // Act - Send event to reload data
-        interactor.eventBus.send(.loadTeamData)
+        // Act - Call function directly
+        interactor.loadTeamData()
         
-        // Wait for event processing
+        // Wait for function processing
         try? await Task.sleep(for: .milliseconds(100))
         
         // Assert
@@ -99,9 +77,9 @@ struct TeamInteractorTests {
         #expect(interactor.viewModel.playerRows.first?.position == "ST")
     }
     
-    @Test("TeamInteractor handles playerRowTapped event correctly")
+    @Test("TeamInteractor playerRowTapped function works correctly")
     @MainActor
-    func testPlayerRowTappedEventHandling() async {
+    func testPlayerRowTappedFunction() async {
         // Arrange
         let mockDataManager = MockDataManager()
         let mockDelegate = MockTeamInteractorDelegate()
@@ -114,8 +92,8 @@ struct TeamInteractorTests {
         // Wait for initial load
         try? await Task.sleep(for: .milliseconds(100))
         
-        // Act
-        interactor.eventBus.send(.playerRowTapped(playerId: "player1"))
+        // Act - Call function directly
+        interactor.playerRowTapped("player1")
         
         // Assert
         #expect(mockDelegate.playerRowTappedCalled == true)
@@ -224,55 +202,6 @@ struct TeamInteractorTests {
         #expect(header.teamRecord.contains("W") && header.teamRecord.contains("L"))
     }
     
-    // MARK: - Event Bus Tests
-    
-    @Test("TeamInteractor event bus publishes events correctly")
-    @MainActor
-    func testEventBusPublishesEvents() async {
-        // Arrange
-        let mockDataManager = MockDataManager()
-        let mockDelegate = MockTeamInteractorDelegate()
-        let interactor = TeamInteractor(
-            userTeamId: "team1",
-            dataManager: mockDataManager
-        )
-        interactor.delegate = mockDelegate
-        var receivedEvents: [TeamEvent] = []
-        
-        // Wait for initial load
-        try? await Task.sleep(for: .milliseconds(100))
-        
-        // Act & Assert
-        await confirmation(expectedCount: 2) { confirm in
-            let cancellable = interactor.eventBus
-                .sink { event in
-                    receivedEvents.append(event)
-                    confirm()
-                }
-            
-            // Send events
-            interactor.eventBus.send(.loadTeamData)
-            interactor.eventBus.send(.playerRowTapped(playerId: "player1"))
-            
-            // Store cancellable to prevent deallocation
-            _ = cancellable
-        }
-        
-        // Assert
-        #expect(receivedEvents.count == 2)
-        if case .loadTeamData = receivedEvents[0] {
-            // Expected
-        } else {
-            #expect(Bool(false), "Expected loadTeamData event")
-        }
-        
-        if case .playerRowTapped(let playerId) = receivedEvents[1] {
-            #expect(playerId == "player1")
-        } else {
-            #expect(Bool(false), "Expected playerRowTapped event")
-        }
-    }
-    
     // MARK: - Delegate Tests
     
     @Test("TeamInteractor delegate method calls are forwarded correctly")
@@ -296,7 +225,7 @@ struct TeamInteractorTests {
                 confirm()
             }
             
-            interactor.eventBus.send(.playerRowTapped(playerId: "player1"))
+            interactor.playerRowTapped("player1")
         }
         
         // Final assertion
@@ -371,7 +300,7 @@ struct TeamInteractorTests {
         let newCoach = Coach.make(id: "coach1", firstName: "Ange", lastName: "Postecoglou")
         mockDataManager.mockTeamDetails = (team: team, coach: newCoach, players: [player])
         
-        interactor.eventBus.send(.loadTeamData)
+        interactor.loadTeamData()
         
         // Wait for reload
         try? await Task.sleep(for: .milliseconds(100))
@@ -381,11 +310,39 @@ struct TeamInteractorTests {
         #expect(mockDataManager.getTeamDetailsCalled == true) // Called at least once
     }
     
+    // MARK: - Protocol Compliance Tests
+    
+    @Test("TeamInteractor conforms to TeamInteractorProtocol")
+    @MainActor 
+    func testProtocolCompliance() async {
+        // Arrange
+        let mockDataManager = MockDataManager()
+        let interactor = TeamInteractor(
+            userTeamId: "team1", 
+            dataManager: mockDataManager
+        )
+        
+        // Act & Assert - Test that interactor conforms to both protocols
+        let businessLogic: TeamBusinessLogic = interactor
+        let viewPresenter: TeamViewPresenter = interactor
+        let fullProtocol: TeamInteractorProtocol = interactor
+        
+        #expect(businessLogic != nil)
+        #expect(viewPresenter != nil)
+        #expect(fullProtocol != nil)
+        
+        // Test protocol methods are available
+        #expect(viewPresenter.viewModel != nil)
+        
+        // Wait for initial load
+        try? await Task.sleep(for: .milliseconds(100))
+    }
+    
     // MARK: - Memory Management Tests
     
-    @Test("TeamInteractor properly manages cancellables")
+    @Test("TeamInteractor properly manages memory")
     @MainActor
-    func testCancellablesManagement() async {
+    func testMemoryManagement() async {
         // Arrange & Act
         let mockDataManager = MockDataManager()
         let mockDelegate = MockTeamInteractorDelegate()

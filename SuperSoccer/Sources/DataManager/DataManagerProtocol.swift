@@ -104,19 +104,14 @@ class MockDataManager: DataManagerProtocol {
     
     var getTeamDetailsCalled = false
     var lastGetTeamDetailsId: String?
+    var mockTeamDetails: (team: Team?, coach: Coach?, players: [Player]) = (team: nil, coach: nil, players: [])
     
     @MainActor
     func getTeamDetails(teamId: String) async -> (team: Team?, coach: Coach?, players: [Player]) {
         getTeamDetailsCalled = true
         lastGetTeamDetailsId = teamId
         
-        let team = mockTeams.first { $0.id == teamId }
-        let coach = team.flatMap { t in mockCoaches.first { $0.id == t.coachId } }
-        let players = team?.playerIds.compactMap { playerId in
-            mockPlayers.first { $0.id == playerId }
-        } ?? []
-        
-        return (team: team, coach: coach, players: players)
+        return mockTeamDetails
     }
 }
 #endif

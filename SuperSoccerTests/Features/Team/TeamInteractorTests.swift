@@ -74,9 +74,7 @@ struct TeamInteractorTests {
         let coach = Coach.make(id: "coach1", firstName: "Alex", lastName: "Ferguson")
         let player = Player.make(id: "player1", firstName: "Marcus", lastName: "Rashford", position: "ST")
         
-        mockDataManager.mockTeams = [team]
-        mockDataManager.mockCoaches = [coach]
-        mockDataManager.mockPlayers = [player]
+        mockDataManager.mockTeamDetails = (team: team, coach: coach, players: [player])
         
         let interactor = TeamInteractor(
             userTeamId: "team1",
@@ -139,9 +137,7 @@ struct TeamInteractorTests {
         let player1 = Player.make(id: "player1", firstName: "Mohamed", lastName: "Salah", position: "RW")
         let player2 = Player.make(id: "player2", firstName: "Sadio", lastName: "Mane", position: "LW")
         
-        mockDataManager.mockTeams = [team]
-        mockDataManager.mockCoaches = [coach]
-        mockDataManager.mockPlayers = [player1, player2]
+        mockDataManager.mockTeamDetails = (team: team, coach: coach, players: [player1, player2])
         
         // Act
         let interactor = TeamInteractor(
@@ -174,10 +170,8 @@ struct TeamInteractorTests {
         let mockDataManager = MockDataManager()
         let mockDelegate = MockTeamInteractorDelegate()
         
-        // No mock data setup - empty arrays (getTeamDetails will return nil values)
-        mockDataManager.mockTeams = []
-        mockDataManager.mockCoaches = []
-        mockDataManager.mockPlayers = []
+        // No mock data setup - getTeamDetails will return default nil values
+        // mockDataManager.mockTeamDetails defaults to (team: nil, coach: nil, players: [])
         
         // Act
         let interactor = TeamInteractor(
@@ -208,9 +202,7 @@ struct TeamInteractorTests {
         let team = Team.make(id: "team1", info: teamInfo, coachId: "coach1", playerIds: [])
         let coach = Coach.make(id: "coach1", firstName: "Mikel", lastName: "Arteta")
         
-        mockDataManager.mockTeams = [team]
-        mockDataManager.mockCoaches = [coach]
-        mockDataManager.mockPlayers = []
+        mockDataManager.mockTeamDetails = (team: team, coach: coach, players: [])
         
         // Act
         let interactor = TeamInteractor(
@@ -326,9 +318,7 @@ struct TeamInteractorTests {
         let coach = Coach.make(id: "coach1", firstName: "Frank", lastName: "Lampard")
         let player = Player.make(id: "player1", firstName: "Mason", lastName: "Mount", position: "CM")
         
-        mockDataManager.mockTeams = [team]
-        mockDataManager.mockCoaches = [coach]
-        mockDataManager.mockPlayers = [player]
+        mockDataManager.mockTeamDetails = (team: team, coach: coach, players: [player])
         
         // Act
         let interactor = TeamInteractor(
@@ -362,9 +352,7 @@ struct TeamInteractorTests {
         let coach = Coach.make(id: "coach1", firstName: "Antonio", lastName: "Conte")
         let player = Player.make(id: "player1", firstName: "Harry", lastName: "Kane", position: "ST")
         
-        mockDataManager.mockTeams = [team]
-        mockDataManager.mockCoaches = [coach]
-        mockDataManager.mockPlayers = [player]
+        mockDataManager.mockTeamDetails = (team: team, coach: coach, players: [player])
         
         let interactor = TeamInteractor(
             userTeamId: "team1",
@@ -381,7 +369,7 @@ struct TeamInteractorTests {
         
         // Act - Change data and trigger reload
         let newCoach = Coach.make(id: "coach1", firstName: "Ange", lastName: "Postecoglou")
-        mockDataManager.mockCoaches = [newCoach]
+        mockDataManager.mockTeamDetails = (team: team, coach: newCoach, players: [player])
         
         interactor.eventBus.send(.loadTeamData)
         

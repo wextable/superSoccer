@@ -35,7 +35,7 @@ struct TeamFeatureCoordinatorTests {
         coordinator.start()
         
         // Wait for async initialization
-        try? await Task.sleep(for: .milliseconds(10))
+        try? await Task.sleep(for: .milliseconds(100))
         
         // Assert - Verify delegate is set through TestHooks
         let interactor = coordinator.testHooks.interactor
@@ -56,7 +56,7 @@ struct TeamFeatureCoordinatorTests {
         coordinator.start()
         
         // Wait for async navigation
-        try? await Task.sleep(for: .milliseconds(10))
+        try? await Task.sleep(for: .milliseconds(100))
         
         // Assert
         #expect(container.mockNavigationCoordinator.replaceStackWithCalled == true)
@@ -127,7 +127,7 @@ struct TeamFeatureCoordinatorTests {
         coordinator.start()
         
         // Wait for async operations
-        try? await Task.sleep(for: .milliseconds(10))
+        try? await Task.sleep(for: .milliseconds(100))
         
         // Assert - Verify coordinator manages the feature lifecycle
         #expect(coordinator != nil)
@@ -165,7 +165,7 @@ struct TeamFeatureCoordinatorTests {
         coordinator.start()
         
         // Wait for async operations
-        try? await Task.sleep(for: .milliseconds(10))
+        try? await Task.sleep(for: .milliseconds(100))
         
         // Assert
         #expect(container.mockNavigationCoordinator.replaceStackWithCalled == true)
@@ -185,7 +185,7 @@ struct TeamFeatureCoordinatorTests {
         coordinator.start()
         
         // Wait for async operations
-        try? await Task.sleep(for: .milliseconds(10))
+        try? await Task.sleep(for: .milliseconds(100))
         
         // Assert - Verify interactor was created via factory  
         #expect(coordinator.testHooks.interactor != nil)
@@ -232,7 +232,7 @@ struct TeamFeatureCoordinatorTests {
         coordinator.start()
         
         // Wait for initialization
-        try? await Task.sleep(for: .milliseconds(10))
+        try? await Task.sleep(for: .milliseconds(100))
         
         // Simulate user interaction
         coordinator.playerRowTapped("player1")

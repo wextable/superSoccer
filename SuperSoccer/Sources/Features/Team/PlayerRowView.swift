@@ -9,9 +9,9 @@ import SwiftUI
 
 struct PlayerRowViewModel: Identifiable, Hashable {
     var id: String { playerId }
-    let playerId: String
-    let playerName: String
-    let position: String
+    var playerId: String = ""
+    var playerName: String = ""
+    var position: String = ""
 }
 
 struct PlayerRowView: View {

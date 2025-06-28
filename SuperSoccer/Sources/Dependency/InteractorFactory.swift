@@ -16,6 +16,7 @@ protocol InteractorFactoryProtocol {
     func makeTeamSelectInteractor() -> TeamSelectInteractorProtocol
     
     // Parameterized interactors
+    @MainActor
     func makeTeamInteractor(userTeamId: String) -> TeamInteractorProtocol
     
     // Future parameterized interactors would follow this pattern:
@@ -44,6 +45,7 @@ final class InteractorFactory: InteractorFactoryProtocol {
         return TeamSelectInteractor(dataManager: dataManager)
     }
     
+    @MainActor
     func makeTeamInteractor(userTeamId: String) -> TeamInteractorProtocol {
         return TeamInteractor(userTeamId: userTeamId, dataManager: dataManager)
     }
@@ -74,6 +76,7 @@ class MockInteractorFactory: InteractorFactoryProtocol {
         return mockTeamSelectInteractor
     }
     
+    @MainActor
     func makeTeamInteractor(userTeamId: String) -> TeamInteractorProtocol {
         return MockTeamInteractor()
     }

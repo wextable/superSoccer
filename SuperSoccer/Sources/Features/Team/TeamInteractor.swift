@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import Observation
 
 typealias TeamEventBus = PassthroughSubject<TeamEvent, Never>
 
@@ -15,18 +16,22 @@ enum TeamEvent: BusEvent {
     case playerRowTapped(playerId: String)
 }
 
+@MainActor
 protocol TeamInteractorDelegate: AnyObject {
     func playerRowTapped(_ playerId: String)
 }
 
+@MainActor
 protocol TeamInteractorProtocol: AnyObject {
     var viewModel: TeamViewModel { get }
     var eventBus: TeamEventBus { get }
     var delegate: TeamInteractorDelegate? { get set }
 }
 
-class TeamInteractor: TeamInteractorProtocol {
-    @Published var viewModel: TeamViewModel
+@MainActor
+@Observable
+final class TeamInteractor: TeamInteractorProtocol {
+    var viewModel = TeamViewModel()
     let eventBus = TeamEventBus()
     
     private let userTeamId: String
@@ -39,27 +44,8 @@ class TeamInteractor: TeamInteractorProtocol {
         self.userTeamId = userTeamId
         self.dataManager = dataManager
         
-        self.viewModel = TeamViewModel(
-            coachName: "",
-            teamName: "",
-            header: TeamHeaderViewModel(
-                teamName: "",
-                teamLogo: "",
-                starRating: 0.0,
-                leagueStanding: "",
-                teamRecord: "",
-                coachName: ""
-            ),
-            playerRows: []
-        )
-        
-        setupSubscriptions()
-        loadTeamData()
-    }
-    
-    private func setupSubscriptions() {
         setupEventSubscriptions()
-        setupDataSubscriptions()
+        Task { await loadTeamData() }
     }
     
     private func setupEventSubscriptions() {
@@ -67,7 +53,7 @@ class TeamInteractor: TeamInteractorProtocol {
             .sink { [weak self] event in
                 switch event {
                 case .loadTeamData:
-                    self?.loadTeamData()
+                    Task { await self?.loadTeamData() }
                 case .playerRowTapped(let playerId):
                     self?.handlePlayerRowTapped(playerId)
                 }
@@ -75,19 +61,18 @@ class TeamInteractor: TeamInteractorProtocol {
             .store(in: &cancellables)
     }
     
-    private func loadTeamData() {
-        // Load team, coach, and player data
-        let teams = dataManager.fetchTeams()
-        let coaches = dataManager.fetchCoaches()
-        let players = dataManager.fetchPlayers()
+    private func loadTeamData() async {
+        // DataManager handles its own threading - just await the result  
+        let (team, coach, players) = await dataManager.getTeamDetails(teamId: userTeamId)
         
-        guard let team = teams.first(where: { $0.id == userTeamId }),
-              let coach = coaches.first(where: { $0.id == team.coachId }) else {
+        guard let team = team, let coach = coach else {
+            // Set empty state if team/coach not found
+            self.viewModel = TeamViewModel()
             return
         }
         
-        let teamPlayers = players.filter { team.playerIds.contains($0.id) }
-        let playerRows = teamPlayers.map { player in
+        // Simple data processing (lightweight)
+        let playerRows = players.map { player in
             PlayerRowViewModel(
                 playerId: player.id,
                 playerName: "\(player.firstName) \(player.lastName)",
@@ -97,9 +82,10 @@ class TeamInteractor: TeamInteractorProtocol {
         
         // Create team header with stats
         let coachFullName = "\(coach.firstName) \(coach.lastName)"
-        let header = createTeamHeader(for: team, coachName: coachFullName, allTeams: teams)
+        let header = createTeamHeader(for: team, coachName: coachFullName)
         
-        viewModel = TeamViewModel(
+        // We're still on MainActor, can update UI directly
+        self.viewModel = TeamViewModel(
             coachName: coachFullName,
             teamName: "\(team.info.city) \(team.info.teamName)",
             header: header,
@@ -107,7 +93,7 @@ class TeamInteractor: TeamInteractorProtocol {
         )
     }
     
-    private func createTeamHeader(for team: Team, coachName: String, allTeams: [Team]) -> TeamHeaderViewModel {
+    private func createTeamHeader(for team: Team, coachName: String) -> TeamHeaderViewModel {
         // For now, create mock data since we don't have actual stats yet
         // In a real implementation, this would fetch team season stats
         
@@ -145,23 +131,15 @@ class TeamInteractor: TeamInteractorProtocol {
     private func handlePlayerRowTapped(_ playerId: String) {
         delegate?.playerRowTapped(playerId)
     }
-    
-    private func setupDataSubscriptions() {
-        // Subscribe to data changes for reactive updates
-        dataManager.teamPublisher
-            .combineLatest(dataManager.coachPublisher, dataManager.playerPublisher)
-            .sink { [weak self] _, _, _ in
-                self?.loadTeamData()
-            }
-            .store(in: &cancellables)
-    }
 }
 
 // MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
 
 #if DEBUG
+@MainActor
+@Observable
 class MockTeamInteractor: TeamInteractorProtocol {
-    @Published var viewModel: TeamViewModel
+    var viewModel: TeamViewModel
     let eventBus = TeamEventBus()
     weak var delegate: TeamInteractorDelegate?
     

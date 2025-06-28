@@ -8,19 +8,19 @@
 import Foundation
 
 struct TeamHeaderViewModel {
-    let teamName: String
-    let teamLogo: String // For now, we'll use team initials or a simple identifier
-    let starRating: Double // Calculated from team performance
-    let leagueStanding: String // e.g., "3rd Place"
-    let teamRecord: String // e.g., "15W-3L-4D"
-    let coachName: String
+    var teamName: String = ""
+    var teamLogo: String = "" // For now, we'll use team initials or a simple identifier
+    var starRating: Double = 0 // Calculated from team performance
+    var leagueStanding: String = "" // e.g., "3rd Place"
+    var teamRecord: String = "" // e.g., "15W-3L-4D"
+    var coachName: String = ""
 }
 
 struct TeamViewModel {
-    let coachName: String
-    let teamName: String
-    let header: TeamHeaderViewModel
-    let playerRows: [PlayerRowViewModel]
+    var coachName: String = ""
+    var teamName: String = ""
+    var header: TeamHeaderViewModel = TeamHeaderViewModel()
+    var playerRows: [PlayerRowViewModel] = []
 }
 
 // MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)

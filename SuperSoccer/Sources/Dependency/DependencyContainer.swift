@@ -30,8 +30,10 @@ final class DependencyContainer: DependencyContainerProtocol {
     }()
 
     // 2️⃣ NAVIGATION: Core navigation (no dependencies)
+    @MainActor
     private(set) lazy var router = NavigationRouter()
     
+    @MainActor
     private(set) lazy var navigationCoordinator: NavigationCoordinatorProtocol = {
         NavigationCoordinator(router: router)
     }()
@@ -43,6 +45,7 @@ final class DependencyContainer: DependencyContainerProtocol {
         InteractorFactory(dataManager: dataManager)
     }()
     
+    @MainActor
     private(set) lazy var viewFactory: ViewFactoryProtocol = {
         // ✅ NO DEPENDENCIES: Can be created anytime
         ViewFactory()
@@ -54,6 +57,7 @@ final class DependencyContainer: DependencyContainerProtocol {
 // MARK: - Debug Extensions (ONLY to be used in unit tests and preview providers)
 
 #if DEBUG
+@MainActor
 class MockDependencyContainer: DependencyContainerProtocol {
     var mockDataManager = MockDataManager()
     var dataManager: DataManagerProtocol { mockDataManager }

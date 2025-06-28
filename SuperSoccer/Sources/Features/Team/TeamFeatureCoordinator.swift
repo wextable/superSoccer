@@ -12,6 +12,7 @@ enum TeamCoordinatorResult: CoordinatorResult {
     case dismissed
 }
 
+@MainActor
 class TeamFeatureCoordinator: BaseFeatureCoordinator<TeamCoordinatorResult> {
     private let userTeamId: String
     private let navigationCoordinator: NavigationCoordinatorProtocol
@@ -51,6 +52,7 @@ extension TeamFeatureCoordinator: TeamInteractorDelegate {
 extension TeamFeatureCoordinator {
     var testHooks: TestHooks { TestHooks(target: self) }
     
+    @MainActor
     struct TestHooks {
         let target: TeamFeatureCoordinator
         

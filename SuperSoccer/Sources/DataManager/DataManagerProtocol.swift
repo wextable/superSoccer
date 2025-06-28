@@ -8,7 +8,7 @@
 import Combine
 import Foundation
 
-protocol DataManagerProtocol {
+protocol DataManagerProtocol: Sendable {
     // Career Management
     func createNewCareer(_ request: CreateNewCareerRequest) async throws -> CreateNewCareerResult
     func fetchCareers() -> [Career]
@@ -22,6 +22,10 @@ protocol DataManagerProtocol {
     func fetchTeamInfos() -> [TeamInfo]
     func fetchTeams() -> [Team]
     var teamPublisher: AnyPublisher<[Team], Never> { get }
+    
+    // NEW: Use-case method for team details
+    @MainActor
+    func getTeamDetails(teamId: String) async -> (team: Team?, coach: Coach?, players: [Player])
     
     // Player Management
     func fetchPlayers() -> [Player]
@@ -96,6 +100,18 @@ class MockDataManager: DataManagerProtocol {
     func fetchCoaches() -> [Coach] {
         fetchCoachesCalled = true
         return mockCoaches
+    }
+    
+    var getTeamDetailsCalled = false
+    var lastGetTeamDetailsId: String?
+    var mockTeamDetails: (team: Team?, coach: Coach?, players: [Player]) = (team: nil, coach: nil, players: [])
+    
+    @MainActor
+    func getTeamDetails(teamId: String) async -> (team: Team?, coach: Coach?, players: [Player]) {
+        getTeamDetailsCalled = true
+        lastGetTeamDetailsId = teamId
+        
+        return mockTeamDetails
     }
 }
 #endif

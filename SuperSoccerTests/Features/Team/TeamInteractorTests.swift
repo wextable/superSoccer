@@ -15,7 +15,8 @@ struct TeamInteractorTests {
     // MARK: - Initialization Tests
     
     @Test("TeamInteractor initializes with correct dependencies")
-    func testInitializationWithCorrectDependencies() {
+    @MainActor
+    func testInitializationWithCorrectDependencies() async {
         // Arrange
         let mockDataManager = MockDataManager()
         let mockDelegate = MockTeamInteractorDelegate()
@@ -26,14 +27,20 @@ struct TeamInteractorTests {
             dataManager: mockDataManager
         )
         interactor.delegate = mockDelegate
+        
+        // Wait for initial load task to complete
+        try? await Task.sleep(for: .milliseconds(100))
         
         // Assert
         #expect(interactor != nil)
         #expect(interactor.eventBus != nil)
+        #expect(mockDataManager.getTeamDetailsCalled == true)
+        #expect(mockDataManager.lastGetTeamDetailsId == "team1")
     }
     
     @Test("TeamInteractor initializes with event bus")
-    func testInitializationWithEventBus() {
+    @MainActor
+    func testInitializationWithEventBus() async {
         // Arrange
         let mockDataManager = MockDataManager()
         let mockDelegate = MockTeamInteractorDelegate()
@@ -44,6 +51,9 @@ struct TeamInteractorTests {
             dataManager: mockDataManager
         )
         interactor.delegate = mockDelegate
+        
+        // Wait for initial load task to complete
+        try? await Task.sleep(for: .milliseconds(100))
         
         // Assert
         #expect(interactor.eventBus != nil)
@@ -52,6 +62,7 @@ struct TeamInteractorTests {
     // MARK: - Event Handling Tests
     
     @Test("TeamInteractor handles loadTeamData event correctly")
+    @MainActor
     func testLoadTeamDataEventHandling() async {
         // Arrange
         let mockDataManager = MockDataManager()
@@ -63,9 +74,7 @@ struct TeamInteractorTests {
         let coach = Coach.make(id: "coach1", firstName: "Alex", lastName: "Ferguson")
         let player = Player.make(id: "player1", firstName: "Marcus", lastName: "Rashford", position: "ST")
         
-        mockDataManager.mockTeams = [team]
-        mockDataManager.mockCoaches = [coach]
-        mockDataManager.mockPlayers = [player]
+        mockDataManager.mockTeamDetails = (team: team, coach: coach, players: [player])
         
         let interactor = TeamInteractor(
             userTeamId: "team1",
@@ -73,15 +82,14 @@ struct TeamInteractorTests {
         )
         interactor.delegate = mockDelegate
         
-        // Act
+        // Wait for initial load
+        try? await Task.sleep(for: .milliseconds(100))
+        
+        // Act - Send event to reload data
         interactor.eventBus.send(.loadTeamData)
         
-        // Wait for processing
-        await withCheckedContinuation { continuation in
-            DispatchQueue.main.async {
-                continuation.resume()
-            }
-        }
+        // Wait for event processing
+        try? await Task.sleep(for: .milliseconds(100))
         
         // Assert
         #expect(interactor.viewModel.teamName == "Manchester United")
@@ -92,7 +100,8 @@ struct TeamInteractorTests {
     }
     
     @Test("TeamInteractor handles playerRowTapped event correctly")
-    func testPlayerRowTappedEventHandling() {
+    @MainActor
+    func testPlayerRowTappedEventHandling() async {
         // Arrange
         let mockDataManager = MockDataManager()
         let mockDelegate = MockTeamInteractorDelegate()
@@ -101,6 +110,9 @@ struct TeamInteractorTests {
             dataManager: mockDataManager
         )
         interactor.delegate = mockDelegate
+        
+        // Wait for initial load
+        try? await Task.sleep(for: .milliseconds(100))
         
         // Act
         interactor.eventBus.send(.playerRowTapped(playerId: "player1"))
@@ -113,6 +125,7 @@ struct TeamInteractorTests {
     // MARK: - Data Loading Tests
     
     @Test("TeamInteractor loads team data correctly")
+    @MainActor
     func testLoadTeamDataCorrectly() async {
         // Arrange
         let mockDataManager = MockDataManager()
@@ -124,9 +137,7 @@ struct TeamInteractorTests {
         let player1 = Player.make(id: "player1", firstName: "Mohamed", lastName: "Salah", position: "RW")
         let player2 = Player.make(id: "player2", firstName: "Sadio", lastName: "Mane", position: "LW")
         
-        mockDataManager.mockTeams = [team]
-        mockDataManager.mockCoaches = [coach]
-        mockDataManager.mockPlayers = [player1, player2]
+        mockDataManager.mockTeamDetails = (team: team, coach: coach, players: [player1, player2])
         
         // Act
         let interactor = TeamInteractor(
@@ -135,12 +146,8 @@ struct TeamInteractorTests {
         )
         interactor.delegate = mockDelegate
         
-        // Wait for processing
-        await withCheckedContinuation { continuation in
-            DispatchQueue.main.async {
-                continuation.resume()
-            }
-        }
+        // Wait for initial async load to complete
+        try? await Task.sleep(for: .milliseconds(100))
         
         // Assert
         #expect(interactor.viewModel.teamName == "Liverpool FC")
@@ -157,15 +164,14 @@ struct TeamInteractorTests {
     }
     
     @Test("TeamInteractor handles missing team data gracefully")
+    @MainActor
     func testHandlesMissingTeamDataGracefully() async {
         // Arrange
         let mockDataManager = MockDataManager()
         let mockDelegate = MockTeamInteractorDelegate()
         
-        // No mock data setup - empty arrays
-        mockDataManager.mockTeams = []
-        mockDataManager.mockCoaches = []
-        mockDataManager.mockPlayers = []
+        // No mock data setup - getTeamDetails will return default nil values
+        // mockDataManager.mockTeamDetails defaults to (team: nil, coach: nil, players: [])
         
         // Act
         let interactor = TeamInteractor(
@@ -174,12 +180,8 @@ struct TeamInteractorTests {
         )
         interactor.delegate = mockDelegate
         
-        // Wait for processing
-        await withCheckedContinuation { continuation in
-            DispatchQueue.main.async {
-                continuation.resume()
-            }
-        }
+        // Wait for async load to complete
+        try? await Task.sleep(for: .milliseconds(100))
         
         // Assert - Should maintain initial empty state
         #expect(interactor.viewModel.teamName == "")
@@ -190,6 +192,7 @@ struct TeamInteractorTests {
     // MARK: - Team Header Creation Tests
     
     @Test("TeamInteractor creates team header correctly")
+    @MainActor
     func testCreateTeamHeaderCorrectly() async {
         // Arrange
         let mockDataManager = MockDataManager()
@@ -199,9 +202,7 @@ struct TeamInteractorTests {
         let team = Team.make(id: "team1", info: teamInfo, coachId: "coach1", playerIds: [])
         let coach = Coach.make(id: "coach1", firstName: "Mikel", lastName: "Arteta")
         
-        mockDataManager.mockTeams = [team]
-        mockDataManager.mockCoaches = [coach]
-        mockDataManager.mockPlayers = []
+        mockDataManager.mockTeamDetails = (team: team, coach: coach, players: [])
         
         // Act
         let interactor = TeamInteractor(
@@ -210,12 +211,8 @@ struct TeamInteractorTests {
         )
         interactor.delegate = mockDelegate
         
-        // Wait for processing
-        await withCheckedContinuation { continuation in
-            DispatchQueue.main.async {
-                continuation.resume()
-            }
-        }
+        // Wait for async processing
+        try? await Task.sleep(for: .milliseconds(100))
         
         // Assert
         let header = interactor.viewModel.header
@@ -230,6 +227,7 @@ struct TeamInteractorTests {
     // MARK: - Event Bus Tests
     
     @Test("TeamInteractor event bus publishes events correctly")
+    @MainActor
     func testEventBusPublishesEvents() async {
         // Arrange
         let mockDataManager = MockDataManager()
@@ -240,6 +238,9 @@ struct TeamInteractorTests {
         )
         interactor.delegate = mockDelegate
         var receivedEvents: [TeamEvent] = []
+        
+        // Wait for initial load
+        try? await Task.sleep(for: .milliseconds(100))
         
         // Act & Assert
         await confirmation(expectedCount: 2) { confirm in
@@ -275,6 +276,7 @@ struct TeamInteractorTests {
     // MARK: - Delegate Tests
     
     @Test("TeamInteractor delegate method calls are forwarded correctly")
+    @MainActor
     func testDelegateMethodForwarding() async {
         // Arrange
         let mockDataManager = MockDataManager()
@@ -284,6 +286,9 @@ struct TeamInteractorTests {
             dataManager: mockDataManager
         )
         interactor.delegate = mockDelegate
+        
+        // Wait for initial load
+        try? await Task.sleep(for: .milliseconds(100))
         
         // Act & Assert
         await confirmation { confirm in
@@ -299,18 +304,55 @@ struct TeamInteractorTests {
         #expect(mockDelegate.lastPlayerRowTappedId == "player1")
     }
     
-    // MARK: - Data Reactivity Tests
+    // MARK: - Async Data Loading Tests
     
-    @Test("TeamInteractor reacts to data changes")
-    func testReactsToDataChanges() async {
+    @Test("TeamInteractor async data loading works correctly")
+    @MainActor
+    func testAsyncDataLoadingWorksCorrectly() async {
         // Arrange
         let mockDataManager = MockDataManager()
         let mockDelegate = MockTeamInteractorDelegate()
         
-        // Initial empty data
-        mockDataManager.mockTeams = []
-        mockDataManager.mockCoaches = []
-        mockDataManager.mockPlayers = []
+        let teamInfo = TeamInfo.make(id: "team1", city: "Chelsea", teamName: "FC")
+        let team = Team.make(id: "team1", info: teamInfo, coachId: "coach1", playerIds: ["player1"])
+        let coach = Coach.make(id: "coach1", firstName: "Frank", lastName: "Lampard")
+        let player = Player.make(id: "player1", firstName: "Mason", lastName: "Mount", position: "CM")
+        
+        mockDataManager.mockTeamDetails = (team: team, coach: coach, players: [player])
+        
+        // Act
+        let interactor = TeamInteractor(
+            userTeamId: "team1",
+            dataManager: mockDataManager
+        )
+        interactor.delegate = mockDelegate
+        
+        // Wait for the async initialization to complete
+        try? await Task.sleep(for: .milliseconds(100))
+        
+        // Assert
+        #expect(mockDataManager.getTeamDetailsCalled == true)
+        #expect(mockDataManager.lastGetTeamDetailsId == "team1")
+        #expect(interactor.viewModel.teamName == "Chelsea FC")
+        #expect(interactor.viewModel.coachName == "Frank Lampard")
+        #expect(interactor.viewModel.playerRows.count == 1)
+        #expect(interactor.viewModel.playerRows.first?.playerName == "Mason Mount")
+    }
+    
+    @Test("TeamInteractor handles multiple async loads correctly")
+    @MainActor
+    func testHandlesMultipleAsyncLoadsCorrectly() async {
+        // Arrange
+        let mockDataManager = MockDataManager()
+        let mockDelegate = MockTeamInteractorDelegate()
+        
+        // Initial data
+        let teamInfo = TeamInfo.make(id: "team1", city: "Tottenham", teamName: "Hotspur")
+        let team = Team.make(id: "team1", info: teamInfo, coachId: "coach1", playerIds: ["player1"])
+        let coach = Coach.make(id: "coach1", firstName: "Antonio", lastName: "Conte")
+        let player = Player.make(id: "player1", firstName: "Harry", lastName: "Kane", position: "ST")
+        
+        mockDataManager.mockTeamDetails = (team: team, coach: coach, players: [player])
         
         let interactor = TeamInteractor(
             userTeamId: "team1",
@@ -319,40 +361,31 @@ struct TeamInteractorTests {
         interactor.delegate = mockDelegate
         
         // Wait for initial load
-        await withCheckedContinuation { continuation in
-            DispatchQueue.main.async {
-                continuation.resume()
-            }
-        }
+        try? await Task.sleep(for: .milliseconds(100))
         
-        // Verify initial empty state
-        #expect(interactor.viewModel.teamName == "")
+        // Verify initial state
+        #expect(interactor.viewModel.teamName == "Tottenham Hotspur")
+        #expect(interactor.viewModel.coachName == "Antonio Conte")
         
-        // Act - Update data by modifying the @Published properties
-        let teamInfo = TeamInfo.make(id: "team1", city: "Chelsea", teamName: "FC")
-        let team = Team.make(id: "team1", info: teamInfo, coachId: "coach1", playerIds: [])
-        let coach = Coach.make(id: "coach1", firstName: "Frank", lastName: "Lampard")
+        // Act - Change data and trigger reload
+        let newCoach = Coach.make(id: "coach1", firstName: "Ange", lastName: "Postecoglou")
+        mockDataManager.mockTeamDetails = (team: team, coach: newCoach, players: [player])
         
-        mockDataManager.mockTeams = [team]
-        mockDataManager.mockCoaches = [coach]
-        mockDataManager.mockPlayers = []
+        interactor.eventBus.send(.loadTeamData)
         
-        // Wait for processing - the @Published properties automatically notify subscribers
-        await withCheckedContinuation { continuation in
-            DispatchQueue.main.async {
-                continuation.resume()
-            }
-        }
+        // Wait for reload
+        try? await Task.sleep(for: .milliseconds(100))
         
         // Assert - Data should be updated
-        #expect(interactor.viewModel.teamName == "Chelsea FC")
-        #expect(interactor.viewModel.coachName == "Frank Lampard")
+        #expect(interactor.viewModel.coachName == "Ange Postecoglou")
+        #expect(mockDataManager.getTeamDetailsCalled == true) // Called at least once
     }
     
     // MARK: - Memory Management Tests
     
     @Test("TeamInteractor properly manages cancellables")
-    func testCancellablesManagement() {
+    @MainActor
+    func testCancellablesManagement() async {
         // Arrange & Act
         let mockDataManager = MockDataManager()
         let mockDelegate = MockTeamInteractorDelegate()
@@ -361,6 +394,9 @@ struct TeamInteractorTests {
             dataManager: mockDataManager
         )
         interactor?.delegate = mockDelegate
+        
+        // Wait for initial load
+        try? await Task.sleep(for: .milliseconds(100))
         
         // Verify interactor is created
         #expect(interactor != nil)

@@ -55,7 +55,109 @@ SwiftDataStorage (Persistence) → DataManager (Orchestration) → Transformers 
 
 **Key Principle**: SwiftData models never leave storage layer, Client models never enter storage layer
 
-### 3. Coordinator Pattern with Factory Integration
+### 3. Async/Await DataManager Pattern ✨
+```
+@MainActor DataManager Methods → Swift 6 Concurrency → Sendable Protocols
+```
+
+**Modern Concurrency Architecture:**
+- **Async Use-Case Methods**: Replace complex Combine chains with simple async functions
+- **MainActor Threading**: DataManager methods handle their own threading requirements
+- **Sendable Compliance**: All protocols conform to `Sendable` for concurrency safety
+- **Zero Swift 6 Warnings**: Complete migration to modern concurrency patterns
+
+**Example:**
+```swift
+protocol DataManagerProtocol: Sendable {
+    // Traditional reactive publishers (maintained for compatibility)
+    var teamPublisher: AnyPublisher<[Team], Never> { get }
+    var playerPublisher: AnyPublisher<[Player], Never> { get }
+    var coachPublisher: AnyPublisher<[Coach], Never> { get }
+    
+    // NEW: Modern async use-case methods
+    @MainActor
+    func getTeamDetails(teamId: String) async -> (team: Team?, coach: Coach?, players: [Player])
+}
+
+final class SwiftDataManager: DataManagerProtocol, @unchecked Sendable {
+    @MainActor
+    func getTeamDetails(teamId: String) async -> (team: Team?, coach: Coach?, players: [Player]) {
+        // Single use-case method replaces complex 3-publisher Combine chain
+        let sdTeam = storage.fetchTeam(by: teamId)
+        let team = sdTeam.map(swiftDataToClientTransformer.transform)
+        
+        let sdCoach = sdTeam?.coachId.flatMap(storage.fetchCoach)
+        let coach = sdCoach.map(swiftDataToClientTransformer.transform)
+        
+        let sdPlayers = sdTeam?.playerIds.compactMap(storage.fetchPlayer) ?? []
+        let players = sdPlayers.map(swiftDataToClientTransformer.transform)
+        
+        return (team: team, coach: coach, players: players)
+    }
+}
+```
+
+**Concurrency Benefits:**
+- **Simpler Code**: Single async call vs complex publisher chains
+- **Better Error Handling**: Native async throws vs Combine error types  
+- **Threading Clarity**: Clear `@MainActor` vs complex scheduler juggling
+- **Swift 6 Ready**: Native concurrency support without compatibility issues
+
+### 4. MainActor Observable Interactor Pattern ✨
+```
+@MainActor @Observable Interactor → Async DataManager → UI Reactivity
+```
+
+**Modern Interactor Architecture:**
+```swift
+@MainActor @Observable
+class TeamInteractor: TeamInteractorProtocol {
+    var viewModel = TeamViewModel()
+    private let dataManager: DataManagerProtocol
+    
+    private func loadTeamData() async {
+        let details = await dataManager.getTeamDetails(teamId: userTeamId)
+        updateViewModel(details) // @Observable handles UI updates automatically
+    }
+}
+```
+
+**Key Patterns:**
+- **@MainActor**: Ensures all UI-related operations happen on main thread
+- **@Observable**: Provides reactive UI updates without `@Published` properties
+- **Async Methods**: Replace complex Combine subscriptions with simple async calls
+- **Direct Function Calls**: No Task closures or background threading complexity
+
+### 5. Simplified Mock Testing Pattern ✨
+```
+MockDataManager.mockEntityDetails → Direct Test Control → No Array Filtering
+```
+
+**Enhanced Testing Architecture:**
+```swift
+class MockDataManager: DataManagerProtocol {
+    // OLD: Complex filtering through arrays
+    @Published var mockTeams: [Team] = []
+    @Published var mockCoaches: [Coach] = []
+    @Published var mockPlayers: [Player] = []
+    
+    // NEW: Direct control with simple properties
+    var mockTeamDetails: (team: Team?, coach: Coach?, players: [Player]) = (nil, nil, [])
+    
+    @MainActor
+    func getTeamDetails(teamId: String) async -> (team: Team?, coach: Coach?, players: [Player]) {
+        return mockTeamDetails // Direct return, no filtering logic
+    }
+}
+```
+
+**Testing Benefits:**
+- **One-line setup**: `mockDataManager.mockTeamDetails = (team, coach, players)`
+- **Direct control**: Tests specify exactly what method returns
+- **No filtering logic**: Eliminates complex array operations in tests
+- **Clearer intent**: Test setup directly matches what's being tested
+
+### 6. Coordinator Pattern with Factory Integration
 ```
 RootCoordinator → FeatureCoordinators (with InteractorFactory) → BaseFeatureCoordinator<r>
 ```
@@ -67,7 +169,7 @@ RootCoordinator → FeatureCoordinators (with InteractorFactory) → BaseFeature
 - **InteractorFactory Integration**: All coordinators use factory for interactor creation
 - **Child Management**: `startChild()` for automatic lifecycle management
 
-### 4. Feature Architecture Pattern
+### 7. Feature Architecture Pattern
 ```
 Features/[FeatureName]/
 ├── [FeatureName]FeatureCoordinator.swift (uses InteractorFactory)
@@ -83,7 +185,7 @@ Features/[FeatureName]/
 - **View**: Presentation layer with ViewModels for state
 - **LocalDataSource**: Feature-specific data operations
 
-### 5. Dependency Injection Pattern with Factory
+### 8. Dependency Injection Pattern with Factory
 ```
 DependencyContainer.shared → InteractorFactory → Protocol-based dependencies → Mock implementations
 ```
@@ -97,6 +199,24 @@ DependencyContainer.shared → InteractorFactory → Protocol-based dependencies
 
 ## Data Flow Patterns
 
+### Async Use-Case Pattern ✨ 
+**Modern approach** replacing complex Combine chains:
+```swift
+// OLD: Complex Combine chain
+dataManager.teamPublisher
+    .combineLatest(dataManager.coachPublisher, dataManager.playerPublisher)
+    .map { teams, coaches, players in
+        // Complex filtering and mapping logic
+    }
+    .sink { [weak self] in
+        self?.updateUI($0)
+    }
+
+// NEW: Simple async call
+let teamDetails = await dataManager.getTeamDetails(teamId: userTeamId)
+updateViewModel(teamDetails)
+```
+
 ### Request/Result Pattern
 Used for complex operations requiring structured input/output:
 ```swift
@@ -104,7 +224,7 @@ CreateNewCareerRequest → DataManager → CreateNewCareerResult
 ```
 
 ### Publisher Pattern
-Reactive UI updates using Combine:
+Reactive UI updates using Combine (maintained for compatibility):
 ```swift
 DataManager.careerPublisher → UI automatically updates
 ```

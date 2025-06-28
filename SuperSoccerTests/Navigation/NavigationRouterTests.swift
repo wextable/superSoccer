@@ -134,7 +134,7 @@ struct NavigationRouterTests {
         // Arrange
         let router = NavigationRouter()
         let mockInteractor = MockTeamInteractor()
-        let screen = NavigationRouter.Screen.team(interactor: mockInteractor)
+        let screen = NavigationRouter.Screen.team(presenter: mockInteractor)
         
         // Act
         router.replaceNavigationStack(with: screen)
@@ -304,7 +304,7 @@ struct NavigationRouterTests {
         let mainMenuScreen = NavigationRouter.Screen.mainMenu(presenter: mockMainMenuInteractor)
         let newGameScreen = NavigationRouter.Screen.newGame(presenter: mockNewGameInteractor)
         let teamSelectScreen = NavigationRouter.Screen.teamSelect(presenter: mockTeamSelectInteractor)
-        let teamScreen = NavigationRouter.Screen.team(interactor: mockTeamInteractor)
+        let teamScreen = NavigationRouter.Screen.team(presenter: mockTeamInteractor)
         let tabContainerScreen = NavigationRouter.Screen.tabContainer(tabs: [])
         
         // Act & Assert - Test each screen type

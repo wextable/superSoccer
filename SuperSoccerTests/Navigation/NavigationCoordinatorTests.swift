@@ -223,7 +223,7 @@ struct NavigationCoordinatorTests {
         let mainMenuScreen = NavigationRouter.Screen.mainMenu(presenter: mockMainMenuInteractor)
         let newGameScreen = NavigationRouter.Screen.newGame(presenter: mockNewGameInteractor)
         let teamSelectScreen = NavigationRouter.Screen.teamSelect(presenter: mockTeamSelectInteractor)
-        let teamScreen = NavigationRouter.Screen.team(interactor: mockTeamInteractor)
+        let teamScreen = NavigationRouter.Screen.team(presenter: mockTeamInteractor)
         let tabContainerScreen = NavigationRouter.Screen.tabContainer(tabs: [])
         
         // Act & Assert - Test each screen type

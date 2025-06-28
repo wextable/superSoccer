@@ -1,59 +1,38 @@
 # Active Context
 
-## Current Priority: ✅ **MAJOR ACHIEVEMENT - Swift 6 Concurrency Migration COMPLETED**
+## Current Priority: ✅ **ARCHITECTURAL EXCELLENCE ACHIEVED - File Organization Pattern Standardized**
 
-**Major Milestone**: Successfully migrated from Combine-based DataManager to async/await patterns with **ZERO** Swift 6 concurrency warnings.
+**Major Achievement**: Successfully standardized file organization patterns across ALL features with complete architectural consistency.
 
-## Recent Major Achievement: **Swift 6 Concurrency Migration + Team Feature Async Implementation** ✅
+## Recent Major Achievement: **File Organization Pattern Standardization** ✅
 
-**CRITICAL MODERNIZATION COMPLETED**:
-- ✅ **Swift 6 Compliance**: Zero concurrency warnings after complete migration
-- ✅ **Async/Await DataManager**: New `getTeamDetails()` async method implemented
-- ✅ **MainActor Integration**: Proper threading architecture with `@MainActor` annotations
-- ✅ **Sendable Protocols**: DataManagerProtocol + SwiftDataStorageProtocol made Sendable
-- ✅ **Team Feature Modernized**: Full async/await implementation with reactive updates
-- ✅ **Testing Excellence**: All Team tests updated and passing with async patterns
-- ✅ **Clean MockDataManager**: Simplified `mockTeamDetails` property for easier testing
+**CRITICAL ORGANIZATIONAL IMPROVEMENT COMPLETED**:
+- ✅ **ViewPresenter Protocols**: Moved to View files for all features (TeamSelect, MainMenu, NewGame)
+- ✅ **ViewModel Structs**: Consistently placed in View files across all features  
+- ✅ **Architecture Rules Updated**: New file organization pattern documented in workspace rules
+- ✅ **Build Verification**: All changes compile successfully with zero errors
+- ✅ **Complete Consistency**: All features now follow identical file organization patterns
 
-### Technical Architecture Changes ✅
+### File Organization Pattern Established ✅
 
-#### 1. **DataManager Async Methods Pattern**
-- **New Method**: `@MainActor func getTeamDetails(teamId: String) async -> (team: Team?, coach: Coach?, players: [Player])`
-- **Thread Safety**: DataManager methods marked `@MainActor` for main-thread operations
-- **Sendable Compliance**: All protocols conform to `Sendable` with `@unchecked Sendable` on concrete classes
-- **SwiftData Threading**: Operations kept on main thread (lightweight enough, no background complexity needed)
+#### **Standardized Locations**
+- **`[Feature]ViewModel` structs**: Always in `[Feature]View.swift`
+- **`[Feature]ViewPresenter` protocols**: Always in `[Feature]View.swift` 
+- **`[Feature]BusinessLogic` protocols**: Always in `[Feature]Interactor.swift`
+- **View-related types**: Stay with View files
+- **Business logic types**: Stay with Interactor files
 
-#### 2. **TeamInteractor Modernization**
-- **MainActor Observable**: `@MainActor @Observable class TeamInteractor`
-- **Async Loading**: `private func loadTeamData() async` replacing complex Combine subscriptions
-- **Reactive State**: `@Observable` handles UI reactivity without `@Published` properties
-- **Clean Dependencies**: Single async call replaces 3-publisher Combine chain
+#### **Implementation Changes**
+- **TeamSelectViewPresenter**: Moved from `TeamSelectInteractor.swift` → `TeamSelectView.swift`
+- **MainMenuViewPresenter**: Moved from `MainMenuInteractor.swift` → `MainMenuView.swift`  
+- **NewGameViewPresenter**: Moved from `NewGameInteractor.swift` → `NewGameView.swift`
+- **TeamViewPresenter**: Already correctly placed in `TeamView.swift`
 
-#### 3. **Concurrency Architecture Decisions**
-- **No Task.detached**: Avoided unnecessary background threading complexity
-- **DataManager Owns Threading**: DataManager methods handle their own threading requirements
-- **Future-Compatible**: `@MainActor` on specific methods, not entire protocols (cloud-ready)
-- **Simple async/await**: Direct function calls instead of complex Task closures
-
-### Mock Testing Simplification ✅
-
-#### 4. **MockDataManager Enhancement**
-```swift
-// OLD - Complex filtering through arrays
-let team = mockTeams.first { $0.id == teamId }
-let coach = team.flatMap { t in mockCoaches.first { $0.id == t.coachId } }
-let players = team?.playerIds.compactMap { ... } ?? []
-
-// NEW - Simple, direct control
-var mockTeamDetails: (team: Team?, coach: Coach?, players: [Player]) = (nil, nil, [])
-return mockTeamDetails
-```
-
-**Benefits**:
-- **One-line test setup**: `mockDataManager.mockTeamDetails = (team: team, coach: coach, players: [player])`
-- **Direct control**: Tests exactly specify what `getTeamDetails()` returns
-- **No filtering logic**: Eliminates complex array filtering in tests
-- **Easier maintenance**: Clear, simple test data setup
+#### **Benefits Achieved**
+- **Logical Grouping**: View-related types stay with views
+- **Consistency**: 100% uniform pattern across all features
+- **Discoverability**: Easier to find view-related protocols
+- **Single Responsibility**: View files own their presentation contracts
 
 ## Previous Achievement: TeamSelect Architecture **COMPLETED** ✅
 
@@ -99,16 +78,17 @@ NewGame now represents the **COMPLETE ARCHITECTURAL TEMPLATE** with all establis
 
 ## Feature Architecture Status
 
-### 🟢 **Team**: ✅ **ASYNC/AWAIT MODERNIZED** - Swift 6 compliant with modern concurrency
+### 🟢 **Team**: ✅ **ASYNC/AWAIT MODERNIZED + File Organization Excellence**
 - ✅ **Async DataManager Integration**: Uses new `getTeamDetails()` async method
 - ✅ **MainActor Observable**: `@MainActor @Observable` for proper threading
 - ✅ **Swift 6 Compliant**: Zero concurrency warnings
 - ✅ **Simplified Logic**: Single async call replaces complex Combine chain
 - ✅ **Testing Excellence**: All tests updated for async patterns
 - ✅ **Mock Simplification**: `mockTeamDetails` property for direct test control
+- ✅ **File Organization**: ViewPresenter protocol properly located in TeamView.swift
 - 🟡 **Architecture Enhancement Opportunity**: Could apply NewGame's additional patterns (ViewModelTransform, etc.)
 
-### 🟢 **NewGame**: ✅ **ARCHITECTURAL PERFECTION** - Complete Template
+### 🟢 **NewGame**: ✅ **ARCHITECTURAL PERFECTION + File Organization Excellence**
 - ✅ Protocol Separation (BusinessLogic + Presenter)
 - ✅ EventBus Elimination (Direct function calls)
 - ✅ InteractorFactory Integration
@@ -116,18 +96,21 @@ NewGame now represents the **COMPLETE ARCHITECTURAL TEMPLATE** with all establis
 - ✅ **InteractorProtocol Pattern**
 - ✅ **Nested ViewModel Pattern**
 - ✅ **Enhanced Testing Excellence**
+- ✅ **File Organization**: ViewPresenter protocol properly located in NewGameView.swift
 - ✅ Comprehensive test coverage (45+ tests)
 
-### 🟢 **TeamSelect**: ✅ **COMPLETE** - Modern architecture excellence
+### 🟢 **TeamSelect**: ✅ **COMPLETE + File Organization Excellence**
 - ✅ Protocol Separation + EventBus Elimination
 - ✅ InteractorFactory Integration  
 - ✅ Testing excellence with proper mock/real separation (12 tests passing)
+- ✅ **File Organization**: ViewPresenter protocol properly located in TeamSelectView.swift
 - 🟡 **Missing NEW patterns** (ViewModelTransform, InteractorProtocol, Nested ViewModels)
 
-### 🟢 **MainMenu**: ✅ **COMPLETE** - Modern architecture excellence
+### 🟢 **MainMenu**: ✅ **COMPLETE + File Organization Excellence**
 - ✅ Protocol Separation + EventBus Elimination
 - ✅ InteractorFactory Integration  
 - ✅ Excellent testing patterns
+- ✅ **File Organization**: ViewPresenter protocol properly located in MainMenuView.swift
 - 🟡 **Missing NEW patterns** (ViewModelTransform, InteractorProtocol, Nested ViewModels)
 
 ## NEW STANDARD: Async/Await DataManager Pattern ✅
@@ -154,17 +137,42 @@ updateViewModel(teamDetails)
 
 ## Implementation Strategy
 
-### Next Phase: Apply Async/Await to Other Features
-1. **Identify Combine Usage**: Look for complex publisher chains in other features
-2. **Create Async Methods**: Add use-case methods like `getLeagueDetails()`, `getPlayerDetails()`
-3. **Update Interactors**: Replace Combine subscriptions with async calls
-4. **Simplify Testing**: Add direct mock properties for each new async method
-5. **Swift 6 Compliance**: Ensure all new code has zero concurrency warnings
+### Next Phase: Apply NewGame Architecture Excellence to Other Features
+- **Enhanced File Organization**: ✅ **COMPLETED** - All features now have consistent file organization
+- **Team Feature**: Apply complete NewGame architectural template
+  - **ViewModelTransform Pattern**: Create `TeamViewModelTransformProtocol` + implementation
+  - **InteractorProtocol Pattern**: Enhance `TeamInteractorProtocol` with combined protocol design
+  - **Nested ViewModel Pattern**: Implement hierarchical view model composition if needed
+  - **Enhanced Testing**: Apply NewGame's testing excellence patterns
+  - **ViewModelTransform Tests**: Create dedicated transformation testing
 
-### Architecture Enhancement Opportunities
-- **Team Feature**: Could optionally apply NewGame's ViewModelTransform pattern
-- **MainMenu/TeamSelect**: Could upgrade with NewGame's additional patterns
-- **New Features**: Start with complete async/await + NewGame template
+### Future Features Enhancement (Apply NewGame Template)
+- **MainMenu + TeamSelect Enhancement**: Apply NEW patterns discovered in NewGame
+  - **ViewModelTransform Pattern**: Add dedicated transformation classes
+  - **InteractorProtocol Pattern**: Enhance protocol design
+  - **Nested ViewModel Pattern**: Implement hierarchical composition where appropriate
+  - **Enhanced Testing**: Upgrade testing to match NewGame's excellence
+
+### Core Game Features with Complete Architecture (Next Phase)
+- **League Feature**:
+  - League standings display with complete NewGame template
+  - Match schedule and results
+  - Season progression
+  - League statistics
+
+- **Match Simulation**:
+  - Basic match simulation engine with complete architectural template
+  - Pre-match preparation interface
+  - Real-time match events
+  - Post-match results and statistics
+
+- **Player Management**:
+  - Detailed player statistics with complete template
+  - Player development over time
+  - Transfer market functionality
+  - Contract management
+
+- **Career Progression**:
 
 ## Recent Technical Achievements
 

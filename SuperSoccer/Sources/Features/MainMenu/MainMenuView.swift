@@ -7,6 +7,11 @@
 
 import SwiftUI
 
+protocol MainMenuViewPresenter: AnyObject {
+    var viewModel: MainMenuViewModel { get }
+    func newGameTapped()
+}
+
 struct MenuItemViewModel: Identifiable {
     var id: String { title }
     let title: String

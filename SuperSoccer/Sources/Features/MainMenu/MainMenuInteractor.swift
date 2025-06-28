@@ -18,11 +18,6 @@ protocol MainMenuBusinessLogic: AnyObject {
     var delegate: MainMenuBusinessLogicDelegate? { get set }
 }
 
-protocol MainMenuViewPresenter: AnyObject {
-    var viewModel: MainMenuViewModel { get }
-    func newGameTapped()
-}
-
 protocol MainMenuInteractorProtocol: MainMenuBusinessLogic & MainMenuViewPresenter {}
 
 // MARK: - Implementation

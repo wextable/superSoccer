@@ -88,7 +88,7 @@ struct ViewFactoryTests {
         let mockInteractor = MockTeamInteractor()
         
         // Act
-        let view = factory.makeView(for: .team(interactor: mockInteractor))
+        let view = factory.makeView(for: .team(presenter: mockInteractor))
         
         // Assert
         #expect(view != nil)
@@ -272,7 +272,7 @@ struct ViewFactoryTests {
         let mainMenuView = mockFactory.makeView(for: .mainMenu(presenter: mockMainMenuInteractor))
         let newGameView = mockFactory.makeView(for: .newGame(presenter: mockNewGameInteractor))
                     let teamSelectView = mockFactory.makeView(for: .teamSelect(presenter: mockTeamSelectInteractor))
-        let teamView = mockFactory.makeView(for: .team(interactor: mockTeamInteractor))
+        let teamView = mockFactory.makeView(for: .team(presenter: mockTeamInteractor))
         let tabContainerView = mockFactory.makeView(for: .tabContainer(tabs: tabs))
         
         // Assert

@@ -2,6 +2,107 @@
 
 This file captures specific technical lessons, fixes, and implementation details discovered during development.
 
+## Swift 6 Concurrency Migration ⚠️ MAJOR MILESTONE
+
+### Async/Await DataManager Pattern ✨ SUCCESSFUL MIGRATION
+**Problem**: Swift 6 concurrency warnings with Combine publishers and complex threading:
+- "Sending 'self.dataManager' risks causing data races"
+- "Task or actor isolated value cannot be sent"  
+- "Capture of 'self' with non-sendable type in @Sendable closure"
+
+**Solution**: Complete migration to async/await with proper actor isolation:
+
+#### 1. DataManager Async Methods
+```swift
+protocol DataManagerProtocol: Sendable {
+    // NEW: Use-case methods replace complex Combine chains
+    @MainActor
+    func getTeamDetails(teamId: String) async -> (team: Team?, coach: Coach?, players: [Player])
+}
+
+final class SwiftDataManager: DataManagerProtocol, @unchecked Sendable {
+    @MainActor
+    func getTeamDetails(teamId: String) async -> (team: Team?, coach: Coach?, players: [Player]) {
+        // Single method replaces 3-publisher Combine chain
+        // SwiftData operations are lightweight enough for main thread
+    }
+}
+```
+
+#### 2. MainActor Observable Interactors
+```swift
+@MainActor @Observable
+class TeamInteractor: TeamInteractorProtocol {
+    var viewModel = TeamViewModel()
+    
+    // OLD: Complex Combine subscription
+    // dataManager.teamPublisher.combineLatest(coachPublisher, playerPublisher)...
+    
+    // NEW: Simple async call
+    private func loadTeamData() async {
+        let details = await dataManager.getTeamDetails(teamId: userTeamId)
+        updateViewModel(details) // @Observable handles reactivity
+    }
+}
+```
+
+#### 3. Sendable Protocol Compliance
+```swift
+protocol DataManagerProtocol: Sendable { /* */ }
+protocol SwiftDataStorageProtocol: Sendable { /* */ }
+
+// Concrete classes with @unchecked Sendable (they manage their own thread safety)
+final class SwiftDataManager: DataManagerProtocol, @unchecked Sendable { /* */ }
+final class SwiftDataStorage: SwiftDataStorageProtocol, @unchecked Sendable { /* */ }
+```
+
+#### 4. Simplified Mock Testing
+```swift
+class MockDataManager: DataManagerProtocol {
+    // OLD: Complex array filtering
+    var mockTeams: [Team] = []
+    func getTeamDetails(teamId: String) async -> (...) {
+        let team = mockTeams.first { $0.id == teamId } // Complex filtering
+    }
+    
+    // NEW: Direct control
+    var mockTeamDetails: (Team?, Coach?, [Player]) = (nil, nil, [])
+    func getTeamDetails(teamId: String) async -> (...) {
+        return mockTeamDetails // Direct return
+    }
+}
+
+// Test setup becomes one line:
+mockDataManager.mockTeamDetails = (team: team, coach: coach, players: [player])
+```
+
+**Critical Architecture Decisions**:
+- **SwiftData on Main Thread**: Operations are lightweight, no background threading needed
+- **@MainActor on Methods**: Specific methods only, not entire protocols (future cloud compatibility)
+- **DataManager Owns Threading**: Methods handle their own requirements, callers don't need Task.detached
+- **@unchecked Sendable**: For classes that manage their own thread safety properly
+
+**Result**: ✅ **ZERO Swift 6 concurrency warnings** + significantly simpler code
+
+### Migration Pattern for Other Features
+```swift
+// BEFORE: Complex Combine chain causing concurrency warnings
+cancellables.removeAll()
+dataManager.entityPublisher
+    .combineLatest(dataManager.relatedPublisher)
+    .receive(on: DispatchQueue.main)
+    .sink { [weak self] entities, related in
+        self?.updateViewModel(entities, related)
+    }
+    .store(in: &cancellables)
+
+// AFTER: Simple async call with zero warnings
+let details = await dataManager.getEntityDetails(id: entityId)
+updateViewModel(details)
+```
+
+**Performance Impact**: Tests run faster, no artificial delays, more reliable async patterns.
+
 ## Testing Fixes & Patterns
 
 ### MockLocalDataSource Reactive Testing Fix ⚠️ CRITICAL
